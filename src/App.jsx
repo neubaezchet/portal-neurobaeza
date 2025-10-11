@@ -8,7 +8,8 @@ import {
 // ==================== CONFIGURACIÓN API ====================
 // ✅ CORRECCIÓN: Usar variables de entorno correctamente
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://bakcend-gemi-cha-2.onrender.com';
-const ADMIN_TOKEN = process.env.REACT_APP_ADMIN_TOKEN || '0b9685e9a9ff3c24652acaad881ec7b2b4c17f6082ad164d10a6e67589f3f67chttps://bakcend-gemi-cha-2.onrender.com';
+// ✅ FIX: Token sin URL concatenada
+const ADMIN_TOKEN = process.env.REACT_APP_ADMIN_TOKEN || '0b9685e9a9ff3c24652acaad881ec7b2b4c17f6082ad164d10a6e67589f3f67c';
 
 const getHeaders = () => ({
   'Content-Type': 'application/json',
@@ -76,7 +77,7 @@ const STATUS_MAP = {
 };
 
 // ==================== COMPONENTE PRINCIPAL ====================
-export default function PortalValidadores() {
+function PortalValidadores() {
   const [casos, setCasos] = useState([]);
   const [casoSeleccionado, setCasoSeleccionado] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -392,7 +393,7 @@ export default function PortalValidadores() {
                 <div><span className="text-gray-400">Teléfono:</span><p className="font-medium">{casoSeleccionado.telefono}</p></div>
               </div>
               <div className="flex flex-wrap justify-center gap-2 mt-6 pt-6 border-t border-gray-700">
-                {['incompleta', 'transcripcion', 'tthh', 'causaExtra', 'completa'].map((accion, idx) => {
+                {['incompleta', 'transcripcion', 'tthh', 'causaExtra', 'completa'].map((accion) => {
                   const config = {
                     incompleta: { icon: XCircle, label: 'Incompleta', color: '#dc2626', key: '1' },
                     transcripcion: { icon: FileText, label: 'EPS', color: '#ca8a04', key: '2' },
@@ -489,3 +490,6 @@ export default function PortalValidadores() {
     </div>
   );
 }
+
+// ✅ CORRECCIÓN: Export por defecto
+export default PortalValidadores;
