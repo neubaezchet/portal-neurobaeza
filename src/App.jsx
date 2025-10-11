@@ -6,10 +6,9 @@ import {
 } from 'lucide-react';
 
 // ==================== CONFIGURACIÓN API ====================
-// NOTA: En tu proyecto real, estas variables vendrán de .env
-// Para el artifact usamos valores de demostración
-const API_BASE_URL = 'http://localhost:8000';
-const ADMIN_TOKEN = 'demo-token';
+// ✅ CORRECCIÓN: Usar variables de entorno correctamente
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const ADMIN_TOKEN = process.env.REACT_APP_ADMIN_TOKEN || '';
 
 const getHeaders = () => ({
   'Content-Type': 'application/json',
@@ -102,16 +101,16 @@ export default function PortalValidadores() {
     if (!silencioso) setLoading(true);
     try {
       const data = await api.getCasos({
-        empresa: empresaFiltro,
-        estado: estadoFiltro,
-        tipo: tipoFiltro,
-        q: busqueda,
+        empresa: empresaFiltro !== 'all' ? empresaFiltro : undefined,
+        estado: estadoFiltro !== 'all' ? estadoFiltro : undefined,
+        tipo: tipoFiltro !== 'all' ? tipoFiltro : undefined,
+        q: busqueda || undefined,
         page: page.toString(),
         page_size: '20'
       });
-      setCasos(data.items);
-      setTotalPages(data.total_pages);
-      if (data.items.length > 0 && !casoSeleccionado) {
+      setCasos(data.items || []);
+      setTotalPages(data.pages || 1);
+      if (data.items && data.items.length > 0 && !casoSeleccionado) {
         cargarDetalleCaso(data.items[0].serial);
       }
     } catch (error) {
@@ -123,7 +122,7 @@ export default function PortalValidadores() {
 
   const cargarEstadisticas = useCallback(async () => {
     try {
-      const data = await api.getStats(empresaFiltro);
+      const data = await api.getStats(empresaFiltro !== 'all' ? empresaFiltro : undefined);
       setStats(data);
     } catch (error) {
       console.error('Error cargando estadísticas:', error);
@@ -149,6 +148,7 @@ export default function PortalValidadores() {
       mostrarNotificacion(`✅ Estado actualizado a ${nuevoEstado}`, 'success');
       await cargarDetalleCaso(casoSeleccionado.serial);
       await cargarCasos();
+      await cargarEstadisticas();
       setModalActivo(null);
     } catch (error) {
       mostrarNotificacion('Error: ' + error.message, 'error');
@@ -247,10 +247,10 @@ export default function PortalValidadores() {
   };
 
   const MiniContador = () => {
-    const incompletas = stats.por_estado?.INCOMPLETA || 0;
-    const eps = stats.por_estado?.EPS_TRANSCRIPCION || 0;
-    const completas = stats.por_estado?.COMPLETA || 0;
-    const tthh = stats.por_estado?.DERIVADO_TTHH || 0;
+    const incompletas = stats.incompletas || 0;
+    const eps = stats.eps || 0;
+    const completas = stats.completas || 0;
+    const tthh = stats.tthh || 0;
     return (
       <div className="flex justify-between text-xs font-semibold mb-4 p-2 rounded-lg bg-white/10">
         <span className="text-red-400">❌ {incompletas}</span>
@@ -266,7 +266,8 @@ export default function PortalValidadores() {
       {notificacion && (
         <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
           notificacion.tipo === 'error' ? 'bg-red-600' : 'bg-green-600'
-        } text-white`}>
+        } text-white flex items-center gap-2`}>
+          {notificacion.tipo === 'error' ? <XCircle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
           {notificacion.mensaje}
         </div>
       )}
@@ -285,12 +286,14 @@ export default function PortalValidadores() {
           <button
             onClick={() => setAutoRefresh(!autoRefresh)}
             className={`p-2 rounded-lg transition-colors ${autoRefresh ? 'bg-green-600' : 'bg-gray-700'}`}
+            title="Auto-refresh cada 30s"
           >
             <RefreshCw className={`w-5 h-5 ${autoRefresh ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={() => api.exportarCasos('xlsx', { empresa: empresaFiltro, estado: estadoFiltro })}
             className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors"
+            title="Exportar a Excel"
           >
             <Download className="w-5 h-5" />
           </button>
@@ -307,21 +310,25 @@ export default function PortalValidadores() {
           <div className="space-y-3 mb-4">
             <select value={empresaFiltro} onChange={(e) => setEmpresaFiltro(e.target.value)}
               className="w-full bg-gray-800 text-white rounded-lg p-2 border border-gray-600">
-              <option value="all">Todas las Empresas</option>
-              <option value="Innovatech">Innovatech</option>
-              <option value="Comercializadora">Comercializadora</option>
+              <option value="all">🏢 Todas las Empresas</option>
+              <option value="Innovatech Solutions">Innovatech Solutions</option>
+              <option value="Comercializadora Alfa">Comercializadora Alfa</option>
+              <option value="TechCorp Services">TechCorp Services</option>
             </select>
             <input id="searchBar" type="text" value={busqueda} onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="🔍 Buscar (Ctrl+K)..." className="w-full p-2 rounded-lg bg-gray-800 border border-gray-600 text-white" />
+              placeholder="🔍 Buscar (Ctrl+K)..." className="w-full p-2 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-500" />
             <div className="grid grid-cols-2 gap-2">
               <select value={tipoFiltro} onChange={(e) => setTipoFiltro(e.target.value)}
-                className="p-1 text-sm rounded-lg bg-gray-800 border border-gray-600">
+                className="p-1 text-sm rounded-lg bg-gray-800 border border-gray-600 text-white">
                 <option value="all">Todos Tipos</option>
-                <option value="enfermedad_general">General</option>
-                <option value="enfermedad_laboral">Laboral</option>
+                <option value="maternidad">Maternidad</option>
+                <option value="paternidad">Paternidad</option>
+                <option value="general">General</option>
+                <option value="labor">Laboral</option>
+                <option value="traffic">Tránsito</option>
               </select>
               <select value={estadoFiltro} onChange={(e) => setEstadoFiltro(e.target.value)}
-                className="p-1 text-sm rounded-lg bg-gray-800 border border-gray-600">
+                className="p-1 text-sm rounded-lg bg-gray-800 border border-gray-600 text-white">
                 <option value="all">Todos Estados</option>
                 {Object.keys(STATUS_MAP).map(estado => (
                   <option key={estado} value={estado}>{STATUS_MAP[estado].label}</option>
@@ -333,6 +340,7 @@ export default function PortalValidadores() {
             {loading ? (
               <div className="text-center py-8">
                 <RefreshCw className="w-8 h-8 animate-spin mx-auto text-blue-500" />
+                <p className="text-sm text-gray-400 mt-2">Cargando...</p>
               </div>
             ) : casos.length === 0 ? (
               <div className="text-center py-8">
@@ -346,12 +354,12 @@ export default function PortalValidadores() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-700">
               <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1}
-                className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50">
+                className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <span className="text-sm">Página {page} de {totalPages}</span>
               <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages}
-                className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50">
+                className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -363,40 +371,55 @@ export default function PortalValidadores() {
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <FolderOpen className="w-16 h-16 mx-auto text-gray-600 mb-4" />
-                <p className="text-gray-400">Selecciona un caso</p>
+                <p className="text-gray-400">Selecciona un caso del panel lateral</p>
+                <p className="text-xs text-gray-500 mt-2">Usa los filtros para buscar casos específicos</p>
               </div>
             </div>
           ) : (
-            <div className={`rounded-2xl border-2 p-6 ${STATUS_MAP[casoSeleccionado.estado]?.borderColor || 'border-gray-700'}`}>
-              <h2 className="text-2xl font-bold text-yellow-300 mb-4">{casoSeleccionado.serial}</h2>
-              <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                <div><span className="text-gray-400">Nombre:</span><p>{casoSeleccionado.nombre}</p></div>
-                <div><span className="text-gray-400">Cédula:</span><p>{casoSeleccionado.cedula}</p></div>
-                <div><span className="text-gray-400">Empresa:</span><p>{casoSeleccionado.empresa}</p></div>
-                <div><span className="text-gray-400">Tipo:</span><p>{casoSeleccionado.tipo}</p></div>
+            <div className={`rounded-2xl border-2 p-6 transition-all ${STATUS_MAP[casoSeleccionado.estado]?.borderColor || 'border-gray-700'} bg-gray-800/50`}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-yellow-300">{casoSeleccionado.serial}</h2>
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${STATUS_MAP[casoSeleccionado.estado]?.color || 'bg-gray-600'} text-white`}>
+                  {STATUS_MAP[casoSeleccionado.estado]?.label || casoSeleccionado.estado}
+                </span>
               </div>
-              <div className="flex justify-center gap-2 mt-6 pt-6 border-t border-gray-700">
-                <button onClick={() => handleAccion('incompleta')} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'0.5rem',padding:'0.75rem 1rem',borderRadius:'0.75rem',backgroundColor:'#dc2626',color:'white',fontWeight:'600',fontSize:'0.875rem',border:'none',cursor:'pointer',minWidth:'100px'}}>
-                  <XCircle className="w-5 h-5" /><span style={{fontSize:'0.75rem'}}>Incompleta (1)</span>
-                </button>
-                <button onClick={() => handleAccion('transcripcion')} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'0.5rem',padding:'0.75rem 1rem',borderRadius:'0.75rem',backgroundColor:'#ca8a04',color:'white',fontWeight:'600',fontSize:'0.875rem',border:'none',cursor:'pointer',minWidth:'100px'}}>
-                  <FileText className="w-5 h-5" /><span style={{fontSize:'0.75rem'}}>EPS (2)</span>
-                </button>
-                <button onClick={() => handleAccion('tthh')} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'0.5rem',padding:'0.75rem 1rem',borderRadius:'0.75rem',backgroundColor:'#2563eb',color:'white',fontWeight:'600',fontSize:'0.875rem',border:'none',cursor:'pointer',minWidth:'100px'}}>
-                  <Send className="w-5 h-5" /><span style={{fontSize:'0.75rem'}}>TTHH (3)</span>
-                </button>
-                <button onClick={() => handleAccion('causaExtra')} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'0.5rem',padding:'0.75rem 1rem',borderRadius:'0.75rem',backgroundColor:'#6b7280',color:'white',fontWeight:'600',fontSize:'0.875rem',border:'none',cursor:'pointer',minWidth:'100px'}}>
-                  <Edit3 className="w-5 h-5" /><span style={{fontSize:'0.75rem'}}>Extra (4)</span>
-                </button>
-                <button onClick={() => handleAccion('completa')} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'0.5rem',padding:'0.75rem 1rem',borderRadius:'0.75rem',backgroundColor:'#16a34a',color:'white',fontWeight:'600',fontSize:'0.875rem',border:'none',cursor:'pointer',minWidth:'100px'}}>
-                  <CheckCircle className="w-5 h-5" /><span style={{fontSize:'0.75rem'}}>Completa (5)</span>
-                </button>
+              <div className="grid grid-cols-2 gap-4 text-sm mb-6">
+                <div><span className="text-gray-400">Nombre:</span><p className="font-medium">{casoSeleccionado.nombre}</p></div>
+                <div><span className="text-gray-400">Cédula:</span><p className="font-medium">{casoSeleccionado.cedula}</p></div>
+                <div><span className="text-gray-400">Empresa:</span><p className="font-medium">{casoSeleccionado.empresa}</p></div>
+                <div><span className="text-gray-400">Tipo:</span><p className="font-medium">{casoSeleccionado.tipo}</p></div>
+                <div><span className="text-gray-400">Email:</span><p className="font-medium text-xs">{casoSeleccionado.email}</p></div>
+                <div><span className="text-gray-400">Teléfono:</span><p className="font-medium">{casoSeleccionado.telefono}</p></div>
+              </div>
+              <div className="flex flex-wrap justify-center gap-2 mt-6 pt-6 border-t border-gray-700">
+                {['incompleta', 'transcripcion', 'tthh', 'causaExtra', 'completa'].map((accion, idx) => {
+                  const config = {
+                    incompleta: { icon: XCircle, label: 'Incompleta', color: '#dc2626', key: '1' },
+                    transcripcion: { icon: FileText, label: 'EPS', color: '#ca8a04', key: '2' },
+                    tthh: { icon: Send, label: 'TTHH', color: '#2563eb', key: '3' },
+                    causaExtra: { icon: Edit3, label: 'Extra', color: '#6b7280', key: '4' },
+                    completa: { icon: CheckCircle, label: 'Completa', color: '#16a34a', key: '5' }
+                  }[accion];
+                  const Icon = config.icon;
+                  return (
+                    <button 
+                      key={accion}
+                      onClick={() => handleAccion(accion)} 
+                      className="flex flex-col items-center gap-2 px-4 py-3 rounded-xl text-white font-semibold text-sm border-none cursor-pointer min-w-[100px] hover:scale-105 active:scale-95 transition-transform"
+                      style={{backgroundColor: config.color}}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="text-xs">{config.label} ({config.key})</span>
+                    </button>
+                  );
+                })}
               </div>
               {casoSeleccionado.drive_link && (
                 <div className="mt-6 text-center">
                   <a href={casoSeleccionado.drive_link} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg">
-                    <FolderOpen className="w-4 h-4" />Ver Documentos
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                    <FolderOpen className="w-5 h-5" />
+                    Ver Documentos en Drive
                   </a>
                 </div>
               )}
@@ -406,32 +429,59 @@ export default function PortalValidadores() {
       </div>
 
       {modalActivo === 'incompleta' && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" onClick={() => setModalActivo(null)}>
-          <div className="bg-gray-800 p-6 rounded-2xl max-w-lg w-full mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold mb-4 text-red-400">Marcar como Incompleta</h3>
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setModalActivo(null)}>
+          <div className="bg-gray-800 p-6 rounded-2xl max-w-lg w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-red-400">Marcar como Incompleta</h3>
+              <button onClick={() => setModalActivo(null)} className="p-1 hover:bg-gray-700 rounded">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
             <textarea value={modalData.motivo} onChange={(e) => setModalData({...modalData, motivo: e.target.value})}
-              placeholder="Motivo" className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white mb-4" rows="3" />
-            <input type="date" value={modalData.fechaLimite} onChange={(e) => setModalData({...modalData, fechaLimite: e.target.value})}
-              className="w-full p-2 rounded-lg bg-gray-700 border border-gray-600 text-white mb-4" />
+              placeholder="Describe qué documentos faltan o están ilegibles..." 
+              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white mb-4 placeholder-gray-500" 
+              rows="3" />
+            <div className="mb-4">
+              <label className="block text-sm text-gray-400 mb-1">Fecha límite para corrección:</label>
+              <input type="date" value={modalData.fechaLimite} onChange={(e) => setModalData({...modalData, fechaLimite: e.target.value})}
+                className="w-full p-2 rounded-lg bg-gray-700 border border-gray-600 text-white" />
+            </div>
             <div className="flex gap-3">
-              <button onClick={() => setModalActivo(null)} className="flex-1 px-4 py-2 bg-gray-600 rounded-lg">Cancelar</button>
-              <button onClick={() => cambiarEstado('INCOMPLETA', modalData.motivo)} className="flex-1 px-4 py-2 bg-red-600 rounded-lg">Confirmar</button>
+              <button onClick={() => setModalActivo(null)} className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors">
+                Cancelar
+              </button>
+              <button onClick={() => cambiarEstado('INCOMPLETA', modalData.motivo)} 
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-semibold">
+                Confirmar y Enviar Email
+              </button>
             </div>
           </div>
         </div>
       )}
 
       {modalActivo === 'causaExtra' && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" onClick={() => setModalActivo(null)}>
-          <div className="bg-gray-800 p-6 rounded-2xl max-w-xl w-full mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold mb-4 text-gray-300">Causa Extra</h3>
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setModalActivo(null)}>
+          <div className="bg-gray-800 p-6 rounded-2xl max-w-xl w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-300">Causa Extra - Email Personalizado</h3>
+              <button onClick={() => setModalActivo(null)} className="p-1 hover:bg-gray-700 rounded">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
             <input type="text" value={modalData.emailSubject} onChange={(e) => setModalData({...modalData, emailSubject: e.target.value})}
-              placeholder="Asunto" className="w-full p-2 rounded-lg bg-gray-700 border border-gray-600 text-white mb-4" />
+              placeholder="Asunto del correo" className="w-full p-2 rounded-lg bg-gray-700 border border-gray-600 text-white mb-4 placeholder-gray-500" />
             <textarea value={modalData.emailBody} onChange={(e) => setModalData({...modalData, emailBody: e.target.value})}
-              placeholder="Mensaje..." className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white mb-4" rows="6" />
+              placeholder="Escribe el mensaje personalizado para el trabajador..." 
+              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white mb-4 placeholder-gray-500" 
+              rows="6" />
             <div className="flex gap-3">
-              <button onClick={() => setModalActivo(null)} className="flex-1 px-4 py-2 bg-gray-600 rounded-lg">Cancelar</button>
-              <button onClick={() => cambiarEstado('CAUSA_EXTRA', modalData.emailBody)} className="flex-1 px-4 py-2 bg-gray-500 rounded-lg">Enviar</button>
+              <button onClick={() => setModalActivo(null)} className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors">
+                Cancelar
+              </button>
+              <button onClick={() => cambiarEstado('CAUSA_EXTRA', modalData.emailBody)} 
+                className="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 rounded-lg transition-colors font-semibold">
+                Enviar Correo
+              </button>
             </div>
           </div>
         </div>
