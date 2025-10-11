@@ -7,8 +7,8 @@ import {
 
 // ==================== CONFIGURACIÓN API ====================
 // ✅ CORRECCIÓN: Usar variables de entorno correctamente
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-const ADMIN_TOKEN = process.env.REACT_APP_ADMIN_TOKEN || '';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://bakcend-gemi-cha-2.onrender.com';
+const ADMIN_TOKEN = process.env.REACT_APP_ADMIN_TOKEN || '0b9685e9a9ff3c24652acaad881ec7b2b4c17f6082ad164d10a6e67589f3f67chttps://bakcend-gemi-cha-2.onrender.com';
 
 const getHeaders = () => ({
   'Content-Type': 'application/json',
