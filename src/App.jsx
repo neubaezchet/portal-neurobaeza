@@ -6,9 +6,7 @@ import {
 } from 'lucide-react';
 
 // ==================== CONFIGURACIÓN API ====================
-// ✅ CORRECCIÓN: Usar variables de entorno correctamente
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://bakcend-gemi-cha-2.onrender.com';
-// ✅ FIX: Token sin URL concatenada
 const ADMIN_TOKEN = process.env.REACT_APP_ADMIN_TOKEN || '0b9685e9a9ff3c24652acaad881ec7b2b4c17f6082ad164d10a6e67589f3f67c';
 
 const getHeaders = () => ({
@@ -37,6 +35,7 @@ const apiFetch = async (endpoint, options = {}) => {
 };
 
 const api = {
+  getEmpresas: () => apiFetch('/validador/empresas'),
   getCasos: (params = {}) => {
     const queryParams = new URLSearchParams(params).toString();
     return apiFetch(`/validador/casos?${queryParams}`);
@@ -81,6 +80,7 @@ function PortalValidadores() {
   const [casos, setCasos] = useState([]);
   const [casoSeleccionado, setCasoSeleccionado] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [empresas, setEmpresas] = useState([]);
   const [empresaFiltro, setEmpresaFiltro] = useState('all');
   const [estadoFiltro, setEstadoFiltro] = useState('all');
   const [tipoFiltro, setTipoFiltro] = useState('all');
@@ -129,6 +129,17 @@ function PortalValidadores() {
       console.error('Error cargando estadísticas:', error);
     }
   }, [empresaFiltro]);
+
+  const cargarEmpresas = useCallback(async () => {
+    try {
+      const data = await api.getEmpresas();
+      setEmpresas(data.empresas || []);
+      console.log('✅ Empresas cargadas:', data.empresas);
+    } catch (error) {
+      console.error('❌ Error cargando empresas:', error);
+      mostrarNotificacion('Error cargando empresas: ' + error.message, 'error');
+    }
+  }, []);
 
   const cargarDetalleCaso = async (serial) => {
     try {
@@ -203,7 +214,8 @@ function PortalValidadores() {
   useEffect(() => {
     cargarCasos();
     cargarEstadisticas();
-  }, [cargarCasos, cargarEstadisticas]);
+    cargarEmpresas();
+  }, [cargarCasos, cargarEstadisticas, cargarEmpresas]);
 
   useEffect(() => {
     const handleKeyPress = (e) => {
@@ -312,9 +324,9 @@ function PortalValidadores() {
             <select value={empresaFiltro} onChange={(e) => setEmpresaFiltro(e.target.value)}
               className="w-full bg-gray-800 text-white rounded-lg p-2 border border-gray-600">
               <option value="all">🏢 Todas las Empresas</option>
-              <option value="Innovatech Solutions">Innovatech Solutions</option>
-              <option value="Comercializadora Alfa">Comercializadora Alfa</option>
-              <option value="TechCorp Services">TechCorp Services</option>
+              {empresas.map(empresa => (
+                <option key={empresa} value={empresa}>{empresa}</option>
+              ))}
             </select>
             <input id="searchBar" type="text" value={busqueda} onChange={(e) => setBusqueda(e.target.value)}
               placeholder="🔍 Buscar (Ctrl+K)..." className="w-full p-2 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-500" />
@@ -389,8 +401,8 @@ function PortalValidadores() {
                 <div><span className="text-gray-400">Cédula:</span><p className="font-medium">{casoSeleccionado.cedula}</p></div>
                 <div><span className="text-gray-400">Empresa:</span><p className="font-medium">{casoSeleccionado.empresa}</p></div>
                 <div><span className="text-gray-400">Tipo:</span><p className="font-medium">{casoSeleccionado.tipo}</p></div>
-                <div><span className="text-gray-400">Email:</span><p className="font-medium text-xs">{casoSeleccionado.email}</p></div>
-                <div><span className="text-gray-400">Teléfono:</span><p className="font-medium">{casoSeleccionado.telefono}</p></div>
+                <div><span className="text-gray-400">Email:</span><p className="font-medium text-xs">{casoSeleccionado.email_form}</p></div>
+                <div><span className="text-gray-400">Teléfono:</span><p className="font-medium">{casoSeleccionado.telefono_form}</p></div>
               </div>
               <div className="flex flex-wrap justify-center gap-2 mt-6 pt-6 border-t border-gray-700">
                 {['incompleta', 'transcripcion', 'tthh', 'causaExtra', 'completa'].map((accion) => {
@@ -491,5 +503,4 @@ function PortalValidadores() {
   );
 }
 
-// ✅ CORRECCIÓN: Export por defecto
 export default PortalValidadores;
