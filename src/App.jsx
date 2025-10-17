@@ -9,6 +9,14 @@ import {
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://bakcend-gemi-cha-2.onrender.com';
 const ADMIN_TOKEN = process.env.REACT_APP_ADMIN_TOKEN || '0b9685e9a9ff3c24652acaad881ec7b2b4c17f6082ad164d10a6e67589f3f67c';
 
+// DEBUG: Verificar configuración al cargar
+console.log('🔍 Configuración de API:', {
+  API_BASE_URL,
+  HAS_TOKEN: ADMIN_TOKEN ? '✅ Sí' : '❌ No',
+  TOKEN_LENGTH: ADMIN_TOKEN?.length,
+  NODE_ENV: process.env.NODE_ENV
+});
+
 const getHeaders = () => ({
   'Content-Type': 'application/json',
   'X-Admin-Token': ADMIN_TOKEN,
@@ -21,15 +29,21 @@ const apiFetch = async (endpoint, options = {}) => {
     ...options,
   };
 
+  console.log(`🌐 Fetching: ${endpoint}`);
+  
   try {
     const response = await fetch(url, defaultOptions);
+    console.log(`📡 Response ${endpoint}:`, response.status, response.statusText);
+    
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || errorData.error || `Error: ${response.status}`);
     }
-    return await response.json();
+    const data = await response.json();
+    console.log(`✅ Data ${endpoint}:`, data);
+    return data;
   } catch (error) {
-    console.error('API Error:', error);
+    console.error(`❌ Error ${endpoint}:`, error);
     throw error;
   }
 };
@@ -37,7 +51,11 @@ const apiFetch = async (endpoint, options = {}) => {
 const api = {
   getEmpresas: () => apiFetch('/validador/empresas'),
   getCasos: (params = {}) => {
-    const queryParams = new URLSearchParams(params).toString();
+    // Limpiar parámetros undefined
+    const cleanParams = Object.fromEntries(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== 'undefined')
+    );
+    const queryParams = new URLSearchParams(cleanParams).toString();
     return apiFetch(`/validador/casos?${queryParams}`);
   },
   getCasoDetalle: (serial) => apiFetch(`/validador/casos/${serial}`),
@@ -101,21 +119,26 @@ function PortalValidadores() {
   const cargarCasos = useCallback(async (silencioso = false) => {
     if (!silencioso) setLoading(true);
     try {
-      const data = await api.getCasos({
-        empresa: empresaFiltro !== 'all' ? empresaFiltro : undefined,
-        estado: estadoFiltro !== 'all' ? estadoFiltro : undefined,
-        tipo: tipoFiltro !== 'all' ? tipoFiltro : undefined,
-        q: busqueda || undefined,
+      const params = {
         page: page.toString(),
         page_size: '20'
-      });
+      };
+      
+      // Solo agregar filtros si no son "all"
+      if (empresaFiltro && empresaFiltro !== 'all') params.empresa = empresaFiltro;
+      if (estadoFiltro && estadoFiltro !== 'all') params.estado = estadoFiltro;
+      if (tipoFiltro && tipoFiltro !== 'all') params.tipo = tipoFiltro;
+      if (busqueda && busqueda.trim()) params.q = busqueda;
+      
+      const data = await api.getCasos(params);
       setCasos(data.items || []);
-      setTotalPages(data.pages || 1);
+      setTotalPages(data.total_pages || 1);
       if (data.items && data.items.length > 0 && !casoSeleccionado) {
         cargarDetalleCaso(data.items[0].serial);
       }
     } catch (error) {
       mostrarNotificacion('Error cargando casos: ' + error.message, 'error');
+      console.error('Error completo:', error);
     } finally {
       if (!silencioso) setLoading(false);
     }
@@ -123,7 +146,8 @@ function PortalValidadores() {
 
   const cargarEstadisticas = useCallback(async () => {
     try {
-      const data = await api.getStats(empresaFiltro !== 'all' ? empresaFiltro : undefined);
+      const empresa = empresaFiltro !== 'all' ? empresaFiltro : 'all';
+      const data = await api.getStats(empresa);
       setStats(data);
     } catch (error) {
       console.error('Error cargando estadísticas:', error);
@@ -133,8 +157,8 @@ function PortalValidadores() {
   const cargarEmpresas = useCallback(async () => {
     try {
       const data = await api.getEmpresas();
+      console.log('✅ Empresas recibidas:', data);
       setEmpresas(data.empresas || []);
-      console.log('✅ Empresas cargadas:', data.empresas);
     } catch (error) {
       console.error('❌ Error cargando empresas:', error);
       mostrarNotificacion('Error cargando empresas: ' + error.message, 'error');
