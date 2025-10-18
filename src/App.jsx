@@ -9,14 +9,6 @@ import {
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://bakcend-gemi-cha-2.onrender.com';
 const ADMIN_TOKEN = process.env.REACT_APP_ADMIN_TOKEN || '0b9685e9a9ff3c24652acaad881ec7b2b4c17f6082ad164d10a6e67589f3f67c';
 
-// DEBUG: Verificar configuración al cargar
-console.log('🔍 Configuración de API:', {
-  API_BASE_URL,
-  HAS_TOKEN: ADMIN_TOKEN ? '✅ Sí' : '❌ No',
-  TOKEN_LENGTH: ADMIN_TOKEN?.length,
-  NODE_ENV: process.env.NODE_ENV
-});
-
 const getHeaders = () => ({
   'Content-Type': 'application/json',
   'X-Admin-Token': ADMIN_TOKEN,
@@ -29,33 +21,24 @@ const apiFetch = async (endpoint, options = {}) => {
     ...options,
   };
 
-  console.log(`🌐 Fetching: ${endpoint}`);
-  
   try {
     const response = await fetch(url, defaultOptions);
-    console.log(`📡 Response ${endpoint}:`, response.status, response.statusText);
-    
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || errorData.error || `Error: ${response.status}`);
     }
-    const data = await response.json();
-    console.log(`✅ Data ${endpoint}:`, data);
-    return data;
+    return await response.json();
   } catch (error) {
-    console.error(`❌ Error ${endpoint}:`, error);
+    console.error('API Error:', error);
     throw error;
   }
 };
 
 const api = {
+  // ✅ NUEVO: Endpoint dinámico de empresas
   getEmpresas: () => apiFetch('/validador/empresas'),
   getCasos: (params = {}) => {
-    // Limpiar parámetros undefined
-    const cleanParams = Object.fromEntries(
-      Object.entries(params).filter(([_, v]) => v !== undefined && v !== 'undefined')
-    );
-    const queryParams = new URLSearchParams(cleanParams).toString();
+    const queryParams = new URLSearchParams(params).toString();
     return apiFetch(`/validador/casos?${queryParams}`);
   },
   getCasoDetalle: (serial) => apiFetch(`/validador/casos/${serial}`),
@@ -98,7 +81,7 @@ function PortalValidadores() {
   const [casos, setCasos] = useState([]);
   const [casoSeleccionado, setCasoSeleccionado] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [empresas, setEmpresas] = useState([]);
+  const [empresas, setEmpresas] = useState([]); // ✅ NUEVO: Estado para empresas dinámicas
   const [empresaFiltro, setEmpresaFiltro] = useState('all');
   const [estadoFiltro, setEstadoFiltro] = useState('all');
   const [tipoFiltro, setTipoFiltro] = useState('all');
@@ -124,7 +107,6 @@ function PortalValidadores() {
         page_size: '20'
       };
       
-      // Solo agregar filtros si no son "all"
       if (empresaFiltro && empresaFiltro !== 'all') params.empresa = empresaFiltro;
       if (estadoFiltro && estadoFiltro !== 'all') params.estado = estadoFiltro;
       if (tipoFiltro && tipoFiltro !== 'all') params.tipo = tipoFiltro;
@@ -138,7 +120,6 @@ function PortalValidadores() {
       }
     } catch (error) {
       mostrarNotificacion('Error cargando casos: ' + error.message, 'error');
-      console.error('Error completo:', error);
     } finally {
       if (!silencioso) setLoading(false);
     }
@@ -154,6 +135,7 @@ function PortalValidadores() {
     }
   }, [empresaFiltro]);
 
+  // ✅ NUEVO: Cargar empresas dinámicamente desde la BD
   const cargarEmpresas = useCallback(async () => {
     try {
       const data = await api.getEmpresas();
@@ -238,7 +220,7 @@ function PortalValidadores() {
   useEffect(() => {
     cargarCasos();
     cargarEstadisticas();
-    cargarEmpresas();
+    cargarEmpresas(); // ✅ NUEVO: Cargar empresas al iniciar
   }, [cargarCasos, cargarEstadisticas, cargarEmpresas]);
 
   useEffect(() => {
@@ -345,18 +327,33 @@ function PortalValidadores() {
           <h2 className="text-lg font-bold mb-4 text-green-300">Flujo de Trabajo</h2>
           <MiniContador />
           <div className="space-y-3 mb-4">
-            <select value={empresaFiltro} onChange={(e) => setEmpresaFiltro(e.target.value)}
-              className="w-full bg-gray-800 text-white rounded-lg p-2 border border-gray-600">
+            {/* ✅ NUEVO: Dropdown dinámico de empresas */}
+            <select 
+              value={empresaFiltro} 
+              onChange={(e) => setEmpresaFiltro(e.target.value)}
+              className="w-full bg-gray-800 text-white rounded-lg p-2 border border-gray-600"
+            >
               <option value="all">🏢 Todas las Empresas</option>
               {empresas.map(empresa => (
                 <option key={empresa} value={empresa}>{empresa}</option>
               ))}
             </select>
-            <input id="searchBar" type="text" value={busqueda} onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="🔍 Buscar (Ctrl+K)..." className="w-full p-2 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-500" />
+            
+            <input 
+              id="searchBar" 
+              type="text" 
+              value={busqueda} 
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="🔍 Buscar (Ctrl+K)..." 
+              className="w-full p-2 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-500" 
+            />
+            
             <div className="grid grid-cols-2 gap-2">
-              <select value={tipoFiltro} onChange={(e) => setTipoFiltro(e.target.value)}
-                className="p-1 text-sm rounded-lg bg-gray-800 border border-gray-600 text-white">
+              <select 
+                value={tipoFiltro} 
+                onChange={(e) => setTipoFiltro(e.target.value)}
+                className="p-1 text-sm rounded-lg bg-gray-800 border border-gray-600 text-white"
+              >
                 <option value="all">Todos Tipos</option>
                 <option value="maternidad">Maternidad</option>
                 <option value="paternidad">Paternidad</option>
@@ -364,8 +361,12 @@ function PortalValidadores() {
                 <option value="labor">Laboral</option>
                 <option value="traffic">Tránsito</option>
               </select>
-              <select value={estadoFiltro} onChange={(e) => setEstadoFiltro(e.target.value)}
-                className="p-1 text-sm rounded-lg bg-gray-800 border border-gray-600 text-white">
+              
+              <select 
+                value={estadoFiltro} 
+                onChange={(e) => setEstadoFiltro(e.target.value)}
+                className="p-1 text-sm rounded-lg bg-gray-800 border border-gray-600 text-white"
+              >
                 <option value="all">Todos Estados</option>
                 {Object.keys(STATUS_MAP).map(estado => (
                   <option key={estado} value={estado}>{STATUS_MAP[estado].label}</option>
@@ -373,6 +374,7 @@ function PortalValidadores() {
               </select>
             </div>
           </div>
+          
           <div className="flex-1 overflow-y-auto space-y-2">
             {loading ? (
               <div className="text-center py-8">
@@ -388,15 +390,22 @@ function PortalValidadores() {
               casos.map(caso => <CasoCard key={caso.serial} caso={caso} />)
             )}
           </div>
+          
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-700">
-              <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1}
-                className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+              <button 
+                onClick={() => setPage(Math.max(1, page - 1))} 
+                disabled={page === 1}
+                className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <span className="text-sm">Página {page} de {totalPages}</span>
-              <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages}
-                className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+              <button 
+                onClick={() => setPage(Math.min(totalPages, page + 1))} 
+                disabled={page === totalPages}
+                className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -420,6 +429,7 @@ function PortalValidadores() {
                   {STATUS_MAP[casoSeleccionado.estado]?.label || casoSeleccionado.estado}
                 </span>
               </div>
+              
               <div className="grid grid-cols-2 gap-4 text-sm mb-6">
                 <div><span className="text-gray-400">Nombre:</span><p className="font-medium">{casoSeleccionado.nombre}</p></div>
                 <div><span className="text-gray-400">Cédula:</span><p className="font-medium">{casoSeleccionado.cedula}</p></div>
@@ -428,6 +438,7 @@ function PortalValidadores() {
                 <div><span className="text-gray-400">Email:</span><p className="font-medium text-xs">{casoSeleccionado.email_form}</p></div>
                 <div><span className="text-gray-400">Teléfono:</span><p className="font-medium">{casoSeleccionado.telefono_form}</p></div>
               </div>
+              
               <div className="flex flex-wrap justify-center gap-2 mt-6 pt-6 border-t border-gray-700">
                 {['incompleta', 'transcripcion', 'tthh', 'causaExtra', 'completa'].map((accion) => {
                   const config = {
@@ -451,10 +462,15 @@ function PortalValidadores() {
                   );
                 })}
               </div>
+              
               {casoSeleccionado.drive_link && (
                 <div className="mt-6 text-center">
-                  <a href={casoSeleccionado.drive_link} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                  <a 
+                    href={casoSeleccionado.drive_link} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                  >
                     <FolderOpen className="w-5 h-5" />
                     Ver Documentos en Drive
                   </a>
@@ -465,6 +481,7 @@ function PortalValidadores() {
         </div>
       </div>
 
+      {/* Modales */}
       {modalActivo === 'incompleta' && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setModalActivo(null)}>
           <div className="bg-gray-800 p-6 rounded-2xl max-w-lg w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
@@ -474,21 +491,33 @@ function PortalValidadores() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <textarea value={modalData.motivo} onChange={(e) => setModalData({...modalData, motivo: e.target.value})}
+            <textarea 
+              value={modalData.motivo} 
+              onChange={(e) => setModalData({...modalData, motivo: e.target.value})}
               placeholder="Describe qué documentos faltan o están ilegibles..." 
               className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white mb-4 placeholder-gray-500" 
-              rows="3" />
+              rows="3" 
+            />
             <div className="mb-4">
               <label className="block text-sm text-gray-400 mb-1">Fecha límite para corrección:</label>
-              <input type="date" value={modalData.fechaLimite} onChange={(e) => setModalData({...modalData, fechaLimite: e.target.value})}
-                className="w-full p-2 rounded-lg bg-gray-700 border border-gray-600 text-white" />
+              <input 
+                type="date" 
+                value={modalData.fechaLimite} 
+                onChange={(e) => setModalData({...modalData, fechaLimite: e.target.value})}
+                className="w-full p-2 rounded-lg bg-gray-700 border border-gray-600 text-white" 
+              />
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setModalActivo(null)} className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors">
+              <button 
+                onClick={() => setModalActivo(null)} 
+                className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors"
+              >
                 Cancelar
               </button>
-              <button onClick={() => cambiarEstado('INCOMPLETA', modalData.motivo)} 
-                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-semibold">
+              <button 
+                onClick={() => cambiarEstado('INCOMPLETA', modalData.motivo)} 
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-semibold"
+              >
                 Confirmar y Enviar Email
               </button>
             </div>
@@ -505,18 +534,31 @@ function PortalValidadores() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <input type="text" value={modalData.emailSubject} onChange={(e) => setModalData({...modalData, emailSubject: e.target.value})}
-              placeholder="Asunto del correo" className="w-full p-2 rounded-lg bg-gray-700 border border-gray-600 text-white mb-4 placeholder-gray-500" />
-            <textarea value={modalData.emailBody} onChange={(e) => setModalData({...modalData, emailBody: e.target.value})}
+            <input 
+              type="text" 
+              value={modalData.emailSubject} 
+              onChange={(e) => setModalData({...modalData, emailSubject: e.target.value})}
+              placeholder="Asunto del correo" 
+              className="w-full p-2 rounded-lg bg-gray-700 border border-gray-600 text-white mb-4 placeholder-gray-500" 
+            />
+            <textarea 
+              value={modalData.emailBody} 
+              onChange={(e) => setModalData({...modalData, emailBody: e.target.value})}
               placeholder="Escribe el mensaje personalizado para el trabajador..." 
               className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white mb-4 placeholder-gray-500" 
-              rows="6" />
+              rows="6" 
+            />
             <div className="flex gap-3">
-              <button onClick={() => setModalActivo(null)} className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors">
+              <button 
+                onClick={() => setModalActivo(null)} 
+                className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors"
+              >
                 Cancelar
               </button>
-              <button onClick={() => cambiarEstado('CAUSA_EXTRA', modalData.emailBody)} 
-                className="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 rounded-lg transition-colors font-semibold">
+              <button 
+                onClick={() => cambiarEstado('CAUSA_EXTRA', modalData.emailBody)} 
+                className="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 rounded-lg transition-colors font-semibold"
+              >
                 Enviar Correo
               </button>
             </div>
