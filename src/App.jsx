@@ -115,24 +115,26 @@ function DocumentViewer({ casoSeleccionado, onClose, onCambiarEstado }) {
   const [modalData, setModalData] = useState({ motivo: '', fechaLimite: '' });
   const [draggedPage, setDraggedPage] = useState(null);
   const [isDualView, setIsDualView] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [loadingPdf, setLoadingPdf] = useState(true);
-  const [editorMode, setEditorMode] = useState(false);
-  const [drawingTool, setDrawingTool] = useState('pen');
-  const [drawColor, setDrawColor] = useState('#ff0000');
-  const [drawings, setDrawings] = useState([]);
-  const [isDrawing, setIsDrawing] = useState(false);
   const canvasRef = useRef(null);
-  const editorCanvasRef = useRef(null);
 
   // ========== CARGA REAL DE PDF DESDE EL BACKEND ==========
   useEffect(() => {
     const cargarPDF = async () => {
       setLoadingPdf(true);
       try {
-        // Importar PDF.js dinámicamente
-        const pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        // Esperar a que PDF.js esté disponible (cargado desde el HTML)
+        let intentos = 0;
+        while (!window.pdfjsLib && intentos < 10) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          intentos++;
+        }
+
+        if (!window.pdfjsLib) {
+          throw new Error('PDF.js no está disponible');
+        }
+
+        const pdfjsLib = window.pdfjsLib;
         
         const pdfUrl = `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/pdf`;
         const loadingTask = pdfjsLib.getDocument({
