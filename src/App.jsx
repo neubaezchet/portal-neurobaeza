@@ -6,8 +6,8 @@ import {
 } from 'lucide-react';
 
 // ==================== CONFIGURACIÓN API ====================
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://bakcend-gemi-cha-2.onrender.com';
-const ADMIN_TOKEN = process.env.REACT_APP_ADMIN_TOKEN || '0b9685e9a9ff3c24652acaad881ec7b2b4c17f6082ad164d10a6e67589f3f67c';
+const API_BASE_URL = 'https://bakcend-gemi-cha-2.onrender.com';
+const ADMIN_TOKEN = '0b9685e9a9ff3c24652acaad881ec7b2b4c17f6082ad164d10a6e67589f3f67c';
 
 const getHeaders = () => ({
   'Content-Type': 'application/json',
@@ -104,7 +104,7 @@ function enhanceImage(canvas, ctx) {
   ctx.putImageData(newImageData, 0, 0);
 }
 
-// ==================== VISOR DE DOCUMENTOS ====================
+// ==================== VISOR DE DOCUMENTOS CON CARGA REAL DE PDF ====================
 function DocumentViewer({ casoSeleccionado, onClose, onCambiarEstado }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [zoom, setZoom] = useState(100);
@@ -115,15 +115,76 @@ function DocumentViewer({ casoSeleccionado, onClose, onCambiarEstado }) {
   const [modalData, setModalData] = useState({ motivo: '', fechaLimite: '' });
   const [draggedPage, setDraggedPage] = useState(null);
   const [isDualView, setIsDualView] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [loadingPdf, setLoadingPdf] = useState(true);
+  const [editorMode, setEditorMode] = useState(false);
+  const [drawingTool, setDrawingTool] = useState('pen');
+  const [drawColor, setDrawColor] = useState('#ff0000');
+  const [drawings, setDrawings] = useState([]);
+  const [isDrawing, setIsDrawing] = useState(false);
   const canvasRef = useRef(null);
+  const editorCanvasRef = useRef(null);
 
+  // ========== CARGA REAL DE PDF DESDE EL BACKEND ==========
   useEffect(() => {
-    const mockPages = Array(5).fill(null).map((_, i) => ({
-      id: i,
-      thumbnail: `https://via.placeholder.com/200x280/1e293b/94a3b8?text=Pág+${i+1}`,
-      fullImage: `https://via.placeholder.com/800x1100/1e293b/94a3b8?text=Documento+${i+1}`,
-    }));
-    setPages(mockPages);
+    const cargarPDF = async () => {
+      setLoadingPdf(true);
+      try {
+        // Importar PDF.js dinámicamente
+        const pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        const pdfUrl = `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/pdf`;
+        const loadingTask = pdfjsLib.getDocument({
+          url: pdfUrl,
+          httpHeaders: getHeaders()
+        });
+        
+        const pdf = await loadingTask.promise;
+        const pagesArray = [];
+        
+        // Renderizar cada página del PDF
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          
+          // Crear thumbnail (baja resolución para sidebar)
+          const viewport = page.getViewport({ scale: 2 });
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+          await page.render({ canvasContext: context, viewport }).promise;
+          const thumbnail = canvas.toDataURL('image/jpeg', 0.7);
+          
+          // Crear imagen completa (alta resolución para visualización)
+          const fullCanvas = document.createElement('canvas');
+          const fullContext = fullCanvas.getContext('2d');
+          const fullViewport = page.getViewport({ scale: 3 });
+          fullCanvas.height = fullViewport.height;
+          fullCanvas.width = fullViewport.width;
+          await page.render({ canvasContext: fullContext, viewport: fullViewport }).promise;
+          const fullImage = fullCanvas.toDataURL('image/jpeg', 0.9);
+          
+          pagesArray.push({ id: i - 1, thumbnail, fullImage });
+        }
+        
+        setPages(pagesArray);
+      } catch (error) {
+        console.error('Error cargando PDF:', error);
+        alert('Error al cargar el PDF: ' + error.message);
+        // Fallback a imágenes de ejemplo si falla
+        const mockPages = Array(5).fill(null).map((_, i) => ({
+          id: i,
+          thumbnail: `https://via.placeholder.com/200x280/1e293b/94a3b8?text=Pág+${i+1}`,
+          fullImage: `https://via.placeholder.com/800x1100/1e293b/94a3b8?text=Documento+${i+1}`,
+        }));
+        setPages(mockPages);
+      } finally {
+        setLoadingPdf(false);
+      }
+    };
+    
+    cargarPDF();
   }, [casoSeleccionado]);
 
   useEffect(() => {
@@ -207,22 +268,29 @@ function DocumentViewer({ casoSeleccionado, onClose, onCambiarEstado }) {
       {showSidebar && (
         <div className="w-24 bg-gray-900 border-r border-gray-700 p-2 space-y-2 overflow-y-auto">
           <div className="text-xs text-gray-400 text-center mb-2 font-semibold">Páginas</div>
-          {pages.map((page, idx) => (
-            <div
-              key={page.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, idx)}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, idx)}
-              onClick={() => setCurrentPage(idx)}
-              className={`cursor-move rounded-lg border-2 transition-all hover:scale-105 ${
-                currentPage === idx ? 'border-blue-500 ring-2 ring-blue-400 shadow-lg' : 'border-gray-700'
-              }`}
-            >
-              <img src={page.thumbnail} alt={`Pág ${idx+1}`} className="w-full rounded" />
-              <div className="text-center text-[10px] text-gray-400 py-1 bg-gray-800/50">{idx+1}</div>
+          {loadingPdf ? (
+            <div className="text-center py-4">
+              <RefreshCw className="w-6 h-6 animate-spin mx-auto text-blue-500" />
+              <p className="text-[10px] text-gray-400 mt-2">Cargando PDF...</p>
             </div>
-          ))}
+          ) : (
+            pages.map((page, idx) => (
+              <div
+                key={page.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, idx)}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, idx)}
+                onClick={() => setCurrentPage(idx)}
+                className={`cursor-move rounded-lg border-2 transition-all hover:scale-105 ${
+                  currentPage === idx ? 'border-blue-500 ring-2 ring-blue-400 shadow-lg' : 'border-gray-700'
+                }`}
+              >
+                <img src={page.thumbnail} alt={`Pág ${idx+1}`} className="w-full rounded" />
+                <div className="text-center text-[10px] text-gray-400 py-1 bg-gray-800/50">{idx+1}</div>
+              </div>
+            ))
+          )}
         </div>
       )}
 
@@ -317,7 +385,15 @@ function DocumentViewer({ casoSeleccionado, onClose, onCambiarEstado }) {
         </div>
 
         <div className="flex-1 bg-gray-900 overflow-auto p-4">
-          {isDualView && ['INCOMPLETA', 'ILEGIBLE', 'INCOMPLETA_ILEGIBLE'].includes(casoSeleccionado.estado) ? (
+          {loadingPdf ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <RefreshCw className="w-12 h-12 animate-spin mx-auto text-blue-500 mb-4" />
+                <p className="text-gray-400">Cargando documento PDF...</p>
+                <p className="text-xs text-gray-500 mt-2">Esto puede tomar unos segundos</p>
+              </div>
+            </div>
+          ) : isDualView && ['INCOMPLETA', 'ILEGIBLE', 'INCOMPLETA_ILEGIBLE'].includes(casoSeleccionado.estado) ? (
             <div className="flex gap-4 h-full">
               <div className="flex-1 flex flex-col items-center justify-center">
                 <div className="text-xs text-red-400 mb-2 font-semibold">📄 Documento Original</div>
@@ -714,7 +790,7 @@ function PortalValidadores() {
           <div className="text-center">
             <FolderOpen className="w-20 h-20 mx-auto text-gray-600 mb-4" />
             <p className="text-gray-400 text-lg mb-2">Selecciona un caso para ver el documento</p>
-            <p className="text-xs text-gray-500">Los documentos se abrirán en pantalla completa con visor mejorado</p>
+            <p className="text-xs text-gray-500">Los documentos PDF se cargarán automáticamente desde el backend</p>
           </div>
         </div>
       </div>
