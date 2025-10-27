@@ -70,7 +70,7 @@ const STATUS_MAP = {
   'COMPLETA': { label: 'VALIDADA', color: '#16a34a', borderColor: 'border-green-500', icon: CheckCircle },
 };
 
-// ==================== MEJORA DE CALIDAD DE IMAGEN (Estilo Remini - GRATIS) ====================
+// ==================== MEJORA DE CALIDAD DE IMAGEN ====================
 function enhanceImage(canvas, ctx) {
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
@@ -104,26 +104,131 @@ function enhanceImage(canvas, ctx) {
   ctx.putImageData(newImageData, 0, 0);
 }
 
-// ==================== VISOR DE DOCUMENTOS CON CARGA REAL DE PDF ====================
-function DocumentViewer({ casoSeleccionado, onClose, onCambiarEstado }) {
+// ==================== VISOR DE DOCUMENTOS CON SISTEMA DE VALIDACIÓN ====================
+function DocumentViewer({ casoSeleccionado, onClose, onCambiarEstado, onRecargarCasos }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [zoom, setZoom] = useState(100);
   const [pages, setPages] = useState([]);
   const [filters, setFilters] = useState({ grayscale: 0, brightness: 100, contrast: 100, sharpen: 0 });
   const [showSidebar, setShowSidebar] = useState(true);
   const [modalActivo, setModalActivo] = useState(null);
-  const [modalData, setModalData] = useState({ motivo: '', fechaLimite: '' });
   const [draggedPage, setDraggedPage] = useState(null);
   const [isDualView, setIsDualView] = useState(false);
   const [loadingPdf, setLoadingPdf] = useState(true);
   const canvasRef = useRef(null);
+
+  // ✅ NUEVO: Estados para sistema de validación
+  const [accionSeleccionada, setAccionSeleccionada] = useState(null);
+  const [checksSeleccionados, setChecksSeleccionados] = useState([]);
+  const [mensajePersonalizado, setMensajePersonalizado] = useState('');
+  const [adjuntos, setAdjuntos] = useState([]);
+  const [enviandoValidacion, setEnviandoValidacion] = useState(false);
+  const [checksDisponibles, setChecksDisponibles] = useState([]);
+
+  // ✅ NUEVO: Función para validar caso
+  const handleValidar = async (serial, accion) => {
+    setEnviandoValidacion(true);
+    const formData = new FormData();
+    formData.append('accion', accion);
+    
+    // Agregar checks seleccionados
+    checksSeleccionados.forEach(check => {
+      formData.append('checks', check);
+    });
+    
+    // Agregar adjuntos si los hay
+    adjuntos.forEach((file) => {
+      formData.append('adjuntos', file);
+    });
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${serial}/validar`, {
+        method: 'POST',
+        headers: {
+          'X-Admin-Token': ADMIN_TOKEN,
+        },
+        body: formData
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        alert(`✅ Caso ${accion} correctamente`);
+        console.log('Nuevo link en Drive:', data.nuevo_link);
+        
+        // Recargar lista de casos
+        if (onRecargarCasos) onRecargarCasos();
+        
+        // Limpiar y cerrar
+        setAccionSeleccionada(null);
+        setChecksSeleccionados([]);
+        setAdjuntos([]);
+        onClose();
+      } else {
+        alert('❌ Error al validar caso');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('❌ Error de conexión');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  };
+
+  // ✅ NUEVO: Función para notificación libre (botón Extra)
+  const handleNotificarLibre = async (serial) => {
+    if (!mensajePersonalizado.trim()) {
+      alert('⚠️ Escribe un mensaje antes de enviar');
+      return;
+    }
+    
+    setEnviandoValidacion(true);
+    const formData = new FormData();
+    formData.append('mensaje_personalizado', mensajePersonalizado);
+    
+    adjuntos.forEach((file) => {
+      formData.append('adjuntos', file);
+    });
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${serial}/notificar-libre`, {
+        method: 'POST',
+        headers: {
+          'X-Admin-Token': ADMIN_TOKEN,
+        },
+        body: formData
+      });
+      
+      if (response.ok) {
+        alert('✅ Notificación enviada');
+        setMensajePersonalizado('');
+        setAdjuntos([]);
+        setAccionSeleccionada(null);
+      } else {
+        alert('❌ Error al enviar notificación');
+      }
+    } catch (error) {
+      alert('❌ Error de conexión');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  };
+
+  // ✅ NUEVO: Toggle de checks
+  const toggleCheck = (checkValue) => {
+    setChecksSeleccionados(prev => {
+      if (prev.includes(checkValue)) {
+        return prev.filter(c => c !== checkValue);
+      } else {
+        return [...prev, checkValue];
+      }
+    });
+  };
 
   // ========== CARGA REAL DE PDF DESDE EL BACKEND ==========
   useEffect(() => {
     const cargarPDF = async () => {
       setLoadingPdf(true);
       try {
-        // Esperar a que PDF.js esté disponible (cargado desde el HTML)
         let intentos = 0;
         while (!window.pdfjsLib && intentos < 10) {
           await new Promise(resolve => setTimeout(resolve, 100));
@@ -145,11 +250,9 @@ function DocumentViewer({ casoSeleccionado, onClose, onCambiarEstado }) {
         const pdf = await loadingTask.promise;
         const pagesArray = [];
         
-        // Renderizar cada página del PDF
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           
-          // Crear thumbnail (baja resolución para sidebar)
           const viewport = page.getViewport({ scale: 2 });
           const canvas = document.createElement('canvas');
           const context = canvas.getContext('2d');
@@ -158,7 +261,6 @@ function DocumentViewer({ casoSeleccionado, onClose, onCambiarEstado }) {
           await page.render({ canvasContext: context, viewport }).promise;
           const thumbnail = canvas.toDataURL('image/jpeg', 0.7);
           
-          // Crear imagen completa (alta resolución para visualización)
           const fullCanvas = document.createElement('canvas');
           const fullContext = fullCanvas.getContext('2d');
           const fullViewport = page.getViewport({ scale: 3 });
@@ -174,7 +276,6 @@ function DocumentViewer({ casoSeleccionado, onClose, onCambiarEstado }) {
       } catch (error) {
         console.error('Error cargando PDF:', error);
         alert('Error al cargar el PDF: ' + error.message);
-        // Fallback a imágenes de ejemplo si falla
         const mockPages = Array(5).fill(null).map((_, i) => ({
           id: i,
           thumbnail: `https://via.placeholder.com/200x280/1e293b/94a3b8?text=Pág+${i+1}`,
@@ -240,26 +341,6 @@ function DocumentViewer({ casoSeleccionado, onClose, onCambiarEstado }) {
     newPages.splice(targetIndex, 0, draggedItem);
     setPages(newPages);
     setDraggedPage(null);
-  };
-
-  const handleAccion = (accion) => {
-    switch (accion) {
-      case 'incompleta':
-        setModalActivo('incompleta');
-        setModalData({ motivo: '', fechaLimite: '' });
-        break;
-      case 'transcripcion':
-        onCambiarEstado('EPS_TRANSCRIPCION', 'Transcripción en EPS requerida');
-        break;
-      case 'tthh':
-        onCambiarEstado('DERIVADO_TTHH', 'Derivado a Talento Humano');
-        break;
-      case 'completa':
-        onCambiarEstado('COMPLETA', 'Validada y lista para radicación');
-        break;
-      default:
-        break;
-    }
   };
 
   const statusInfo = STATUS_MAP[casoSeleccionado.estado];
@@ -454,358 +535,46 @@ function DocumentViewer({ casoSeleccionado, onClose, onCambiarEstado }) {
             </button>
           </div>
 
+          {/* ✅ BOTONES DE VALIDACIÓN ACTUALIZADOS */}
           <div className="flex justify-center gap-2 flex-wrap">
-            {[
-              { key: 'incompleta', icon: XCircle, label: 'Incompleta', color: '#dc2626', shortcut: '1' },
-              { key: 'transcripcion', icon: FileText, label: 'EPS', color: '#ca8a04', shortcut: '2' },
-              { key: 'tthh', icon: Send, label: 'TTHH', color: '#2563eb', shortcut: '3' },
-              { key: 'completa', icon: CheckCircle, label: 'Completa', color: '#16a34a', shortcut: '5' }
-            ].map(({ key, icon: BtnIcon, label, color, shortcut }) => (
-              <button 
-                key={key}
-                onClick={() => handleAccion(key)} 
-                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg"
-                style={{backgroundColor: color}}>
-                <BtnIcon className="w-4 h-4" />
-                <span>{label}</span>
-                <span className="text-xs opacity-70">({shortcut})</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {modalActivo === 'incompleta' && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setModalActivo(null)}>
-          <div className="bg-gray-800 p-6 rounded-2xl max-w-lg w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-red-400">Marcar como Incompleta</h3>
-              <button onClick={() => setModalActivo(null)} className="p-1 hover:bg-gray-700 rounded">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <textarea 
-              value={modalData.motivo} 
-              onChange={(e) => setModalData({...modalData, motivo: e.target.value})}
-              placeholder="Describe qué documentos faltan o están ilegibles..." 
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white mb-4 placeholder-gray-500" 
-              rows="3" />
-            <div className="mb-4">
-              <label className="block text-sm text-gray-400 mb-1">Fecha límite para corrección:</label>
-              <input 
-                type="date" 
-                value={modalData.fechaLimite} 
-                onChange={(e) => setModalData({...modalData, fechaLimite: e.target.value})}
-                className="w-full p-2 rounded-lg bg-gray-700 border border-gray-600 text-white" />
-            </div>
-            <div className="flex gap-3">
-              <button 
-                onClick={() => setModalActivo(null)} 
-                className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors">
-                Cancelar
-              </button>
-              <button 
-                onClick={() => {
-                  onCambiarEstado('INCOMPLETA', modalData.motivo);
-                  setModalActivo(null);
-                }}
-                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-semibold">
-                Confirmar y Enviar Email
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ==================== COMPONENTE PRINCIPAL ====================
-function PortalValidadores() {
-  const [casos, setCasos] = useState([]);
-  const [casoSeleccionado, setCasoSeleccionado] = useState(null);
-  const [viewerMode, setViewerMode] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [empresas, setEmpresas] = useState([]);
-  const [empresaFiltro, setEmpresaFiltro] = useState('all');
-  const [estadoFiltro, setEstadoFiltro] = useState('all');
-  const [tipoFiltro, setTipoFiltro] = useState('all');
-  const [busqueda, setBusqueda] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [stats, setStats] = useState({});
-  const [notificacion, setNotificacion] = useState(null);
-  const [autoRefresh, setAutoRefresh] = useState(false);
-
-  const mostrarNotificacion = (mensaje, tipo = 'info') => {
-    setNotificacion({ mensaje, tipo });
-    setTimeout(() => setNotificacion(null), 5000);
-  };
-
-  const cargarCasos = useCallback(async (silencioso = false) => {
-    if (!silencioso) setLoading(true);
-    try {
-      const params = { page: page.toString(), page_size: '20' };
-      if (empresaFiltro && empresaFiltro !== 'all') params.empresa = empresaFiltro;
-      if (estadoFiltro && estadoFiltro !== 'all') params.estado = estadoFiltro;
-      if (tipoFiltro && tipoFiltro !== 'all') params.tipo = tipoFiltro;
-      if (busqueda && busqueda.trim()) params.q = busqueda;
-      
-      const data = await api.getCasos(params);
-      setCasos(data.items || []);
-      setTotalPages(data.total_pages || 1);
-    } catch (error) {
-      mostrarNotificacion('Error cargando casos: ' + error.message, 'error');
-    } finally {
-      if (!silencioso) setLoading(false);
-    }
-  }, [empresaFiltro, estadoFiltro, tipoFiltro, busqueda, page]);
-
-  const cargarEstadisticas = useCallback(async () => {
-    try {
-      const empresa = empresaFiltro !== 'all' ? empresaFiltro : 'all';
-      const data = await api.getStats(empresa);
-      setStats(data);
-    } catch (error) {
-      console.error('Error cargando estadísticas:', error);
-    }
-  }, [empresaFiltro]);
-
-  const cargarEmpresas = useCallback(async () => {
-    try {
-      const data = await api.getEmpresas();
-      setEmpresas(data.empresas || []);
-    } catch (error) {
-      console.error('Error cargando empresas:', error);
-      mostrarNotificacion('Error cargando empresas: ' + error.message, 'error');
-    }
-  }, []);
-
-  const handleVerDocumento = async (caso) => {
-    try {
-      const detalle = await api.getCasoDetalle(caso.serial);
-      setCasoSeleccionado(detalle);
-      setViewerMode(true);
-    } catch (error) {
-      mostrarNotificacion('Error: ' + error.message, 'error');
-    }
-  };
-
-  const cambiarEstado = async (nuevoEstado, motivo = '') => {
-    try {
-      await api.cambiarEstado(casoSeleccionado.serial, { estado: nuevoEstado, motivo: motivo });
-      mostrarNotificacion(`✅ Estado actualizado a ${nuevoEstado}`, 'success');
-      await cargarCasos();
-      await cargarEstadisticas();
-      setViewerMode(false);
-    } catch (error) {
-      mostrarNotificacion('Error: ' + error.message, 'error');
-    }
-  };
-
-  useEffect(() => {
-    if (autoRefresh) {
-      const interval = setInterval(() => cargarCasos(true), 30000);
-      return () => clearInterval(interval);
-    }
-  }, [autoRefresh, cargarCasos]);
-
-  useEffect(() => {
-    cargarCasos();
-    cargarEstadisticas();
-    cargarEmpresas();
-  }, [cargarCasos, cargarEstadisticas, cargarEmpresas]);
-
-  const CasoCard = ({ caso }) => {
-    const statusInfo = STATUS_MAP[caso.estado] || STATUS_MAP['NUEVO'];
-    const Icon = statusInfo.icon;
-    
-    return (
-      <div
-        onClick={() => handleVerDocumento(caso)}
-        className="cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg rounded-lg overflow-hidden"
-        style={{
-          backgroundColor: statusInfo.color + '20',
-          borderLeft: `4px solid ${statusInfo.color}`
-        }}
-      >
-        <div className="flex items-center gap-3 p-2.5">
-          <div 
-            className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 shadow-md"
-            style={{backgroundColor: statusInfo.color}}
-          >
-            <Icon className="w-6 h-6 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="font-bold text-sm truncate text-white">{caso.serial}</div>
-            <div className="text-xs text-gray-300 truncate">{caso.nombre}</div>
-            <div className="text-[10px] text-gray-400 truncate">{caso.empresa}</div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100">
-      {notificacion && (
-        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
-          notificacion.tipo === 'error' ? 'bg-red-600' : 'bg-green-600'
-        } text-white flex items-center gap-2`}>
-          {notificacion.tipo === 'error' ? <XCircle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
-          {notificacion.mensaje}
-        </div>
-      )}
-
-      <header className="sticky top-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700 p-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-              <FileText className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold">Portal de Validación</h1>
-              <p className="text-[10px] text-gray-400">IncaNeurobaeza</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3 text-xs font-semibold">
-            <div className="flex items-center gap-1.5 bg-red-900/30 px-2.5 py-1 rounded-lg">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="text-red-400">{stats.incompletas || 0}</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-yellow-900/30 px-2.5 py-1 rounded-lg">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-              <span className="text-yellow-400">{stats.eps || 0}</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-blue-900/30 px-2.5 py-1 rounded-lg">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="text-blue-400">{stats.tthh || 0}</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-green-900/30 px-2.5 py-1 rounded-lg">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-green-400">{stats.completas || 0}</span>
-            </div>
-            <button
-              onClick={() => setAutoRefresh(!autoRefresh)}
-              className={`p-2 rounded-lg transition-colors ${autoRefresh ? 'bg-green-600' : 'bg-gray-700'}`}
-              title="Auto-refresh cada 30s"
-            >
-              <RefreshCw className={`w-4 h-4 ${autoRefresh ? 'animate-spin' : ''}`} />
+            <button 
+              onClick={() => handleValidar(casoSeleccionado.serial, 'completa')}
+              disabled={enviandoValidacion}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
+              style={{backgroundColor: '#16a34a'}}>
+              <CheckCircle className="w-4 h-4" />
+              <span>✅ Completa</span>
             </button>
-            <button
-              onClick={() => api.exportarCasos('xlsx', { empresa: empresaFiltro, estado: estadoFiltro })}
-              className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors"
-              title="Exportar a Excel"
-            >
-              <Download className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex h-[calc(100vh-65px)]">
-        <div className="w-80 p-3 bg-black/20 border-r border-gray-700 overflow-y-auto space-y-2">
-          <h2 className="text-sm font-bold mb-3 text-green-400">📋 Casos Pendientes</h2>
-          
-          <select 
-            value={empresaFiltro} 
-            onChange={(e) => setEmpresaFiltro(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">🏢 Todas las Empresas</option>
-            {empresas.map(empresa => (
-              <option key={empresa} value={empresa}>{empresa}</option>
-            ))}
-          </select>
-          
-          <input 
-            type="text" 
-            value={busqueda} 
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="🔍 Buscar (Ctrl+K)..." 
-            className="w-full p-2 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-500 mb-2" 
-          />
-
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            <select 
-              value={tipoFiltro} 
-              onChange={(e) => setTipoFiltro(e.target.value)}
-              className="p-1 text-sm rounded-lg bg-gray-800 border border-gray-600 text-white"
-            >
-              <option value="all">Todos Tipos</option>
-              <option value="maternidad">Maternidad</option>
-              <option value="paternidad">Paternidad</option>
-              <option value="enfermedad_general">General</option>
-              <option value="enfermedad_laboral">Laboral</option>
-              <option value="accidente_transito">Tránsito</option>
-            </select>
             
-            <select 
-              value={estadoFiltro} 
-              onChange={(e) => setEstadoFiltro(e.target.value)}
-              className="p-1 text-sm rounded-lg bg-gray-800 border border-gray-600 text-white"
-            >
-              <option value="all">Todos Estados</option>
-              {Object.entries(STATUS_MAP).map(([key, {label}]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </select>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-8">
-              <RefreshCw className="w-6 h-6 animate-spin mx-auto text-blue-500" />
-              <p className="text-xs text-gray-400 mt-2">Cargando...</p>
-            </div>
-          ) : casos.length === 0 ? (
-            <div className="text-center py-8">
-              <AlertCircle className="w-8 h-8 mx-auto text-gray-600 mb-2" />
-              <p className="text-xs text-gray-400">No hay casos</p>
-            </div>
-          ) : (
-            casos.map(caso => <CasoCard key={caso.serial} caso={caso} />)
-          )}
-
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-700">
-              <button 
-                onClick={() => setPage(Math.max(1, page - 1))} 
-                disabled={page === 1}
-                className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="text-sm">Página {page} de {totalPages}</span>
-              <button 
-                onClick={() => setPage(Math.min(totalPages, page + 1))} 
-                disabled={page === totalPages}
-                className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-800/50 to-gray-900/50">
-          <div className="text-center">
-            <FolderOpen className="w-20 h-20 mx-auto text-gray-600 mb-4" />
-            <p className="text-gray-400 text-lg mb-2">Selecciona un caso para ver el documento</p>
-            <p className="text-xs text-gray-500">Los documentos PDF se cargarán automáticamente desde el backend</p>
-          </div>
-        </div>
-      </div>
-
-      {viewerMode && casoSeleccionado && (
-        <DocumentViewer 
-          casoSeleccionado={casoSeleccionado}
-          onClose={() => setViewerMode(false)}
-          onCambiarEstado={cambiarEstado}
-        />
-      )}
-    </div>
-  );
-}
-
-export default PortalValidadores;
+            <button 
+              onClick={() => setAccionSeleccionada('incompleta')}
+              disabled={enviandoValidacion}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
+              style={{backgroundColor: '#dc2626'}}>
+              <XCircle className="w-4 h-4" />
+              <span>❌ Incompleta</span>
+            </button>
+            
+            <button 
+              onClick={() => handleValidar(casoSeleccionado.serial, 'eps')}
+              disabled={enviandoValidacion}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
+              style={{backgroundColor: '#ca8a04'}}>
+              <FileText className="w-4 h-4" />
+              <span>📋 EPS</span>
+            </button>
+            
+            <button 
+              onClick={() => setAccionSeleccionada('tthh')}
+              disabled={enviandoValidacion}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
+              style={{backgroundColor: '#2563eb'}}>
+              <Send className="w-4 h-4" />
+              <span>🚨 TTHH</span>
+            </button>
+            
+            <button 
+              onClick={() => setAccionSeleccionada('extra')}
+              disabled={enviandoValidacion}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
+              style={{backgroundColor: '#8b5cf6'}

@@ -113,3 +113,181 @@ select {
     font-size: 0.625rem;
   }
 }
+/* src/styles/ValidadorCasos.css */
+
+.botones-validacion {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+
+.botones-validacion button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.botones-validacion button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.botones-validacion button:active {
+  transform: translateY(0);
+}
+
+/* Modal de checks */
+.modal-checks,
+.modal-extra {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.modal-checks h3,
+.modal-extra h3 {
+  margin-top: 0;
+  color: #333;
+  font-size: 20px;
+}
+
+.grupo-checks {
+  margin: 20px 0;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.grupo-checks h4 {
+  margin: 0 0 12px 0;
+  color: #667eea;
+  font-size: 16px;
+}
+
+.check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  margin: 8px 0;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.check-item:hover {
+  background: #e3f2fd;
+}
+
+.check-item input[type="checkbox"] {
+  margin-top: 4px;
+  cursor: pointer;
+}
+
+.check-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.check-label {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.check-descripcion {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.adjuntos-section {
+  margin: 20px 0;
+  padding: 15px;
+  background: #f0f4f8;
+  border-radius: 8px;
+}
+
+.adjuntos-section h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.adjuntos-section input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  border: 2px dashed #ccc;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 25px;
+  justify-content: flex-end;
+}
+
+.btn-confirmar,
+.btn-cancelar {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-confirmar {
+  background: #10b981;
+  color: white;
+}
+
+.btn-confirmar:hover {
+  background: #059669;
+}
+
+.btn-confirmar:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-cancelar {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.btn-cancelar:hover {
+  background: #d1d5db;
+}
+
+/* Overlay del modal */
+.modal-checks::before,
+.modal-extra::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  z-index: -1;
+}
