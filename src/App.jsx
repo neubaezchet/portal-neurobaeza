@@ -574,7 +574,581 @@ function DocumentViewer({ casoSeleccionado, onClose, onCambiarEstado, onRecargar
             </button>
             
             <button 
+            <button 
               onClick={() => setAccionSeleccionada('extra')}
               disabled={enviandoValidacion}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
-              style={{backgroundColor: '#8b5cf6'}
+              style={{backgroundColor: '#8b5cf6'}}>
+              <Edit3 className="w-4 h-4" />
+              <span>📝 Extra</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ✅ MODAL: INCOMPLETA */}
+      {accionSeleccionada === 'incompleta' && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl">
+            <div className="sticky top-0 bg-red-600 text-white p-4 rounded-t-xl flex items-center justify-between">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <XCircle className="w-6 h-6" />
+                ❌ Marcar como Incompleta
+              </h3>
+              <button onClick={() => setAccionSeleccionada(null)} className="p-1 hover:bg-red-700 rounded">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Instrucciones */}
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                <p className="text-sm text-red-800">
+                  <strong>Selecciona los problemas encontrados.</strong> La IA generará un email claro explicando qué documentos faltan y cómo corregirlos.
+                </p>
+              </div>
+
+              {/* Grupo: Documentos Faltantes */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-red-600" />
+                  📋 Documentos Faltantes
+                </h4>
+                <div className="space-y-2">
+                  {[
+                    { key: 'incapacidad_faltante', label: 'Falta soporte de incapacidad', desc: 'No se adjuntó el documento oficial de la EPS/ARL' },
+                    { key: 'epicrisis_faltante', label: 'Falta epicrisis/resumen', desc: 'No se adjuntó epicrisis o resumen clínico completo' },
+                    { key: 'soat_faltante', label: 'Falta SOAT', desc: 'Solo para Accidente de Tránsito con vehículo identificado' },
+                    { key: 'furips_faltante', label: 'Falta FURIPS', desc: 'Solo para Accidente de Tránsito' },
+                    { key: 'registro_civil_faltante', label: 'Falta registro civil', desc: 'Solo para Maternidad/Paternidad' },
+                    { key: 'nacido_vivo_faltante', label: 'Falta certificado nacido vivo', desc: 'Solo para Maternidad/Paternidad' },
+                    { key: 'cedula_padre_faltante', label: 'Falta cédula del padre', desc: 'Solo para Paternidad (ambas caras)' },
+                    { key: 'licencia_maternidad_faltante', label: 'Falta licencia maternidad', desc: 'Solo para Paternidad (madre trabajadora)' },
+                  ].map(check => (
+                    <label key={check.key} className="flex items-start gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-red-50 transition-colors border border-gray-200">
+                      <input 
+                        type="checkbox"
+                        checked={checksSeleccionados.includes(check.key)}
+                        onChange={() => toggleCheck(check.key)}
+                        className="mt-1 w-4 h-4 text-red-600 rounded focus:ring-red-500"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-800 text-sm">{check.label}</div>
+                        <div className="text-xs text-gray-600 mt-0.5">{check.desc}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Grupo: Problemas de Legibilidad */}
+              <div className="bg-orange-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-orange-600" />
+                  ⚠️ Problemas de Calidad
+                </h4>
+                <div className="space-y-2">
+                  {[
+                    { key: 'ilegible_recortada', label: 'Documento recortado', desc: 'Los bordes no son visibles o está incompleto' },
+                    { key: 'ilegible_borrosa', label: 'Documento borroso', desc: 'Mala calidad de imagen, no se puede leer' },
+                    { key: 'ilegible_manchada', label: 'Documento con reflejos/manchas', desc: 'Presenta obstáculos visuales' },
+                    { key: 'epicrisis_incompleta', label: 'Epicrisis incompleta', desc: 'Faltan páginas del documento' },
+                  ].map(check => (
+                    <label key={check.key} className="flex items-start gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-orange-50 transition-colors border border-gray-200">
+                      <input 
+                        type="checkbox"
+                        checked={checksSeleccionados.includes(check.key)}
+                        onChange={() => toggleCheck(check.key)}
+                        className="mt-1 w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-800 text-sm">{check.label}</div>
+                        <div className="text-xs text-gray-600 mt-0.5">{check.desc}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Adjuntar Referentes */}
+              <div className="bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  📎 Adjuntar Imágenes Referentes (Opcional)
+                </h4>
+                <p className="text-xs text-gray-600 mb-3">
+                  Si falta SOAT o FURIPS, puedes adjuntar imágenes de ejemplo mostrando cómo debe verse el documento correcto.
+                </p>
+                <input 
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => setAdjuntos(Array.from(e.target.files))}
+                  className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white file:font-semibold hover:file:bg-blue-700 cursor-pointer"
+                />
+                {adjuntos.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {adjuntos.map((file, idx) => (
+                      <div key={idx} className="text-xs bg-white px-3 py-1 rounded-full border border-blue-300 flex items-center gap-2">
+                        <span>📷 {file.name}</span>
+                        <button 
+                          onClick={() => setAdjuntos(prev => prev.filter((_, i) => i !== idx))}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Botones */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => handleValidar(casoSeleccionado.serial, 'incompleta')}
+                  disabled={enviandoValidacion || checksSeleccionados.length === 0}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                >
+                  {enviandoValidacion ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-5 h-5" />
+                      ✅ Confirmar Incompleta ({checksSeleccionados.length} checks)
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setAccionSeleccionada(null);
+                    setChecksSeleccionados([]);
+                    setAdjuntos([]);
+                  }}
+                  className="px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold transition-colors"
+                >
+                  ❌ Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ MODAL: TTHH (ALERTA FRAUDE) */}
+      {accionSeleccionada === 'tthh' && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl">
+            <div className="sticky top-0 bg-blue-600 text-white p-4 rounded-t-xl flex items-center justify-between">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <Send className="w-6 h-6" />
+                🚨 Derivar a Talento Humano
+              </h3>
+              <button onClick={() => setAccionSeleccionada(null)} className="p-1 hover:bg-blue-700 rounded">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+                <p className="text-sm text-yellow-800">
+                  <strong>⚠️ Caso con inconsistencias detectadas.</strong> Se enviará alerta confidencial a Talento Humano y confirmación neutra a la empleada.
+                </p>
+              </div>
+
+              {/* Checks de inconsistencias */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-800 mb-3">🔍 Inconsistencias Detectadas</h4>
+                <div className="space-y-2">
+                  {[
+                    { key: 'solicitar_epicrisis_tthh', label: 'TTHH debe solicitar epicrisis', desc: 'Validación directa requerida' },
+                    { key: 'solicitar_transcripcion_tthh', label: 'TTHH debe solicitar transcripción', desc: 'Verificación en EPS necesaria' },
+                  ].map(check => (
+                    <label key={check.key} className="flex items-start gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-blue-50 transition-colors border border-gray-200">
+                      <input 
+                        type="checkbox"
+                        checked={checksSeleccionados.includes(check.key)}
+                        onChange={() => toggleCheck(check.key)}
+                        className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-800 text-sm">{check.label}</div>
+                        <div className="text-xs text-gray-600 mt-0.5">{check.desc}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Observaciones */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  📝 Observaciones Adicionales (Opcional)
+                </label>
+                <textarea
+                  value={mensajePersonalizado}
+                  onChange={(e) => setMensajePersonalizado(e.target.value)}
+                  placeholder="Describe brevemente las inconsistencias detectadas..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  rows={4}
+                />
+              </div>
+
+              {/* Botones */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => handleValidar(casoSeleccionado.serial, 'tthh')}
+                  disabled={enviandoValidacion}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                >
+                  {enviandoValidacion ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      🚨 Confirmar Derivación
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setAccionSeleccionada(null);
+                    setChecksSeleccionados([]);
+                    setMensajePersonalizado('');
+                  }}
+                  className="px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold transition-colors"
+                >
+                  ❌ Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ MODAL: EXTRA (NOTIFICACIÓN LIBRE) */}
+      {accionSeleccionada === 'extra' && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl">
+            <div className="sticky top-0 bg-purple-600 text-white p-4 rounded-t-xl flex items-center justify-between">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <Edit3 className="w-6 h-6" />
+                📝 Notificación Personalizada (IA)
+              </h3>
+              <button onClick={() => setAccionSeleccionada(null)} className="p-1 hover:bg-purple-700 rounded">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded">
+                <p className="text-sm text-purple-800">
+                  <strong>🤖 Escribe un mensaje informal.</strong> La IA lo convertirá en un email profesional, claro y amable para la empleada.
+                </p>
+              </div>
+
+              {/* Mensaje personalizado */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  ✍️ Tu Mensaje (Informal)
+                </label>
+                <textarea
+                  value={mensajePersonalizado}
+                  onChange={(e) => setMensajePersonalizado(e.target.value)}
+                  placeholder="Ejemplo: 'Hola María, nos falta el registro civil del bebé, si puedes enviarlo hoy sería genial'"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  rows={5}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  💡 Escribe natural, la IA lo profesionalizará
+                </p>
+              </div>
+
+              {/* Adjuntos */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  📎 Adjuntar Archivos (Opcional)
+                </label>
+                <input 
+                  type="file"
+                  multiple
+                  onChange={(e) => setAdjuntos(Array.from(e.target.files))}
+                  className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-600 file:text-white file:font-semibold hover:file:bg-purple-700 cursor-pointer"
+                />
+                {adjuntos.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {adjuntos.map((file, idx) => (
+                      <div key={idx} className="text-xs bg-white px-3 py-1 rounded-full border border-purple-300 flex items-center gap-2">
+                        <span>📄 {file.name}</span>
+                        <button 
+                          onClick={() => setAdjuntos(prev => prev.filter((_, i) => i !== idx))}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Botones */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => handleNotificarLibre(casoSeleccionado.serial)}
+                  disabled={enviandoValidacion || !mensajePersonalizado.trim()}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                >
+                  {enviandoValidacion ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      📧 Enviar Notificación (IA)
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setAccionSeleccionada(null);
+                    setMensajePersonalizado('');
+                    setAdjuntos([]);
+                  }}
+                  className="px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold transition-colors"
+                >
+                  ❌ Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==================== COMPONENTE PRINCIPAL ====================
+export default function App() {
+  const [empresas, setEmpresas] = useState([]);
+  const [casos, setCasos] = useState([]);
+  const [stats, setStats] = useState({});
+  const [filtros, setFiltros] = useState({ empresa: 'all', estado: 'all', tipo: 'all', q: '', page: 1 });
+  const [loading, setLoading] = useState(false);
+  const [casoSeleccionado, setCasoSeleccionado] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    cargarEmpresas();
+    cargarStats();
+  }, []);
+
+  useEffect(() => {
+    cargarCasos();
+  }, [filtros]);
+
+  const cargarEmpresas = async () => {
+    try {
+      const data = await api.getEmpresas();
+      setEmpresas(data.empresas || []);
+    } catch (error) {
+      console.error('Error cargando empresas:', error);
+    }
+  };
+
+  const cargarStats = async () => {
+    try {
+      const data = await api.getStats(filtros.empresa);
+      setStats(data);
+    } catch (error) {
+      console.error('Error cargando stats:', error);
+    }
+  };
+
+  const cargarCasos = async () => {
+    setLoading(true);
+    try {
+      const data = await api.getCasos(filtros);
+      setCasos(data.items || []);
+      setTotalPages(data.total_pages || 1);
+    } catch (error) {
+      console.error('Error cargando casos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFiltroChange = (key, value) => {
+    setFiltros(prev => ({ ...prev, [key]: value, page: 1 }));
+  };
+
+  const handlePageChange = (newPage) => {
+    setFiltros(prev => ({ ...prev, page: newPage }));
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+      <div className="max-w-7xl mx-auto p-4 space-y-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 shadow-2xl">
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <User className="w-8 h-8" />
+            Portal de Validadores - IncaBaeza
+          </h1>
+          <p className="text-blue-100 mt-2">Sistema de gestión de incapacidades médicas</p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Object.entries(stats).map(([key, value]) => (
+            <div key={key} className="bg-gray-800/50 backdrop-blur rounded-xl p-4 border border-gray-700">
+              <div className="text-2xl font-bold">{value || 0}</div>
+              <div className="text-sm text-gray-400 capitalize">{key.replace(/_/g, ' ')}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Filtros */}
+        <div className="bg-gray-800/50 backdrop-blur rounded-xl p-4 border border-gray-700 space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <select
+              value={filtros.empresa}
+              onChange={(e) => handleFiltroChange('empresa', e.target.value)}
+              className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Todas las empresas</option>
+              {empresas.map(emp => (
+                <option key={emp} value={emp}>{emp}</option>
+              ))}
+            </select>
+
+            <select
+              value={filtros.estado}
+              onChange={(e) => handleFiltroChange('estado', e.target.value)}
+              className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Todos los estados</option>
+              {Object.keys(STATUS_MAP).map(key => (
+                <option key={key} value={key}>{STATUS_MAP[key].label}</option>
+              ))}
+            </select>
+
+            <input
+              type="text"
+              placeholder="Buscar por serial, cédula o nombre..."
+              value={filtros.q}
+              onChange={(e) => handleFiltroChange('q', e.target.value)}
+              className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+            />
+
+            <button
+              onClick={() => api.exportarCasos('xlsx', filtros)}
+              className="bg-green-600 hover:bg-green-700 rounded-lg px-4 py-2 font-semibold transition-colors flex items-center justify-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Exportar Excel
+            </button>
+          </div>
+        </div>
+
+        {/* Lista de Casos */}
+        <div className="bg-gray-800/50 backdrop-blur rounded-xl border border-gray-700 overflow-hidden">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-900/50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Serial</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Nombre</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Empresa</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Estado</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Fecha</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {casos.map(caso => {
+                    const statusInfo = STATUS_MAP[caso.estado];
+                    const Icon = statusInfo.icon;
+                    return (
+                      <tr key={caso.id} className="border-t border-gray-700 hover:bg-gray-700/50 transition-colors">
+                        <td className="px-4 py-3 font-mono text-sm text-yellow-300">{caso.serial}</td>
+                        <td className="px-4 py-3 text-sm">{caso.nombre}</td>
+                        <td className="px-4 py-3 text-sm text-gray-400">{caso.empresa}</td>
+                        <td className="px-4 py-3">
+                          <span 
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold"
+                            style={{backgroundColor: statusInfo.color + '20', color: statusInfo.color}}
+                          >
+                            <Icon className="w-3 h-3" />
+                            {statusInfo.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-400">
+                          {new Date(caso.created_at).toLocaleDateString('es-CO')}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => setCasoSeleccionado(caso)}
+                            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                          >
+                            Ver Documento
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Paginación */}
+          <div className="bg-gray-900/50 px-4 py-3 flex items-center justify-between border-t border-gray-700">
+            <button
+              onClick={() => handlePageChange(filtros.page - 1)}
+              disabled={filtros.page === 1}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              Anterior
+            </button>
+            <span className="text-sm">
+              Página {filtros.page} de {totalPages}
+            </span>
+            <button
+              onClick={() => handlePageChange(filtros.page + 1)}
+              disabled={filtros.page >= totalPages}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              Siguiente
+            </button>
+          </div
+</div>
+        </div>
+      </div>
+
+      {/* Visor de Documentos (Modal) */}
+      {casoSeleccionado && (
+        <DocumentViewer
+          casoSeleccionado={casoSeleccionado}
+          onClose={() => setCasoSeleccionado(null)}
+          onRecargarCasos={() => {
+            cargarCasos();
+            cargarStats();
+          }}
+        />
+      )}
+    </div>
+  );
+}
