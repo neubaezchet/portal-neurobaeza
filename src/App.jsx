@@ -173,7 +173,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
       return;
     }
     
-    if (!confirm('¿Deshacer la última validación? Se enviará un email avisando del error.')) {
+    if (!window.confirm('¿Deshacer la última validación? Se enviará un email avisando del error.')) {
       return;
     }
     
