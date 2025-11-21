@@ -74,6 +74,205 @@ const STATUS_MAP = {
   'COMPLETA': { label: 'VALIDADA', color: '#16a34a', borderColor: 'border-green-500', icon: CheckCircle },
 };
 
+// ==================== EDITOR PDF CON CANVAS ====================
+function PDFEditorCanvas({ pageImage, onSave, onClose }) {
+  const canvasRef = useRef(null);
+  const [tool, setTool] = useState('draw'); // draw, highlight, arrow, crop
+  const [color, setColor] = useState('#FF0000');
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [startPos, setStartPos] = useState(null);
+  const [annotations, setAnnotations] = useState([]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      
+      // Redibujar anotaciones
+      annotations.forEach(ann => drawAnnotation(ctx, ann));
+    };
+    
+    img.src = pageImage;
+  }, [pageImage, annotations]);
+
+  const drawAnnotation = (ctx, ann) => {
+    ctx.strokeStyle = ann.color;
+    ctx.lineWidth = ann.tool === 'highlight' ? 20 : 3;
+    ctx.globalAlpha = ann.tool === 'highlight' ? 0.3 : 1;
+    
+    if (ann.tool === 'draw' || ann.tool === 'highlight') {
+      ctx.beginPath();
+      ctx.moveTo(ann.points[0].x, ann.points[0].y);
+      ann.points.forEach(p => ctx.lineTo(p.x, p.y));
+      ctx.stroke();
+    } else if (ann.tool === 'arrow') {
+      drawArrow(ctx, ann.start.x, ann.start.y, ann.end.x, ann.end.y);
+    } else if (ann.tool === 'crop') {
+      ctx.strokeStyle = '#00FF00';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(ann.x, ann.y, ann.width, ann.height);
+    }
+    
+    ctx.globalAlpha = 1;
+  };
+
+  const drawArrow = (ctx, fromX, fromY, toX, toY) => {
+    const headlen = 20;
+    const angle = Math.atan2(toY - fromY, toX - fromX);
+    
+    ctx.beginPath();
+    ctx.moveTo(fromX, fromY);
+    ctx.lineTo(toX, toY);
+    ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+    ctx.moveTo(toX, toY);
+    ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+    ctx.stroke();
+  };
+
+  const handleMouseDown = (e) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    setIsDrawing(true);
+    setStartPos({ x, y });
+    
+    if (tool === 'draw' || tool === 'highlight') {
+      setAnnotations(prev => [...prev, { tool, color, points: [{ x, y }] }]);
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDrawing) return;
+    
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    if (tool === 'draw' || tool === 'highlight') {
+      setAnnotations(prev => {
+        const last = prev[prev.length - 1];
+        return [...prev.slice(0, -1), { ...last, points: [...last.points, { x, y }] }];
+      });
+    }
+  };
+
+  const handleMouseUp = (e) => {
+    if (!isDrawing) return;
+    
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    if (tool === 'arrow') {
+      setAnnotations(prev => [...prev, { tool, color, start: startPos, end: { x, y } }]);
+    } else if (tool === 'crop') {
+      const width = x - startPos.x;
+      const height = y - startPos.y;
+      setAnnotations(prev => [...prev, { tool, x: startPos.x, y: startPos.y, width, height }]);
+    }
+    
+    setIsDrawing(false);
+  };
+
+  const handleSave = () => {
+    const canvas = canvasRef.current;
+    canvas.toBlob((blob) => {
+      onSave(blob);
+    }, 'image/jpeg', 0.95);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black z-[60] flex flex-col">
+      {/* Toolbar */}
+      <div className="bg-gray-900 p-4 flex items-center justify-between border-b border-gray-700">
+        <div className="flex items-center gap-3">
+          <button onClick={onClose} className="p-2 hover:bg-gray-800 rounded text-white">
+            <X className="w-5 h-5" />
+          </button>
+          <h3 className="text-white font-semibold">✏️ Editor de PDF</h3>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Herramientas */}
+          <button
+            onClick={() => setTool('draw')}
+            className={`p-2 rounded ${tool === 'draw' ? 'bg-blue-600' : 'bg-gray-800'} text-white`}
+          >
+            ✏️ Dibujar
+          </button>
+          
+          <button
+            onClick={() => setTool('highlight')}
+            className={`p-2 rounded ${tool === 'highlight' ? 'bg-yellow-600' : 'bg-gray-800'} text-white`}
+          >
+            🖍️ Resaltar
+          </button>
+          
+          <button
+            onClick={() => setTool('arrow')}
+            className={`p-2 rounded ${tool === 'arrow' ? 'bg-green-600' : 'bg-gray-800'} text-white`}
+          >
+            ➡️ Flecha
+          </button>
+          
+          <button
+            onClick={() => setTool('crop')}
+            className={`p-2 rounded ${tool === 'crop' ? 'bg-purple-600' : 'bg-gray-800'} text-white`}
+          >
+            ✂️ Recortar
+          </button>
+
+          {/* Color picker */}
+          <input
+            type="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            className="w-10 h-10 rounded cursor-pointer"
+          />
+
+          {/* Deshacer */}
+          <button
+            onClick={() => setAnnotations(prev => prev.slice(0, -1))}
+            disabled={annotations.length === 0}
+            className="p-2 bg-gray-800 hover:bg-gray-700 rounded text-white disabled:opacity-30"
+          >
+            <Undo2 className="w-5 h-5" />
+          </button>
+
+          {/* Guardar */}
+          <button
+            onClick={handleSave}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-white font-semibold"
+          >
+            💾 Guardar
+          </button>
+        </div>
+      </div>
+
+      {/* Canvas */}
+      <div className="flex-1 bg-black overflow-auto flex items-center justify-center p-8">
+        <canvas
+          ref={canvasRef}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          className="max-w-full max-h-full shadow-2xl cursor-crosshair"
+        />
+      </div>
+
+      <div className="bg-gray-900 p-4 text-center text-gray-400 text-sm border-t border-gray-700">
+        💡 Selecciona una herramienta y dibuja sobre el documento. Los cambios se guardarán en Drive.
+      </div>
+    </div>
+  );
+}
+
 // ==================== VISOR FULLSCREEN TIPO POWERPOINT ====================
 function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
   const [currentPage, setCurrentPage] = useState(0);
@@ -968,6 +1167,88 @@ export default function App() {
               <table className="w-full">
                 <thead className="bg-gray-900/50">
                   <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Serial</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Nombre</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Empresa</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Estado</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Fecha</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {casos.map(caso => {
+                    const statusInfo = STATUS_MAP[caso.estado];
+                    const Icon = statusInfo.icon;
+                    return (
+                      <tr key={caso.id} className="border-t border-gray-700 hover:bg-gray-700/50 transition-colors">
+                        <td className="px-4 py-3 font-mono text-sm text-yellow-300">{caso.serial}</td>
+                        <td className="px-4 py-3 text-sm">{caso.nombre}</td>
+                        <td className="px-4 py-3 text-sm text-gray-400">{caso.empresa}</td>
+                        <td className="px-4 py-3">
+                          <span 
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold"
+                            style={{backgroundColor: statusInfo.color + '20', color: statusInfo.color}}
+                          >
+                            <Icon className="w-3 h-3" />
+                            {statusInfo.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-400">
+                          {new Date(caso.created_at).toLocaleDateString('es-CO')}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => setCasoSeleccionado(caso)}
+                            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                          >
+                            Ver Documento
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Paginación */}
+          <div className="bg-gray-900/50 px-4 py-3 flex items-center justify-between border-t border-gray-700">
+            <button
+              onClick={() => handlePageChange(filtros.page - 1)}
+              disabled={filtros.page === 1}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              Anterior
+            </button>
+            <span className="text-sm">
+              Página {filtros.page} de {totalPages}
+            </span>
+            <button
+              onClick={() => handlePageChange(filtros.page + 1)}
+              disabled={filtros.page >= totalPages}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Visor de Documentos (Modal) */}
+      {casoSeleccionado && (
+        <DocumentViewer
+          casoSeleccionado={casoSeleccionado}
+          onClose={() => setCasoSeleccionado(null)}
+          onRecargarCasos={() => {
+            cargarCasos();
+            cargarStats();
+          }}
+        />
+      )}
+    </div>
+  );
+}left text-sm font-semibold">Serial</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">Serial</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">Nombre</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">Empresa</th>
