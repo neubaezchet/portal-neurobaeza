@@ -1248,8 +1248,7 @@ export default function App() {
       )}
     </div>
   );
-}left text-sm font-semibold">Serial</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Serial</th>
+}<th className="px-4 py-3 text-left text-sm font-semibold">Serial</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">Nombre</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">Empresa</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">Estado</th>
