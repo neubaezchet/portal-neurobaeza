@@ -302,6 +302,109 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
     }
     return new File([u8arr], filename, { type: mime });
   };
+// ✅ Filtrar checks por tipo de incapacidad
+  const getChecksPorTipo = (tipo, categoria) => {
+    const tipoNormalizado = tipo?.toLowerCase() || 'enfermedad_general';
+    
+    const checksDocumentos = {
+      'enfermedad_general': [
+        { key: 'incapacidad_faltante', label: 'Falta soporte de incapacidad', desc: 'No se adjuntó el documento oficial de la EPS' },
+        { key: 'epicrisis_faltante', label: 'Falta epicrisis/resumen', desc: 'Requerido para 3+ días' },
+      ],
+      'maternidad': [
+        { key: 'incapacidad_faltante', label: 'Falta licencia de maternidad', desc: 'Documento oficial de la EPS' },
+        { key: 'epicrisis_faltante', label: 'Falta epicrisis', desc: 'Resumen clínico completo' },
+        { key: 'registro_civil_faltante', label: 'Falta registro civil', desc: 'Del bebé' },
+        { key: 'nacido_vivo_faltante', label: 'Falta certificado nacido vivo', desc: 'Original legible' },
+      ],
+      'paternidad': [
+        { key: 'epicrisis_faltante', label: 'Falta epicrisis de la madre', desc: 'Resumen clínico' },
+        { key: 'cedula_padre_faltante', label: 'Falta cédula del padre', desc: 'Ambas caras' },
+        { key: 'registro_civil_faltante', label: 'Falta registro civil', desc: 'Del bebé' },
+        { key: 'nacido_vivo_faltante', label: 'Falta certificado nacido vivo', desc: 'Original' },
+        { key: 'licencia_maternidad_faltante', label: 'Falta licencia maternidad', desc: 'Si madre trabaja' },
+      ],
+      'accidente_transito': [
+        { key: 'incapacidad_faltante', label: 'Falta incapacidad médica', desc: 'Documento oficial' },
+        { key: 'epicrisis_faltante', label: 'Falta epicrisis', desc: 'Resumen clínico completo' },
+        { key: 'furips_faltante', label: 'Falta FURIPS', desc: 'Formato Único de Reporte' },
+        { key: 'soat_faltante', label: 'Falta SOAT', desc: '✅ Se enviará imagen automática', icon: <Image className="w-4 h-4 text-blue-600" /> },
+      ],
+    };
+    
+    const checksCalidad = [
+      { key: 'ilegible_recortada', label: 'Documento recortado', desc: 'Bordes no visibles' },
+      { key: 'ilegible_borrosa', label: 'Documento borroso', desc: 'Mala calidad de imagen' },
+      { key: 'ilegible_manchada', label: 'Documento con reflejos/manchas', desc: 'Obstáculos visuales' },
+      { key: 'epicrisis_incompleta', label: 'Epicrisis incompleta', desc: 'Faltan páginas' },
+    ];
+    
+    if (categoria === 'documentos') {
+      return checksDocumentos[tipoNormalizado] || checksDocumentos['enfermedad_general'];
+    }
+    return checksCalidad;
+  };
+// ✅ ROTAR PÁGINA
+  const rotarPagina = async (pageNum, angle, aplicarATodas) => {
+    if (!window.confirm(aplicarATodas ? '🔄 ¿Rotar TODAS las páginas?' : '🔄 ¿Rotar esta página?')) {
+      return;
+    }
+    
+    setEnviandoValidacion(true);
+    
+    try {
+      const operaciones = aplicarATodas 
+        ? { rotate: pages.map((_, i) => ({ page_num: i, angle })) }
+        : { rotate: [{ page_num: pageNum, angle }] };
+      
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ operaciones })
+      });
+      
+      if (response.ok) {
+        alert('✅ Página(s) rotada(s). Recargando...');
+        window.location.reload(); // Recargar para ver cambios
+      } else {
+        alert('❌ Error rotando página');
+      }
+    } catch (error) {
+      alert('❌ Error de conexión');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  };
+
+  // ✅ MEJORAR CALIDAD HD
+  const mejorarCalidadHD = async (pageNum) => {
+    if (!window.confirm('✨ ¿Mejorar calidad HD de esta página?\n\nEsto puede tardar unos segundos.')) {
+      return;
+    }
+    
+    setEnviandoValidacion(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          operaciones: { enhance_quality: { pages: [pageNum] } }
+        })
+      });
+      
+      if (response.ok) {
+        alert('✅ Calidad mejorada. Recargando...');
+        window.location.reload();
+      } else {
+        alert('❌ Error mejorando calidad');
+      }
+    } catch (error) {
+      alert('❌ Error de conexión');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  };
 
   // ✅ Función validar con imagen SOAT automática
   const handleValidar = async (serial, accion) => {
@@ -360,6 +463,33 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
     } catch (error) {
       console.error('Error:', error);
       setErrorValidacion('Error de conexión con el servidor');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  };
+// ✅ FUNCIÓN ELIMINAR CASO
+  const handleEliminarCaso = async () => {
+    if (!window.confirm(`⚠️ ¿ELIMINAR CASO ${casoSeleccionado.serial}?\n\nEsta acción es PERMANENTE y solo quedará en historial.`)) {
+      return;
+    }
+    
+    setEnviandoValidacion(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/eliminar`, {
+        method: 'POST',
+        headers: getHeaders()
+      });
+      
+      if (response.ok) {
+        alert('✅ Caso eliminado correctamente');
+        onClose();
+        if (onRecargarCasos) onRecargarCasos();
+      } else {
+        alert('❌ Error al eliminar caso');
+      }
+    } catch (error) {
+      alert('❌ Error de conexión');
     } finally {
       setEnviandoValidacion(false);
     }
@@ -455,6 +585,41 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
       }
     });
   };
+
+  // ✅ FULLSCREEN AUTOMÁTICO
+  useEffect(() => {
+    // Entrar en fullscreen al abrir
+    const enterFullscreen = async () => {
+      try {
+        await document.documentElement.requestFullscreen();
+        console.log('✅ Fullscreen activado');
+      } catch (err) {
+        console.log('⚠️ Fullscreen no soportado:', err);
+      }
+    };
+    
+    enterFullscreen();
+    
+    // Salir con F11 o ESC
+    const handleFullscreenExit = (e) => {
+      if (e.key === 'F11' || (e.key === 'Escape' && document.fullscreenElement)) {
+        e.preventDefault();
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        }
+        onClose();
+      }
+    };
+    
+    window.addEventListener('keydown', handleFullscreenExit);
+    
+    return () => {
+      window.removeEventListener('keydown', handleFullscreenExit);
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+    };
+  }, [onClose]);
 
   // ✅ CARGA DE PDF
   useEffect(() => {
@@ -564,6 +729,16 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* BOTÓN ELIMINAR */}
+          <button
+            onClick={handleEliminarCaso}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors"
+            title="Eliminar caso permanentemente"
+          >
+            <X className="w-4 h-4" />
+            🗑️
+          </button>
+
           {/* BOTÓN DESHACER */}
           {ultimaAccion && (
             <button
@@ -590,7 +765,36 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
       </div>
 
       {/* VIEWER FULLSCREEN */}
-      <div ref={containerRef} className="flex-1 bg-black overflow-auto flex items-center justify-center p-8">
+      <div className="flex-1 flex">
+        {/* Panel lateral de miniaturas */}
+        <div className="w-48 bg-gray-900 border-r border-gray-700 overflow-y-auto p-2">
+          <h3 className="text-white text-xs font-semibold mb-2 sticky top-0 bg-gray-900 py-2">
+            📄 Páginas ({pages.length})
+          </h3>
+          <div className="space-y-2">
+            {pages.map((page, idx) => (
+              <div
+                key={page.id}
+                onClick={() => setCurrentPage(idx)}
+                className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                  currentPage === idx ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-700 hover:border-gray-500'
+                }`}
+              >
+                <img 
+                  src={page.fullImage} 
+                  alt={`Página ${idx + 1}`}
+                  className="w-full h-auto"
+                />
+                <div className="text-center text-xs text-gray-400 bg-gray-800 p-1">
+                  Pág {idx + 1}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Visor principal */}
+        <div ref={containerRef} className="flex-1 bg-black overflow-auto flex items-center justify-center p-8">
         {loadingPdf ? (
           <div className="text-center">
             <RefreshCw className="w-12 h-12 animate-spin mx-auto text-blue-500 mb-4" />
@@ -605,6 +809,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
             className="object-contain transition-transform shadow-2xl"
           />
         )}
+        </div>
       </div>
 
       {/* FOOTER CON CONTROLES */}
@@ -626,6 +831,37 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
             className="p-3 bg-gray-800 hover:bg-gray-700 rounded-lg disabled:opacity-30 text-white">
             <ChevronRight className="w-6 h-6" />
           </button>
+        </div>
+{/* CONTROLES DE PÁGINA */}
+        <div className="flex justify-center items-center gap-3 pb-3 border-b border-gray-700">
+          <button
+            onClick={() => rotarPagina(currentPage, 90, false)}
+            className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white text-sm flex items-center gap-2"
+            title="Rotar 90° (solo esta página)"
+          >
+            🔄 Rotar
+          </button>
+          
+          <button
+            onClick={() => rotarPagina(currentPage, 90, true)}
+            className="px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-white text-sm flex items-center gap-2"
+            title="Rotar 90° (TODAS las páginas)"
+          >
+            🔄 Rotar Todas
+          </button>
+          
+          <button
+            onClick={() => mejorarCalidadHD(currentPage)}
+            disabled={enviandoValidacion}
+            className="px-3 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white text-sm flex items-center gap-2 disabled:opacity-50"
+            title="Mejorar calidad HD con IA"
+          >
+            ✨ HD
+          </button>
+        </div>
+
+        {/* BOTONES DE VALIDACIÓN */}
+        <div className="flex justify-center gap-2 flex-wrap">
         </div>
 
         {/* BOTONES DE VALIDACIÓN */}
@@ -713,19 +949,10 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
               <div className="bg-gray-50 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   <FileText className="w-5 h-5 text-red-600" />
-                  📋 Documentos Faltantes
+                  📋 Documentos Faltantes para {casoSeleccionado.tipo || 'este tipo'}
                 </h4>
                 <div className="space-y-2">
-                  {[
-                    { key: 'incapacidad_faltante', label: 'Falta soporte de incapacidad', desc: 'No se adjuntó el documento oficial de la EPS/ARL' },
-                    { key: 'epicrisis_faltante', label: 'Falta epicrisis/resumen', desc: 'No se adjuntó epicrisis o resumen clínico completo' },
-                    { key: 'soat_faltante', label: 'Falta SOAT', desc: '✅ Se enviará imagen de referencia automáticamente', icon: <Image className="w-4 h-4 text-blue-600" /> },
-                    { key: 'furips_faltante', label: 'Falta FURIPS', desc: 'Solo para Accidente de Tránsito' },
-                    { key: 'registro_civil_faltante', label: 'Falta registro civil', desc: 'Solo para Maternidad/Paternidad' },
-                    { key: 'nacido_vivo_faltante', label: 'Falta certificado nacido vivo', desc: 'Solo para Maternidad/Paternidad' },
-                    { key: 'cedula_padre_faltante', label: 'Falta cédula del padre', desc: 'Solo para Paternidad (ambas caras)' },
-                    { key: 'licencia_maternidad_faltante', label: 'Falta licencia maternidad', desc: 'Solo para Paternidad (madre trabajadora)' },
-                  ].map(check => (
+                  {getChecksPorTipo(casoSeleccionado.tipo, 'documentos').map(check => (
                     <label key={check.key} className={`flex items-start gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-red-50 transition-colors border ${checksSeleccionados.includes(check.key) ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-200'}`}>
                       <input 
                         type="checkbox"
@@ -752,12 +979,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
                   ⚠️ Problemas de Calidad
                 </h4>
                 <div className="space-y-2">
-                  {[
-                    { key: 'ilegible_recortada', label: 'Documento recortado', desc: 'Los bordes no son visibles o está incompleto' },
-                    { key: 'ilegible_borrosa', label: 'Documento borroso', desc: 'Mala calidad de imagen, no se puede leer' },
-                    { key: 'ilegible_manchada', label: 'Documento con reflejos/manchas', desc: 'Presenta obstáculos visuales' },
-                    { key: 'epicrisis_incompleta', label: 'Epicrisis incompleta', desc: 'Faltan páginas del documento' },
-                  ].map(check => (
+                  {getChecksPorTipo(casoSeleccionado.tipo, 'calidad').map(check => (
                     <label key={check.key} className={`flex items-start gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-orange-50 transition-colors border ${checksSeleccionados.includes(check.key) ? 'border-orange-500 ring-2 ring-orange-200' : 'border-gray-200'}`}>
                       <input 
                         type="checkbox"
@@ -805,6 +1027,24 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
                   </div>
                 )}
               </div>
+{/* SISTEMA HÍBRIDO: Texto libre con IA */}
+              <div className="bg-purple-50 border-2 border-dashed border-purple-300 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  🤖 O escribe libremente (la IA lo convertirá en email profesional)
+                </h4>
+                <textarea
+                  value={mensajePersonalizado}
+                  onChange={(e) => setMensajePersonalizado(e.target.value)}
+                  placeholder="Ejemplo: 'Falta la epicrisis completa y el registro civil está recortado'"
+                  className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 resize-none"
+                  rows={3}
+                />
+                <p className="text-xs text-gray-600 mt-2">
+                  💡 Si escribes aquí, no es necesario seleccionar checks arriba
+                </p>
+              </div>
+                  
+              {/* Botones */}
 
               {/* Botones */}
               <div className="flex gap-3 pt-4">
@@ -1168,87 +1408,6 @@ export default function App() {
                 <thead className="bg-gray-900/50">
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-semibold">Serial</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Nombre</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Empresa</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Estado</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Fecha</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {casos.map(caso => {
-                    const statusInfo = STATUS_MAP[caso.estado];
-                    const Icon = statusInfo.icon;
-                    return (
-                      <tr key={caso.id} className="border-t border-gray-700 hover:bg-gray-700/50 transition-colors">
-                        <td className="px-4 py-3 font-mono text-sm text-yellow-300">{caso.serial}</td>
-                        <td className="px-4 py-3 text-sm">{caso.nombre}</td>
-                        <td className="px-4 py-3 text-sm text-gray-400">{caso.empresa}</td>
-                        <td className="px-4 py-3">
-                          <span 
-                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold"
-                            style={{backgroundColor: statusInfo.color + '20', color: statusInfo.color}}
-                          >
-                            <Icon className="w-3 h-3" />
-                            {statusInfo.label}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-400">
-                          {new Date(caso.created_at).toLocaleDateString('es-CO')}
-                        </td>
-                        <td className="px-4 py-3">
-                          <button
-                            onClick={() => setCasoSeleccionado(caso)}
-                            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                          >
-                            Ver Documento
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Paginación */}
-          <div className="bg-gray-900/50 px-4 py-3 flex items-center justify-between border-t border-gray-700">
-            <button
-              onClick={() => handlePageChange(filtros.page - 1)}
-              disabled={filtros.page === 1}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            >
-              Anterior
-            </button>
-            <span className="text-sm">
-              Página {filtros.page} de {totalPages}
-            </span>
-            <button
-              onClick={() => handlePageChange(filtros.page + 1)}
-              disabled={filtros.page >= totalPages}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            >
-              Siguiente
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Visor de Documentos (Modal) */}
-      {casoSeleccionado && (
-        <DocumentViewer
-          casoSeleccionado={casoSeleccionado}
-          onClose={() => setCasoSeleccionado(null)}
-          onRecargarCasos={() => {
-            cargarCasos();
-            cargarStats();
-          }}
-        />
-      )}
-    </div>
-  );
-}<th className="px-4 py-3 text-left text-sm font-semibold">Serial</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">Nombre</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">Empresa</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">Estado</th>
