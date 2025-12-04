@@ -287,6 +287,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
   const [errorValidacion, setErrorValidacion] = useState('');
   const [ultimaAccion, setUltimaAccion] = useState(null);
   const [mostrarReferentes, setMostrarReferentes] = useState(false);
+const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
   
   const containerRef = useRef(null);
 
@@ -757,7 +758,16 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
             <ZoomIn className="w-4 h-4" />
           </div>
 
-          <a href={casoSeleccionado.drive_link} target="_blank" rel="noopener noreferrer"
+          <a 
+  href={casoSeleccionado.drive_link || '#'} 
+  target="_blank" 
+  rel="noopener noreferrer"
+  onClick={(e) => {
+    if (!casoSeleccionado.drive_link) {
+      e.preventDefault();
+      alert('❌ Link de Drive no disponible');
+    }
+  }}
             className="p-2 hover:bg-gray-800 rounded transition-colors text-white" title="Abrir en Google Drive">
             <FolderOpen className="w-5 h-5" />
           </a>
@@ -767,15 +777,35 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
       {/* VIEWER FULLSCREEN */}
       <div className="flex-1 flex">
         {/* Panel lateral de miniaturas */}
-        <div className="w-48 bg-gray-900 border-r border-gray-700 overflow-y-auto p-2">
-          <h3 className="text-white text-xs font-semibold mb-2 sticky top-0 bg-gray-900 py-2">
-            📄 Páginas ({pages.length})
-          </h3>
+        <div className={`${mostrarMiniaturas ? 'w-48' : 'w-12'} bg-gray-900 border-r border-gray-700 overflow-y-auto p-2 transition-all duration-300 flex-shrink-0`}>
+          <div className="sticky top-0 bg-gray-900 py-2 z-10">
+  <button
+    onClick={() => setMostrarMiniaturas(!mostrarMiniaturas)}
+    className="w-full flex items-center justify-between text-white text-xs font-semibold hover:bg-gray-800 p-2 rounded"
+  >
+    {mostrarMiniaturas ? '📄 Páginas' : '📄'}
+    {mostrarMiniaturas && <ChevronLeft className="w-4 h-4" />}
+  </button>
+</div>
+{mostrarMiniaturas && (
           <div className="space-y-2">
-            {pages.map((page, idx) => (
-              <div
-                key={page.id}
-                onClick={() => setCurrentPage(idx)}
+  {pages.map((page, idx) => (
+    <div
+      key={page.id}
+      draggable
+      onDragStart={(e) => e.dataTransfer.setData('pageIndex', idx)}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault();
+        const fromIndex = parseInt(e.dataTransfer.getData('pageIndex'));
+        if (fromIndex !== idx) {
+          const newPages = [...pages];
+          const [movedPage] = newPages.splice(fromIndex, 1);
+          newPages.splice(idx, 0, movedPage);
+          setPages(newPages);
+        }
+      }}
+      onClick={() => setCurrentPage(idx)}
                 className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
                   currentPage === idx ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-700 hover:border-gray-500'
                 }`}
@@ -791,10 +821,11 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
               </div>
             ))}
           </div>
+        )}
         </div>
 
         {/* Visor principal */}
-        <div ref={containerRef} className="flex-1 bg-black overflow-auto flex items-center justify-center p-8">
+        <div ref={containerRef} className="flex-1 bg-black overflow-auto flex items-center justify-center p-2">
         {loadingPdf ? (
           <div className="text-center">
             <RefreshCw className="w-12 h-12 animate-spin mx-auto text-blue-500 mb-4" />
@@ -805,7 +836,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
           <img 
             src={pages[currentPage]?.fullImage} 
             alt={`Página ${currentPage+1}`}
-            style={{ transform: `scale(${zoom/100})`, maxWidth: '100%', maxHeight: '100%' }}
+            style={{ transform: `scale(${zoom/100})`, width: '90%', height: '90%', objectFit: 'contain' }}
             className="object-contain transition-transform shadow-2xl"
           />
         )}
@@ -813,7 +844,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
       </div>
 
       {/* FOOTER CON CONTROLES */}
-      <div className="bg-gray-900/95 backdrop-blur border-t border-gray-700 p-4 space-y-3">
+      <div className="bg-gray-900/95 backdrop-blur border-t border-gray-700 p-4 space-y-3 overflow-y-auto max-h-64">
         <div className="flex items-center justify-center gap-4">
           <button 
             onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
