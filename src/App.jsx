@@ -787,7 +787,7 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
       </div>
 
       {/* VIEWER FULLSCREEN */}
-      <div className="flex-1 flex">
+      <div className="flex-1 flex overflow-hidden">
         {/* Panel lateral de miniaturas */}
         <div className={`${mostrarMiniaturas ? 'w-48' : 'w-12'} bg-gray-900 border-r border-gray-700 overflow-y-auto p-2 transition-all duration-300 flex-shrink-0`}>
           <div className="sticky top-0 bg-gray-900 py-2 z-10">
@@ -839,7 +839,7 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
         {/* Visor principal - SCROLL VERTICAL CON PÁGINAS EN CASCADA */}
         <div 
           ref={containerRef} 
-          className="flex-1 bg-gradient-to-b from-gray-900 to-black overflow-y-scroll p-8"
+          className="flex-1 bg-gradient-to-b from-gray-900 to-black overflow-y-auto p-8"
           style={{ scrollBehavior: 'smooth' }}
         >
           {loadingPdf ? (
@@ -849,7 +849,7 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
               <p className="text-xs text-gray-400 mt-2">Las páginas aparecerán en cascada con scroll</p>
             </div>
           ) : (
-            <div className="max-w-4xl mx-auto space-y-8 pb-32">
+            <div className="max-w-4xl mx-auto space-y-8 pb-40">
               {pages.map((page, idx) => (
                 <div 
                   key={page.id}
