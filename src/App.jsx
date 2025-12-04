@@ -837,20 +837,25 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
         </div>
 
         {/* Visor principal - SCROLL VERTICAL CON PÁGINAS EN CASCADA */}
-        <div ref={containerRef} className="flex-1 bg-black overflow-y-auto p-8">
+        <div 
+          ref={containerRef} 
+          className="flex-1 bg-gradient-to-b from-gray-900 to-black overflow-y-scroll p-8"
+          style={{ scrollBehavior: 'smooth' }}
+        >
           {loadingPdf ? (
             <div className="text-center py-20">
               <RefreshCw className="w-12 h-12 animate-spin mx-auto text-blue-500 mb-4" />
               <p className="text-white text-lg">Cargando documento PDF...</p>
-              <p className="text-xs text-gray-400 mt-2">Use Ctrl + Scroll para hacer zoom</p>
+              <p className="text-xs text-gray-400 mt-2">Las páginas aparecerán en cascada con scroll</p>
             </div>
           ) : (
-            <div className="max-w-5xl mx-auto space-y-6">
+            <div className="max-w-4xl mx-auto space-y-8 pb-32">
               {pages.map((page, idx) => (
                 <div 
                   key={page.id}
-                  className={`bg-white shadow-2xl transition-all rounded-lg overflow-hidden ${
-                    currentPage === idx ? 'ring-4 ring-blue-500 scale-105' : 'hover:shadow-xl'
+                  id={`page-${idx}`}
+                  className={`bg-white shadow-2xl transition-all duration-300 ${
+                    currentPage === idx ? 'ring-4 ring-blue-500' : 'opacity-90 hover:opacity-100'
                   }`}
                   onClick={() => setCurrentPage(idx)}
                 >
@@ -859,9 +864,12 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
                     alt={`Página ${idx + 1}`}
                     style={{ 
                       transform: `scale(${zoom/100})`,
-                      transformOrigin: 'top center'
+                      transformOrigin: 'top center',
+                      width: '100%',
+                      height: 'auto',
+                      display: 'block'
                     }}
-                    className="w-full h-auto cursor-pointer"
+                    className="cursor-pointer"
                   />
                   <div className="bg-gray-800 text-white text-center py-2 text-sm font-semibold">
                     📄 Página {idx + 1} de {pages.length}
@@ -873,8 +881,8 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
         </div>
       </div>
 
-     {/* FOOTER CON BOTONES DE VALIDACIÓN - FIJO */}
-      <div className="bg-gray-900/95 backdrop-blur border-t border-gray-700 p-4 flex-shrink-0">
+      {/* FOOTER CON BOTONES DE VALIDACIÓN - SIEMPRE VISIBLE (FIJO) */}
+      <div className="bg-gray-900/98 backdrop-blur-xl border-t-2 border-gray-700 p-4 flex-shrink-0 fixed bottom-0 left-0 right-0 z-50 shadow-2xl">
         {/* BOTONES DE VALIDACIÓN */}
         <div className="flex justify-center gap-2 flex-wrap">
           <button 
