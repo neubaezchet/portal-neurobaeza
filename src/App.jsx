@@ -730,6 +730,24 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
         </div>
 
         <div className="flex items-center gap-3">
+          {/* CONTROLES DE EDICIÓN - SUTILES */}
+          <button
+            onClick={() => rotarPagina(currentPage, 90, false)}
+            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-xs flex items-center gap-1 transition-colors"
+            title="Rotar página actual 90°"
+          >
+            <RefreshCw className="w-3 h-3" />
+          </button>
+          
+          <button
+            onClick={() => mejorarCalidadHD(currentPage)}
+            disabled={enviandoValidacion}
+            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-xs flex items-center gap-1 disabled:opacity-50 transition-colors"
+            title="Mejorar calidad HD con IA"
+          >
+            ✨
+          </button>
+
           {/* BOTÓN ELIMINAR */}
           <button
             onClick={handleEliminarCaso}
@@ -818,78 +836,46 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
         )}
         </div>
 
-        {/* Visor principal */}
-        <div ref={containerRef} className="flex-1 bg-black overflow-auto p-2">
-        {loadingPdf ? (
-          <div className="text-center">
-            <RefreshCw className="w-12 h-12 animate-spin mx-auto text-blue-500 mb-4" />
-            <p className="text-white">Cargando documento PDF...</p>
-            <p className="text-xs text-gray-400 mt-2">Use Ctrl + Scroll para hacer zoom</p>
-          </div>
-        ) : (
-          <img 
-            src={pages[currentPage]?.fullImage} 
-            alt={`Página ${currentPage+1}`}
-         style={{ 
-  transform: `scale(${zoom/100})`,
-  maxWidth: '100%',
-  height: 'auto'
-}}
-              className="mx-auto"
-            />
+        {/* Visor principal - SCROLL VERTICAL CON PÁGINAS EN CASCADA */}
+        <div ref={containerRef} className="flex-1 bg-black overflow-y-auto p-8">
+          {loadingPdf ? (
+            <div className="text-center py-20">
+              <RefreshCw className="w-12 h-12 animate-spin mx-auto text-blue-500 mb-4" />
+              <p className="text-white text-lg">Cargando documento PDF...</p>
+              <p className="text-xs text-gray-400 mt-2">Use Ctrl + Scroll para hacer zoom</p>
+            </div>
+          ) : (
+            <div className="max-w-5xl mx-auto space-y-6">
+              {pages.map((page, idx) => (
+                <div 
+                  key={page.id}
+                  className={`bg-white shadow-2xl transition-all rounded-lg overflow-hidden ${
+                    currentPage === idx ? 'ring-4 ring-blue-500 scale-105' : 'hover:shadow-xl'
+                  }`}
+                  onClick={() => setCurrentPage(idx)}
+                >
+                  <img 
+                    src={page.fullImage} 
+                    alt={`Página ${idx + 1}`}
+                    style={{ 
+                      transform: `scale(${zoom/100})`,
+                      transformOrigin: 'top center'
+                    }}
+                    className="w-full h-auto cursor-pointer"
+                  />
+                  <div className="bg-gray-800 text-white text-center py-2 text-sm font-semibold">
+                    📄 Página {idx + 1} de {pages.length}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
 
-     {/* FOOTER CON CONTROLES - FIJO */}
-<div className="bg-gray-900/95 backdrop-blur border-t border-gray-700 p-4 space-y-3 flex-shrink-0">
-        <div className="flex items-center justify-center gap-4">
-          <button 
-            onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-            disabled={currentPage === 0}
-            className="p-3 bg-gray-800 hover:bg-gray-700 rounded-lg disabled:opacity-30 text-white">
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <div className="bg-gray-800 px-6 py-3 rounded-lg min-w-[150px] text-center text-white">
-            <span className="text-lg font-semibold">{currentPage + 1}</span>
-            <span className="text-sm text-gray-400"> / {pages.length}</span>
-          </div>
-          <button 
-            onClick={() => setCurrentPage(p => Math.min(pages.length - 1, p + 1))}
-            disabled={currentPage === pages.length - 1}
-            className="p-3 bg-gray-800 hover:bg-gray-700 rounded-lg disabled:opacity-30 text-white">
-            <ChevronRight className="w-6 h-6" />
-          </button>
-        </div>
-{/* CONTROLES DE PÁGINA */}
-        <div className="flex justify-center items-center gap-3 pb-3 border-b border-gray-700">
-          <button
-            onClick={() => rotarPagina(currentPage, 90, false)}
-            className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white text-sm flex items-center gap-2"
-            title="Rotar 90° (solo esta página)"
-          >
-            🔄 Rotar
-          </button>
-          
-          <button
-            onClick={() => rotarPagina(currentPage, 90, true)}
-            className="px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-white text-sm flex items-center gap-2"
-            title="Rotar 90° (TODAS las páginas)"
-          >
-            🔄 Rotar Todas
-          </button>
-          
-          <button
-            onClick={() => mejorarCalidadHD(currentPage)}
-            disabled={enviandoValidacion}
-            className="px-3 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white text-sm flex items-center gap-2 disabled:opacity-50"
-            title="Mejorar calidad HD con IA"
-          >
-            ✨ HD
-          </button>
-        </div>
-
-        {/* BOTONES DE VALIDACIÓN - SIEMPRE VISIBLES */}
+     {/* FOOTER CON BOTONES DE VALIDACIÓN - FIJO */}
+      <div className="bg-gray-900/95 backdrop-blur border-t border-gray-700 p-4 flex-shrink-0">
+        {/* BOTONES DE VALIDACIÓN */}
         <div className="flex justify-center gap-2 flex-wrap">
           <button 
             onClick={() => handleValidar(casoSeleccionado.serial, 'completa')}
