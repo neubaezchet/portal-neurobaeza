@@ -759,15 +759,9 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
           </div>
 
           <a 
-  href={casoSeleccionado.drive_link || '#'} 
+  href={casoSeleccionado.drive_link || 'https://drive.google.com'} 
   target="_blank" 
   rel="noopener noreferrer"
-  onClick={(e) => {
-    if (!casoSeleccionado.drive_link) {
-      e.preventDefault();
-      alert('❌ Link de Drive no disponible');
-    }
-  }}
             className="p-2 hover:bg-gray-800 rounded transition-colors text-white" title="Abrir en Google Drive">
             <FolderOpen className="w-5 h-5" />
           </a>
@@ -825,7 +819,7 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
         </div>
 
         {/* Visor principal */}
-        <div ref={containerRef} className="flex-1 bg-black overflow-auto flex items-center justify-center p-2">
+        <div ref={containerRef} className="flex-1 bg-black overflow-auto p-2">
         {loadingPdf ? (
           <div className="text-center">
             <RefreshCw className="w-12 h-12 animate-spin mx-auto text-blue-500 mb-4" />
@@ -836,15 +830,19 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
           <img 
             src={pages[currentPage]?.fullImage} 
             alt={`Página ${currentPage+1}`}
-            style={{ transform: `scale(${zoom/100})`, width: '90%', height: '90%', objectFit: 'contain' }}
-            className="object-contain transition-transform shadow-2xl"
-          />
-        )}
+         style={{ 
+  transform: `scale(${zoom/100})`,
+  maxWidth: '100%',
+  height: 'auto'
+}}
+              className="mx-auto"
+            />
+          )}
         </div>
       </div>
 
-      {/* FOOTER CON CONTROLES */}
-      <div className="bg-gray-900/95 backdrop-blur border-t border-gray-700 p-4 space-y-3 overflow-y-auto max-h-64">
+     {/* FOOTER CON CONTROLES - FIJO */}
+<div className="bg-gray-900/95 backdrop-blur border-t border-gray-700 p-4 space-y-3 flex-shrink-0">
         <div className="flex items-center justify-center gap-4">
           <button 
             onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
@@ -891,11 +889,7 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
           </button>
         </div>
 
-        {/* BOTONES DE VALIDACIÓN */}
-        <div className="flex justify-center gap-2 flex-wrap">
-        </div>
-
-        {/* BOTONES DE VALIDACIÓN */}
+        {/* BOTONES DE VALIDACIÓN - SIEMPRE VISIBLES */}
         <div className="flex justify-center gap-2 flex-wrap">
           <button 
             onClick={() => handleValidar(casoSeleccionado.serial, 'completa')}
