@@ -409,6 +409,58 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
 
   // ✅ Función validar con imagen SOAT automática
   const handleValidar = async (serial, accion) => {
+    // ✅ DETECTAR SI ES UN REENVÍO
+    const esReenvio = casoSeleccionado.metadata_reenvio?.tiene_reenvios;
+    
+    if (esReenvio) {
+      // Si es reenvío, usar endpoint especial
+      if (accion === 'completa') {
+        // ✅ APROBAR REENVÍO
+        if (!window.confirm('✅ ¿Aprobar este reenvío?\n\nSe desbloqueará el caso y se marcará como COMPLETA.')) {
+          return;
+        }
+        
+        setEnviandoValidacion(true);
+        
+        const formData = new FormData();
+        formData.append('decision', 'aprobar');
+        formData.append('motivo', 'Documentos correctos');
+        
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/validador/casos/${serial}/aprobar-reenvio`,
+            {
+              method: 'POST',
+              headers: { 'X-Admin-Token': ADMIN_TOKEN },
+              body: formData
+            }
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            alert(`✅ ${data.mensaje}`);
+            if (onRecargarCasos) onRecargarCasos();
+            onClose();
+          } else {
+            alert('❌ Error al aprobar reenvío');
+          }
+        } catch (error) {
+          alert('❌ Error de conexión');
+        } finally {
+          setEnviandoValidacion(false);
+        }
+        
+        return; // ← IMPORTANTE: Salir aquí
+      }
+      
+      if (accion === 'incompleta') {
+        // ❌ RECHAZAR REENVÍO (abrir modal de checks)
+        setAccionSeleccionada('incompleta');
+        return; // ← Abre el modal normal
+      }
+    }
+    
+    // ✅ FLUJO NORMAL (sin reenvío)
     setEnviandoValidacion(true);
     setErrorValidacion('');
     
@@ -464,6 +516,48 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
     } catch (error) {
       console.error('Error:', error);
       setErrorValidacion('Error de conexión con el servidor');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  };
+  // ✅ FUNCIÓN TOGGLE BLOQUEO
+  const handleToggleBloqueo = async (accion) => {
+    const accionTexto = accion === 'bloquear' ? 'BLOQUEAR' : 'DESBLOQUEAR';
+    const motivo = prompt(`¿Por qué deseas ${accionTexto} este caso?\n\n(Ejemplo: "Casos especiales", "Urgencia médica", etc.)`);
+    
+    if (!motivo) return;
+    
+    setEnviandoValidacion(true);
+    
+    const formData = new FormData();
+    formData.append('accion', accion);
+    formData.append('motivo', motivo);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/toggle-bloqueo`, {
+        method: 'POST',
+        headers: { 'X-Admin-Token': ADMIN_TOKEN },
+        body: formData
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        const emoji = accion === 'bloquear' ? '🔒' : '🔓';
+        alert(`${emoji} ${data.mensaje}`);
+        
+        // Actualizar estado local
+        setCasoSeleccionado(prev => ({
+          ...prev,
+          bloquea_nueva: data.bloquea_nueva
+        }));
+        
+        if (onRecargarCasos) onRecargarCasos();
+      } else {
+        alert('❌ Error al cambiar estado de bloqueo');
+      }
+    } catch (error) {
+      alert('❌ Error de conexión');
     } finally {
       setEnviandoValidacion(false);
     }
@@ -621,7 +715,43 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
       }
     };
   }, [onClose]);
-
+// ✅ DETECTAR REENVÍOS AL ABRIR CASO
+useEffect(() => {
+  const verificarReenvios = async () => {
+    if (!casoSeleccionado?.serial) return;
+    
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/historial-reenvios`,
+        { headers: getHeaders() }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.tiene_reenvios && data.total_reenvios > 0) {
+          // Hay reenvíos pendientes
+          console.log(`🔄 Caso ${casoSeleccionado.serial} tiene ${data.total_reenvios} reenvío(s)`);
+          
+          // Cambiar estado del caso a NUEVO para forzar revisión
+          setCasoSeleccionado(prev => ({
+            ...prev,
+            estado: 'NUEVO',
+            metadata_reenvio: {
+              tiene_reenvios: true,
+              total_reenvios: data.total_reenvios,
+              ultimo_reenvio: data.historial[data.historial.length - 1]
+            }
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error verificando reenvíos:', error);
+    }
+  };
+  
+  verificarReenvios();
+}, [casoSeleccionado?.serial]);
   // ✅ CARGA DE PDF
   useEffect(() => {
     const cargarPDF = async () => {
@@ -757,7 +887,32 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
             <X className="w-4 h-4" />
             🗑️
           </button>
-
+{/* BOTONES BLOQUEO/DESBLOQUEO (solo para INCOMPLETAS) */}
+          {['INCOMPLETA', 'ILEGIBLE', 'INCOMPLETA_ILEGIBLE'].includes(casoSeleccionado.estado) && (
+            <>
+              {casoSeleccionado.bloquea_nueva ? (
+                <button
+                  onClick={() => handleToggleBloqueo('desbloquear')}
+                  disabled={enviandoValidacion}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
+                  title="Permitir que el empleado suba nuevas incapacidades"
+                >
+                  <span className="text-xl">🔓</span>
+                  Desbloquear
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleToggleBloqueo('bloquear')}
+                  disabled={enviandoValidacion}
+                  className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
+                  title="Forzar que complete esta incapacidad primero"
+                >
+                  <span className="text-xl">🔒</span>
+                  Bloquear
+                </button>
+              )}
+            </>
+          )}
           {/* BOTÓN DESHACER */}
           {ultimaAccion && (
             <button
@@ -785,6 +940,32 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
           </a>
         </div>
       </div>
+
+      {/* ✅ BANNER DE REENVÍO */}
+      {casoSeleccionado.metadata_reenvio?.tiene_reenvios && (
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-4 flex items-center justify-between border-b-4 border-orange-600 shadow-lg animate-pulse">
+          <div className="flex items-center gap-3">
+            <RefreshCw className="w-6 h-6 animate-spin" />
+            <div>
+              <h3 className="font-bold text-lg">
+                🔄 REENVÍO DETECTADO - Comparar Versiones
+              </h3>
+              <p className="text-sm text-orange-100">
+                El empleado ha reenviado documentos. Total de intentos: {casoSeleccionado.metadata_reenvio.total_reenvios}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              const ultimo = casoSeleccionado.metadata_reenvio.ultimo_reenvio;
+              window.open(ultimo.link, '_blank');
+            }}
+            className="bg-white text-orange-600 px-4 py-2 rounded-lg font-semibold hover:bg-orange-50 transition-colors"
+          >
+            📄 Ver Nueva Versión
+          </button>
+        </div>
+      )}
 
       {/* VIEWER FULLSCREEN */}
       <div className="flex-1 flex overflow-hidden">
@@ -1067,11 +1248,81 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
 
               {/* Botones */}
               <div className="flex gap-3 pt-4">
-                <button
-                  onClick={() => handleValidar(casoSeleccionado.serial, 'incompleta')}
-                  disabled={enviandoValidacion || checksSeleccionados.length === 0}
+<button
+  onClick={async () => {
+    const esReenvio = casoSeleccionado.metadata_reenvio?.tiene_reenvios;
+    
+    if (esReenvio) {
+      // ❌ RECHAZAR REENVÍO
+      if (checksSeleccionados.length === 0) {
+        alert('⚠️ Selecciona al menos 1 check antes de rechazar');
+        return;
+      }
+      
+      if (!window.confirm('❌ ¿Rechazar este reenvío?\n\nSeguirá bloqueado y se enviará email con los problemas.')) {
+        return;
+      }
+      
+      setEnviandoValidacion(true);
+      
+      const formData = new FormData();
+      formData.append('decision', 'rechazar');
+      formData.append('motivo', 'Documentos aún incompletos');
+      
+      checksSeleccionados.forEach(check => {
+        formData.append('checks', check);
+      });
+      
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/aprobar-reenvio`,
+          {
+            method: 'POST',
+            headers: { 'X-Admin-Token': ADMIN_TOKEN },
+            body: formData
+          }
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          alert(`❌ ${data.mensaje}`);
+          setAccionSeleccionada(null);
+          if (onRecargarCasos) onRecargarCasos();
+          onClose();
+        } else {
+          alert('❌ Error al rechazar reenvío');
+        }
+      } catch (error) {
+        alert('❌ Error de conexión');
+      } finally {
+        setEnviandoValidacion(false);
+      }
+      
+    } else {
+      // ✅ FLUJO NORMAL
+      handleValidar(casoSeleccionado.serial, 'incompleta');
+    }
+  }}
+  disabled={enviandoValidacion || checksSeleccionados.length === 0}
+  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+>
+  {enviandoValidacion ? (
+    <>
+      <RefreshCw className="w-5 h-5 animate-spin" />
+      Enviando...
+    </>
+  ) : (
+    <>
+      <CheckCircle className="w-5 h-5" />
+      {casoSeleccionado.metadata_reenvio?.tiene_reenvios 
+        ? `❌ Rechazar Reenvío (${checksSeleccionados.length} checks)` 
+        : `✅ Confirmar Incompleta (${checksSeleccionados.length} checks)`
+      }
+    </>
+  )}
+</button>
                   className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                >
+                
                   {enviandoValidacion ? (
                     <>
                       <RefreshCw className="w-5 h-5 animate-spin" />
@@ -1083,7 +1334,7 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
                       ✅ Confirmar Incompleta ({checksSeleccionados.length} checks)
                     </>
                   )}
-                </button>
+              
                 <button
                   onClick={() => {
                     setAccionSeleccionada(null);
@@ -1292,6 +1543,7 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
   );
 }
 
+
 // ==================== COMPONENTE PRINCIPAL ====================
 export default function App() {
   const [empresas, setEmpresas] = useState([]);
@@ -1440,7 +1692,25 @@ export default function App() {
                     const Icon = statusInfo.icon;
                     return (
                       <tr key={caso.id} className="border-t border-gray-700 hover:bg-gray-700/50 transition-colors">
-                        <td className="px-4 py-3 font-mono text-sm text-yellow-300">{caso.serial}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-sm text-yellow-300">{caso.serial}</span>
+                            {/* ✅ BADGE DE REENVÍO */}
+                            {caso.metadata_form?.reenvios && caso.metadata_form.reenvios.length > 0 && (
+                              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-orange-500 text-white animate-pulse">
+                                🔄 {caso.metadata_form.reenvios.length}
+                              </span>
+                            )}
+                            {caso.bloquea_nueva && (
+                              <span 
+                                className="text-xs px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full border border-red-500"
+                                title="Este caso está bloqueando al empleado"
+                              >
+                                🔒
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-4 py-3 text-sm">{caso.nombre}</td>
                         <td className="px-4 py-3 text-sm text-gray-400">{caso.empresa}</td>
                         <td className="px-4 py-3">
