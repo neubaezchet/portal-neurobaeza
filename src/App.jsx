@@ -287,7 +287,8 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
   const [errorValidacion, setErrorValidacion] = useState('');
   const [ultimaAccion, setUltimaAccion] = useState(null);
   const [mostrarReferentes, setMostrarReferentes] = useState(false);
-const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
+  const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
+  const [casoActualizado, setCasoActualizado] = useState(casoSeleccionado); // ✅ NUEVO
   
   const containerRef = useRef(null);
 
@@ -547,7 +548,7 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
         alert(`${emoji} ${data.mensaje}`);
         
         // Actualizar estado local
-        setCasoSeleccionado(prev => ({
+        setCasoActualizado(prev => ({
           ...prev,
           bloquea_nueva: data.bloquea_nueva
         }));
@@ -718,11 +719,11 @@ const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
 // ✅ DETECTAR REENVÍOS AL ABRIR CASO
 useEffect(() => {
   const verificarReenvios = async () => {
-    if (!casoSeleccionado?.serial) return;
+    if (!casoActualizado?.serial) return;
     
     try {
       const response = await fetch(
-        `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/historial-reenvios`,
+        `${API_BASE_URL}/validador/casos/${casoActualizado.serial}/historial-reenvios`,
         { headers: getHeaders() }
       );
       
@@ -731,10 +732,10 @@ useEffect(() => {
         
         if (data.tiene_reenvios && data.total_reenvios > 0) {
           // Hay reenvíos pendientes
-          console.log(`🔄 Caso ${casoSeleccionado.serial} tiene ${data.total_reenvios} reenvío(s)`);
+          console.log(`🔄 Caso ${casoActualizado.serial} tiene ${data.total_reenvios} reenvío(s)`);
           
           // Cambiar estado del caso a NUEVO para forzar revisión
-          setCasoSeleccionado(prev => ({
+          setCasoActualizado(prev => ({
             ...prev,
             estado: 'NUEVO',
             metadata_reenvio: {
@@ -942,7 +943,7 @@ useEffect(() => {
       </div>
 
       {/* ✅ BANNER DE REENVÍO */}
-      {casoSeleccionado.metadata_reenvio?.tiene_reenvios && (
+      {casoActualizado.metadata_reenvio?.tiene_reenvios && (
         <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-4 flex items-center justify-between border-b-4 border-orange-600 shadow-lg animate-pulse">
           <div className="flex items-center gap-3">
             <RefreshCw className="w-6 h-6 animate-spin" />
