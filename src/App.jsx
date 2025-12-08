@@ -944,27 +944,93 @@ useEffect(() => {
 
       {/* ✅ BANNER DE REENVÍO */}
       {casoActualizado.metadata_reenvio?.tiene_reenvios && (
-        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-4 flex items-center justify-between border-b-4 border-orange-600 shadow-lg animate-pulse">
-          <div className="flex items-center gap-3">
-            <RefreshCw className="w-6 h-6 animate-spin" />
-            <div>
-              <h3 className="font-bold text-lg">
-                🔄 REENVÍO DETECTADO - Comparar Versiones
-              </h3>
-              <p className="text-sm text-orange-100">
-                El empleado ha reenviado documentos. Total de intentos: {casoSeleccionado.metadata_reenvio.total_reenvios}
-              </p>
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-4 border-b-4 border-orange-600 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <RefreshCw className="w-6 h-6 animate-spin" />
+              <div>
+                <h3 className="font-bold text-lg">
+                  🔄 REENVÍO DETECTADO - Comparar Versiones
+                </h3>
+                <p className="text-sm text-orange-100">
+                  El empleado ha reenviado documentos. Total de intentos: {casoSeleccionado.metadata_reenvio.total_reenvios}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {/* Botón Ver Nueva Versión */}
+              <button
+                onClick={() => {
+                  const ultimo = casoSeleccionado.metadata_reenvio.ultimo_reenvio;
+                  window.open(ultimo.link, '_blank');
+                }}
+                className="bg-white text-orange-600 px-4 py-2 rounded-lg font-semibold hover:bg-orange-50 transition-colors"
+              >
+                📄 Ver Nueva Versión
+              </button>
+              
+              {/* ✅ BOTÓN CAMBIAR PROTOTIPO */}
+              <button
+                onClick={async () => {
+                  const nuevoTipo = prompt(
+                    '🔄 Cambiar tipo de incapacidad\n\n' +
+                    'Tipos disponibles:\n' +
+                    '1. maternity (Maternidad)\n' +
+                    '2. paternity (Paternidad)\n' +
+                    '3. general (Enfermedad general)\n' +
+                    '4. traffic (Accidente de tránsito)\n' +
+                    '5. labor (Accidente laboral)\n\n' +
+                    'Escribe el nombre del tipo:',
+                    casoSeleccionado.tipo
+                  );
+                  
+                  if (!nuevoTipo) return;
+                  
+                  const tiposValidos = ['maternity', 'paternity', 'general', 'traffic', 'labor'];
+                  if (!tiposValidos.includes(nuevoTipo.toLowerCase())) {
+                    alert('❌ Tipo inválido. Usa: maternity, paternity, general, traffic o labor');
+                    return;
+                  }
+                  
+                  if (!window.confirm(`¿Cambiar tipo de incapacidad a "${nuevoTipo}"?\n\nEl empleado recibirá un email con los nuevos documentos requeridos.`)) {
+                    return;
+                  }
+                  
+                  setEnviandoValidacion(true);
+                  
+                  try {
+                    const response = await fetch(
+                      `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/cambiar-tipo`,
+                      {
+                        method: 'POST',
+                        headers: getHeaders(),
+                        body: JSON.stringify({ nuevo_tipo: nuevoTipo.toLowerCase() })
+                      }
+                    );
+                    
+                    if (response.ok) {
+                      const data = await response.json();
+                      alert(`✅ ${data.mensaje}\n\nEl empleado recibirá un email con los nuevos documentos.`);
+                      if (onRecargarCasos) onRecargarCasos();
+                      onClose();
+                    } else {
+                      const errorData = await response.json().catch(() => ({}));
+                      alert(`❌ Error: ${errorData.detail || 'No se pudo cambiar el tipo'}`);
+                    }
+                  } catch (error) {
+                    alert('❌ Error de conexión');
+                  } finally {
+                    setEnviandoValidacion(false);
+                  }
+                }}
+                disabled={enviandoValidacion}
+                className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                🔄 Cambiar Prototipo
+              </button>
             </div>
           </div>
-          <button
-            onClick={() => {
-              const ultimo = casoSeleccionado.metadata_reenvio.ultimo_reenvio;
-              window.open(ultimo.link, '_blank');
-            }}
-            className="bg-white text-orange-600 px-4 py-2 rounded-lg font-semibold hover:bg-orange-50 transition-colors"
-          >
-            📄 Ver Nueva Versión
-          </button>
         </div>
       )}
 
