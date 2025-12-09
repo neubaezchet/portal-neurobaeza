@@ -289,7 +289,12 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
   const [mostrarReferentes, setMostrarReferentes] = useState(false);
   const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
   const [casoActualizado, setCasoActualizado] = useState(casoSeleccionado); // ✅ NUEVO
-  
+  const [notificacion, setNotificacion] = useState(null);
+
+const mostrarNotificacion = (mensaje, tipo = 'success') => {
+  setNotificacion({ mensaje, tipo });
+  setTimeout(() => setNotificacion(null), 3000);
+};
   const containerRef = useRef(null);
 
   // ✅ Función para convertir Base64 a File
@@ -365,10 +370,10 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
         body: JSON.stringify({ operaciones })
       });
       
-      if (response.ok) {
-        alert('✅ Página(s) rotada(s). Recargando...');
-        window.location.reload(); // Recargar para ver cambios
-      } else {
+     if (response.ok) {
+  mostrarNotificacion('✅ Página(s) rotada(s)', 'success');
+  setTimeout(() => window.location.reload(), 1000);
+} else {
         alert('❌ Error rotando página');
       }
     } catch (error) {
@@ -396,9 +401,9 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
       });
       
       if (response.ok) {
-        alert('✅ Calidad mejorada. Recargando...');
-        window.location.reload();
-      } else {
+  mostrarNotificacion('✨ Calidad mejorada', 'success');
+  setTimeout(() => window.location.reload(), 1500);
+}else {
         alert('❌ Error mejorando calidad');
       }
     } catch (error) {
@@ -492,25 +497,47 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
         body: formData
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        
-        // ✅ GUARDAR ÚLTIMA ACCIÓN PARA DESHACER
-        setUltimaAccion({
-          serial: serial,
-          accion: accion,
-          timestamp: new Date().toISOString()
-        });
-        
-        alert(`✅ Caso ${accion} correctamente\n${data.mensaje || ''}`);
-        
-        if (onRecargarCasos) onRecargarCasos();
-        
-        setAccionSeleccionada(null);
-        setChecksSeleccionados([]);
-        setAdjuntos([]);
-        onClose();
+    if (response.ok) {
+  const data = await response.json();
+  
+  // ✅ GUARDAR ÚLTIMA ACCIÓN PARA DESHACER
+  setUltimaAccion({
+    serial: serial,
+    accion: accion,
+    timestamp: new Date().toISOString()
+  });
+  
+  // Notificación sutil
+  mostrarNotificacion(`✅ Caso ${accion} correctamente`, 'success');
+  
+  // Recargar casos
+  if (onRecargarCasos) onRecargarCasos();
+  
+  // Limpiar estado
+  setAccionSeleccionada(null);
+  setChecksSeleccionados([]);
+  setAdjuntos([]);
+  
+  // Buscar siguiente caso NUEVO automáticamente
+  setTimeout(async () => {
+    try {
+      const filtros = { estado: 'NUEVO', page: 1, page_size: 1 };
+      const siguienteCasoData = await api.getCasos(filtros);
+      
+      if (siguienteCasoData.items && siguienteCasoData.items.length > 0) {
+        const siguienteSerial = siguienteCasoData.items[0].serial;
+        const detalle = await api.getCasoDetalle(siguienteSerial);
+        setCasoSeleccionado(detalle);
+        mostrarNotificacion('📄 Siguiente caso cargado', 'success');
       } else {
+        onClose();
+        mostrarNotificacion('✅ No hay más casos nuevos', 'success');
+      }
+    } catch (error) {
+      onClose();
+    }
+  }, 1500);
+} else {
         const errorData = await response.json().catch(() => ({}));
         setErrorValidacion(errorData.detail || 'Error al validar caso');
       }
@@ -837,10 +864,20 @@ useEffect(() => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [handleKeyPress]);
 
-  const statusInfo = STATUS_MAP[casoSeleccionado.estado];
-  const Icon = statusInfo.icon;
+const statusInfo = STATUS_MAP[casoSeleccionado.estado];
+const Icon = statusInfo.icon;
 
-  return (
+return (
+  <>
+    {/* Notificación Toast */}
+    {notificacion && (
+      <div className={`fixed top-4 right-4 z-[70] px-6 py-3 rounded-lg shadow-2xl animate-bounce ${
+        notificacion.tipo === 'success' ? 'bg-green-500' : 'bg-red-500'
+      } text-white font-semibold`}>
+        {notificacion.mensaje}
+      </div>
+    )}
+    
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {/* HEADER FULLSCREEN */}
       <div className="bg-gray-900/95 backdrop-blur border-b border-gray-700 p-3 flex items-center justify-between">
@@ -953,7 +990,7 @@ useEffect(() => {
                   🔄 REENVÍO DETECTADO - Comparar Versiones
                 </h3>
                 <p className="text-sm text-orange-100">
-                  El empleado ha reenviado documentos. Total de intentos: {casoSeleccionado.metadata_reenvio.total_reenvios}
+                  El empleado ha reenviado documentos. Total de intentos: {casoActualizado.metadata_reenvio.total_reenvios}
                 </p>
               </div>
             </div>
@@ -962,7 +999,7 @@ useEffect(() => {
               {/* Botón Ver Nueva Versión */}
               <button
                 onClick={() => {
-                  const ultimo = casoSeleccionado.metadata_reenvio.ultimo_reenvio;
+                  const ultimo = casoActualizado.metadata_reenvio.ultimo_reenvio;
                   window.open(ultimo.link, '_blank');
                 }}
                 className="bg-white text-orange-600 px-4 py-2 rounded-lg font-semibold hover:bg-orange-50 transition-colors"
@@ -982,7 +1019,7 @@ useEffect(() => {
                     '4. traffic (Accidente de tránsito)\n' +
                     '5. labor (Accidente laboral)\n\n' +
                     'Escribe el nombre del tipo:',
-                    casoSeleccionado.tipo
+                    casoActualizado.tipo
                   );
                   
                   if (!nuevoTipo) return;
@@ -1001,7 +1038,7 @@ useEffect(() => {
                   
                   try {
                     const response = await fetch(
-                      `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/cambiar-tipo`,
+                      `${API_BASE_URL}/validador/casos/${casoActualizado.serial}/cambiar-tipo`,
                       {
                         method: 'POST',
                         headers: getHeaders(),
@@ -1311,36 +1348,30 @@ useEffect(() => {
                 </p>
               </div>
                   
-              {/* Botones */}
-
-              {/* Botones */}
+{/* Botones */}
               <div className="flex gap-3 pt-4">
-<button
-  onClick={async () => {
-    const esReenvio = casoSeleccionado.metadata_reenvio?.tiene_reenvios;
-    
-    if (esReenvio) {
-      // ❌ RECHAZAR REENVÍO
-      if (checksSeleccionados.length === 0) {
-        alert('⚠️ Selecciona al menos 1 check antes de rechazar');
-        return;
-      }
-      
-      if (!window.confirm('❌ ¿Rechazar este reenvío?\n\nSeguirá bloqueado y se enviará email con los problemas.')) {
-        return;
-      }
-      
-      setEnviandoValidacion(true);
-      
-      const formData = new FormData();
-      formData.append('decision', 'rechazar');
-      formData.append('motivo', 'Documentos aún incompletos');
-      
-      checksSeleccionados.forEach(check => {
-        formData.append('checks', check);
-      });
-      
-      try {
+                <button
+                  onClick={async () => {
+                    const esReenvio = casoSeleccionado.metadata_reenvio?.tiene_reenvios;
+      if (esReenvio) {
+        // ❌ RECHAZAR REENVÍO
+        if (checksSeleccionados.length === 0) {
+          alert('⚠️ Selecciona al menos 1 check antes de rechazar');
+          return;
+        }
+        
+        if (!window.confirm('❌ ¿Rechazar este reenvío?\n\nSeguirá bloqueado y se enviará email con los problemas.')) {
+          return;
+        }
+        
+        setEnviandoValidacion(true);
+        
+        const formData = new FormData();
+        checksSeleccionados.forEach(check => {
+          formData.append('checks', check);
+        });
+        
+        try {
         const response = await fetch(
           `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/aprobar-reenvio`,
           {
@@ -1388,19 +1419,7 @@ useEffect(() => {
     </>
   )}
 </button>
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                
-                  {enviandoValidacion ? (
-                    <>
-                      <RefreshCw className="w-5 h-5 animate-spin" />
-                      Enviando...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-5 h-5" />
-                      ✅ Confirmar Incompleta ({checksSeleccionados.length} checks)
-                    </>
-                  )}
+                  
               
                 <button
                   onClick={() => {
@@ -1607,6 +1626,7 @@ useEffect(() => {
         </div>
       )}
     </div>
+  </>
   );
 }
 
@@ -1619,6 +1639,12 @@ export default function App() {
   const [filtros, setFiltros] = useState({ empresa: 'all', estado: 'all', tipo: 'all', q: '', page: 1 });
   const [loading, setLoading] = useState(false);
   const [casoSeleccionado, setCasoSeleccionado] = useState(null);
+const [notificacion, setNotificacion] = useState(null);
+
+const mostrarNotificacion = (mensaje, tipo = 'success') => {
+  setNotificacion({ mensaje, tipo });
+  setTimeout(() => setNotificacion(null), 3000);
+};
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
