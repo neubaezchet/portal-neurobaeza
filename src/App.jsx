@@ -290,12 +290,12 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
   const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
   const [casoActualizado, setCasoActualizado] = useState(casoSeleccionado); // ✅ NUEVO
   const [notificacion, setNotificacion] = useState(null);
-
-const mostrarNotificacion = (mensaje, tipo = 'success') => {
-  setNotificacion({ mensaje, tipo });
-  setTimeout(() => setNotificacion(null), 3000);
-};
   const containerRef = useRef(null);
+
+  const mostrarNotificacion = (mensaje, tipo = 'success') => {
+    setNotificacion({ mensaje, tipo });
+    setTimeout(() => setNotificacion(null), 3000);
+  };
 
   // ✅ Función para convertir Base64 a File
   const base64ToFile = (base64String, filename) => {
@@ -527,7 +527,7 @@ const mostrarNotificacion = (mensaje, tipo = 'success') => {
       if (siguienteCasoData.items && siguienteCasoData.items.length > 0) {
         const siguienteSerial = siguienteCasoData.items[0].serial;
         const detalle = await api.getCasoDetalle(siguienteSerial);
-        setCasoSeleccionado(detalle);
+        setCasoActualizado(detalle);
         mostrarNotificacion('📄 Siguiente caso cargado', 'success');
       } else {
         onClose();
@@ -1639,12 +1639,6 @@ export default function App() {
   const [filtros, setFiltros] = useState({ empresa: 'all', estado: 'all', tipo: 'all', q: '', page: 1 });
   const [loading, setLoading] = useState(false);
   const [casoSeleccionado, setCasoSeleccionado] = useState(null);
-const [notificacion, setNotificacion] = useState(null);
-
-const mostrarNotificacion = (mensaje, tipo = 'success') => {
-  setNotificacion({ mensaje, tipo });
-  setTimeout(() => setNotificacion(null), 3000);
-};
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
