@@ -1010,7 +1010,6 @@ return (
               {/* ✅ BOTÓN CAMBIAR PROTOTIPO - MEJORADO */}
               <button
                 onClick={async () => {
-                  // Crear modal con dropdown
                   const modal = document.createElement('div');
                   modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-[60]';
                   modal.innerHTML = `
@@ -1052,7 +1051,6 @@ return (
                   
                   document.body.appendChild(modal);
                   
-                  // Manejar botones
                   document.getElementById('btnCancelar').onclick = () => {
                     document.body.removeChild(modal);
                   };
