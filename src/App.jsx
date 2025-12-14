@@ -1463,26 +1463,28 @@ Cuando el validador presione **"🔄 Cambiar Prototipo"**, verá un modal así:
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={async () => {
-                    const esReenvio = casoSeleccionado.metadata_reenvio?.tiene_reenvios;
-      if (esReenvio) {
-        // ❌ RECHAZAR REENVÍO
-        if (checksSeleccionados.length === 0) {
-          alert('⚠️ Selecciona al menos 1 check antes de rechazar');
-          return;
-        }
-        
-        if (!window.confirm('❌ ¿Rechazar este reenvío?\n\nSeguirá bloqueado y se enviará email con los problemas.')) {
-          return;
-        }
-        
-        setEnviandoValidacion(true);
-        
-        const formData = new FormData();
-        checksSeleccionados.forEach(check => {
-          formData.append('checks', check);
-        });
-        
-        try {
+    const esReenvio = casoSeleccionado.metadata_reenvio?.tiene_reenvios;
+    
+    if (esReenvio) {
+      // ❌ RECHAZAR REENVÍO
+      if (checksSeleccionados.length === 0) {
+        alert('⚠️ Selecciona al menos 1 check antes de rechazar');
+        return;
+      }
+      
+      if (!window.confirm('❌ ¿Rechazar este reenvío?\n\nSeguirá bloqueado y se enviará email con los problemas.')) {
+        return;
+      }
+      
+      setEnviandoValidacion(true);
+      
+      const formData = new FormData();
+      formData.append('decision', 'rechazar');
+      checksSeleccionados.forEach(check => {
+        formData.append('checks', check);
+      });
+      
+      try {
         const response = await fetch(
           `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/aprobar-reenvio`,
           {
@@ -1506,9 +1508,8 @@ Cuando el validador presione **"🔄 Cambiar Prototipo"**, verá un modal así:
       } finally {
         setEnviandoValidacion(false);
       }
-      
     } else {
-      // ✅ FLUJO NORMAL
+      // ✅ FLUJO NORMAL (sin reenvío)
       handleValidar(casoSeleccionado.serial, 'incompleta');
     }
   }}
