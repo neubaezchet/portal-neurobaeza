@@ -1012,29 +1012,24 @@ return (
   onClick={async () => {
     const nuevoTipo = prompt(
       '🔄 Cambiar tipo de incapacidad\n\n' +
-      'Opciones disponibles:\n' +
+      'Opciones:\n' +
       '• maternity → Maternidad\n' +
       '• paternity → Paternidad\n' +
       '• general → Enfermedad General\n' +
       '• traffic → Accidente de Tránsito\n' +
       '• labor → Accidente Laboral\n\n' +
-      'Escribe el tipo exacto:'
+      'Escribe el tipo:'
     );
     
     if (!nuevoTipo) return;
     
     const tiposValidos = ['maternity', 'paternity', 'general', 'traffic', 'labor'];
     if (!tiposValidos.includes(nuevoTipo.toLowerCase())) {
-      alert('❌ Tipo inválido. Usa: maternity, paternity, general, traffic o labor');
+      alert('❌ Tipo inválido');
       return;
     }
     
-    if (!window.confirm(
-      `¿Cambiar tipo de incapacidad a "${nuevoTipo}"?\n\n` +
-      `El empleado recibirá un email con los nuevos documentos requeridos.`
-    )) {
-      return;
-    }
+    if (!window.confirm(`¿Cambiar tipo a "${nuevoTipo}"?`)) return;
     
     setEnviandoValidacion(true);
     
@@ -1050,12 +1045,11 @@ return (
       
       if (response.ok) {
         const data = await response.json();
-        alert(`✅ ${data.mensaje}\n\n📧 El empleado recibirá un email con los nuevos documentos.`);
+        alert(`✅ ${data.mensaje}`);
         if (onRecargarCasos) onRecargarCasos();
         onClose();
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        alert(`❌ Error: ${errorData.detail || 'No se pudo cambiar el tipo'}`);
+        alert('❌ Error al cambiar tipo');
       }
     } catch (error) {
       alert('❌ Error de conexión');
@@ -1064,87 +1058,10 @@ return (
     }
   }}
   disabled={enviandoValidacion}
-  className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center gap-2"
+  className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50"
 >
   🔄 Cambiar Prototipo
 </button>
-
-## **¿Qué hace este cambio?**
-
-1. ✅ **Modal elegante** con dropdown en lugar de `prompt()`
-2. ✅ **Opciones claras** con emojis y nombres legibles
-3. ✅ **Explicación al validador** de qué pasará al cambiar el tipo
-4. ✅ **Validación** para que no pueda confirmar sin seleccionar
-5. ✅ **Feedback visual** (loading, alertas, etc.)
-
----
-
-## **Resultado visual:**
-
-Cuando el validador presione **"🔄 Cambiar Prototipo"**, verá un modal así:
-```
-┌────────────────────────────────────────┐
-│  🔄 Cambiar Tipo de Incapacidad       │
-├────────────────────────────────────────┤
-│                                        │
-│  El empleado recibirá un email con... │
-│                                        │
-│  Selecciona el nuevo tipo:             │
-│  ┌──────────────────────────────────┐ │
-│  │ 🤰 Maternidad                 ▼  │ │
-│  └──────────────────────────────────┘ │
-│                                        │
-│  💡 Qué pasará:                        │
-│  • Se actualizará el tipo...           │
-│  • El empleado recibirá email...       │
-│                                        │
-│  [ Cancelar ]  [ Confirmar Cambio ]    │
-└────────────────────────────────────────┘
-                  
-                  if (!nuevoTipo) return;
-                  
-                  const tiposValidos = ['maternity', 'paternity', 'general', 'traffic', 'labor'];
-                  if (!tiposValidos.includes(nuevoTipo.toLowerCase())) {
-                    alert('❌ Tipo inválido. Usa: maternity, paternity, general, traffic o labor');
-                    return;
-                  }
-                  
-                  if (!window.confirm(`¿Cambiar tipo de incapacidad a "${nuevoTipo}"?\n\nEl empleado recibirá un email con los nuevos documentos requeridos.`)) {
-                    return;
-                  }
-                  
-                  setEnviandoValidacion(true);
-                  
-                  try {
-                    const response = await fetch(
-                      `${API_BASE_URL}/validador/casos/${casoActualizado.serial}/cambiar-tipo`,
-                      {
-                        method: 'POST',
-                        headers: getHeaders(),
-                        body: JSON.stringify({ nuevo_tipo: nuevoTipo.toLowerCase() })
-                      }
-                    );
-                    
-                    if (response.ok) {
-                      const data = await response.json();
-                      alert(`✅ ${data.mensaje}\n\nEl empleado recibirá un email con los nuevos documentos.`);
-                      if (onRecargarCasos) onRecargarCasos();
-                      onClose();
-                    } else {
-                      const errorData = await response.json().catch(() => ({}));
-                      alert(`❌ Error: ${errorData.detail || 'No se pudo cambiar el tipo'}`);
-                    }
-                  } catch (error) {
-                    alert('❌ Error de conexión');
-                  } finally {
-                    setEnviandoValidacion(false);
-                  }
-                }}
-                disabled={enviandoValidacion}
-                className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                🔄 Cambiar Prototipo
-              </button>
             </div>
           </div>
         </div>
