@@ -386,10 +386,6 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
   }; 
 // ✅ ROTAR PÁGINA
   const rotarPagina = async (pageNum, angle, aplicarATodas) => {
-    if (!window.confirm(aplicarATodas ? '🔄 ¿Rotar TODAS las páginas?' : '🔄 ¿Rotar esta página?')) {
-      return;
-    }
-    
     setEnviandoValidacion(true);
     
     try {
@@ -410,7 +406,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
         mostrarNotificacion('❌ Error rotando página', 'error');
       }
     } catch (error) {
-      alert('❌ Error de conexión');
+      mostrarNotificacion('❌ Error de conexión', 'error');
     } finally {
       setEnviandoValidacion(false);
     }
@@ -418,10 +414,8 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
 
   // ✅ MEJORAR CALIDAD HD
   const mejorarCalidadHD = async (pageNum) => {
-    if (!window.confirm('✨ ¿Mejorar calidad HD de esta página?\n\nEsto puede tardar unos segundos.')) {
-      return;
-    }
     
+
     setEnviandoValidacion(true);
     
     try {
@@ -436,11 +430,11 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
       if (response.ok) {
   mostrarNotificacion('✨ Calidad mejorada', 'success');
   await recargarPDFInPlace(casoSeleccionado.serial);
-}else {
-        alert('❌ Error mejorando calidad');
+} else {
+        mostrarNotificacion('❌ Error mejorando calidad', 'error');
       }
     } catch (error) {
-      alert('❌ Error de conexión');
+      mostrarNotificacion('❌ Error de conexión', 'error');
     } finally {
       setEnviandoValidacion(false);
     }
@@ -940,9 +934,11 @@ return (
   <>
     {/* Notificación Toast */}
     {notificacion && (
-      <div className={`fixed top-4 right-4 z-[70] px-6 py-3 rounded-lg shadow-2xl animate-bounce ${
-        notificacion.tipo === 'success' ? 'bg-green-500' : 'bg-red-500'
-      } text-white font-semibold`}>
+      <div className={`fixed top-20 right-4 z-[70] px-4 py-2 rounded-lg shadow-lg border ${
+        notificacion.tipo === 'success' ? 'bg-green-500 border-green-600' : 
+        notificacion.tipo === 'error' ? 'bg-red-500 border-red-600' : 
+        'bg-blue-500 border-blue-600'
+      } text-white text-sm font-medium`}>
         {notificacion.mensaje}
       </div>
     )}
@@ -1189,69 +1185,7 @@ return (
         </div>
       )}
   
-{/* ✅ BOTÓN CAMBIAR PROTOTIPO */}
-<button
-                onClick={async () => {
-                  const nuevoTipo = prompt(
-                    '🔄 Cambiar tipo de incapacidad\n\n' +
-                    'Opciones disponibles:\n' +
-                    '• maternity → Maternidad\n' +
-                    '• paternity → Paternidad\n' +
-                    '• general → Enfermedad General\n' +
-                    '• traffic → Accidente de Tránsito\n' +
-                    '• labor → Accidente Laboral\n\n' +
-                    'Escribe el tipo exacto:'
-                  );
-                  
-                  if (!nuevoTipo) return;
-                  
-                  const tiposValidos = ['maternity', 'paternity', 'general', 'traffic', 'labor'];
-                  if (!tiposValidos.includes(nuevoTipo.toLowerCase())) {
-                    alert('❌ Tipo inválido. Usa: maternity, paternity, general, traffic o labor');
-                    return;
-                  }
-                  
-                  if (!window.confirm(
-                    `¿Cambiar tipo de incapacidad a "${nuevoTipo}"?\n\n` +
-                    `El empleado recibirá un email con los nuevos documentos requeridos.`
-                  )) {
-                    return;
-                  }
-                  
-                  setEnviandoValidacion(true);
-                  
-                  try {
-                    const response = await fetch(
-                      `${API_BASE_URL}/validador/casos/${casoActualizado.serial}/cambiar-tipo`,
-                      {
-                        method: 'POST',
-                        headers: getHeaders(),
-                        body: JSON.stringify({ nuevo_tipo: nuevoTipo.toLowerCase() })
-                      }
-                    );
-                    
-                    if (response.ok) {
-                      const data = await response.json();
-                      alert(`✅ ${data.mensaje}\n\n📧 El empleado recibirá un email con los nuevos documentos.`);
-                      if (onRecargarCasos) onRecargarCasos();
-                      onClose();
-                    } else {
-                      const errorData = await response.json().catch(() => ({}));
-                      alert(`❌ Error: ${errorData.detail || 'No se pudo cambiar el tipo'}`);
-                    }
-                  } catch (error) {
-                    alert('❌ Error de conexión');
-                  } finally {
-                    setEnviandoValidacion(false);
-                  }
-                }}
-                disabled={enviandoValidacion}
-                className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                🔄 Cambiar Prototipo
-              </button>
-           
-      {/* VIEWER FULLSCREEN */}
+{/* VIEWER FULLSCREEN */}
       <div className="flex-1 flex overflow-hidden">
         {/* Panel lateral de miniaturas */}
         <div className={`${mostrarMiniaturas ? 'w-48' : 'w-12'} bg-gray-900 border-r border-gray-700 overflow-y-auto p-2 transition-all duration-300 flex-shrink-0`}>
