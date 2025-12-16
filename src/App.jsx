@@ -351,6 +351,39 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
     }
     return checksCalidad;
   };
+ // ✅ FUNCIÓN RECARGA INTERNA (sin salir de fullscreen)
+  const recargarPDFInPlace = async (serial) => {
+    setLoadingPdf(true);
+    try {
+      const pdfjsLib = window.pdfjsLib;
+      const pdfUrl = `${API_BASE_URL}/validador/casos/${serial}/pdf`;
+      const loadingTask = pdfjsLib.getDocument({
+        url: pdfUrl,
+        httpHeaders: getHeaders()
+      });
+      
+      const pdf = await loadingTask.promise;
+      const pagesArray = [];
+      
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: 3 });
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        await page.render({ canvasContext: context, viewport }).promise;
+        const fullImage = canvas.toDataURL('image/jpeg', 0.9);
+        pagesArray.push({ id: i - 1, fullImage });
+      }
+      
+      setPages(pagesArray);
+      setLoadingPdf(false);
+    } catch (error) {
+      console.error('Error recargando PDF:', error);
+      setLoadingPdf(false);
+    }
+  }; 
 // ✅ ROTAR PÁGINA
   const rotarPagina = async (pageNum, angle, aplicarATodas) => {
     if (!window.confirm(aplicarATodas ? '🔄 ¿Rotar TODAS las páginas?' : '🔄 ¿Rotar esta página?')) {
@@ -371,10 +404,10 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
       });
       
      if (response.ok) {
-  mostrarNotificacion('✅ Página(s) rotada(s)', 'success');
-  setTimeout(() => window.location.reload(), 1000);
-} else {
-        alert('❌ Error rotando página');
+        mostrarNotificacion('✅ Página(s) rotada(s)', 'success');
+        await recargarPDFInPlace(casoSeleccionado.serial);
+      } else {
+        mostrarNotificacion('❌ Error rotando página', 'error');
       }
     } catch (error) {
       alert('❌ Error de conexión');
@@ -402,7 +435,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
       
       if (response.ok) {
   mostrarNotificacion('✨ Calidad mejorada', 'success');
-  setTimeout(() => window.location.reload(), 1500);
+  await recargarPDFInPlace(casoSeleccionado.serial);
 }else {
         alert('❌ Error mejorando calidad');
       }
@@ -544,6 +577,42 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
     } catch (error) {
       console.error('Error:', error);
       setErrorValidacion('Error de conexión con el servidor');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  };
+// ✅ FUNCIÓN CAMBIAR TIPO (Inline, sin modal)
+  const handleCambiarTipo = async (nuevoTipo) => {
+    if (!window.confirm(
+      `🔄 ¿Cambiar tipo a "${nuevoTipo}"?\n\n` +
+      `El empleado recibirá un email con los nuevos documentos requeridos.`
+    )) {
+      return;
+    }
+    
+    setEnviandoValidacion(true);
+    
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/cambiar-tipo`,
+        {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({ nuevo_tipo: nuevoTipo })
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        mostrarNotificacion(`✅ ${data.mensaje}`, 'success');
+        if (onRecargarCasos) onRecargarCasos();
+        setCasoActualizado(prev => ({...prev, tipo: nuevoTipo}));
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        mostrarNotificacion(`❌ Error: ${errorData.detail || 'No se pudo cambiar el tipo'}`, 'error');
+      }
+    } catch (error) {
+      mostrarNotificacion('❌ Error de conexión', 'error');
     } finally {
       setEnviandoValidacion(false);
     }
@@ -898,6 +967,52 @@ return (
         </div>
 
         <div className="flex items-center gap-3">
+          {/* ✨ DROPDOWN CAMBIAR PROTOTIPO (Estilo Microsoft 2025) */}
+          <div className="relative group">
+            <button
+              className="p-2 bg-gray-800 hover:bg-amber-600 rounded-lg text-white transition-colors flex items-center gap-1"
+              title="Cambiar tipo de incapacidad"
+            >
+              🔄
+            </button>
+            
+            {/* Dropdown Menu */}
+            <div className="hidden group-hover:block absolute top-full left-0 mt-1 bg-gray-800 rounded-lg shadow-2xl border border-gray-700 min-w-[200px] z-50">
+              <div className="py-1">
+                <button
+                  onClick={() => handleCambiarTipo('maternity')}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-amber-600 transition-colors text-sm"
+                >
+                  👶 Maternidad
+                </button>
+                <button
+                  onClick={() => handleCambiarTipo('paternity')}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-amber-600 transition-colors text-sm"
+                >
+                  👨‍👦 Paternidad
+                </button>
+                <button
+                  onClick={() => handleCambiarTipo('general')}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-amber-600 transition-colors text-sm"
+                >
+                  🏥 Enfermedad General
+                </button>
+                <button
+                  onClick={() => handleCambiarTipo('traffic')}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-amber-600 transition-colors text-sm"
+                >
+                  🚗 Accidente Tránsito
+                </button>
+                <button
+                  onClick={() => handleCambiarTipo('labor')}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-amber-600 transition-colors text-sm"
+                >
+                  🏭 Accidente Laboral
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* CONTROLES DE EDICIÓN - SUTILES */}
           <button
             onClick={() => rotarPagina(currentPage, 90, false)}
