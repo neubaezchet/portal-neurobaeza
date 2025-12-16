@@ -412,9 +412,33 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
     }
   };
 
-  // ✅ MEJORAR CALIDAD HD
+// ✅ MEJORAR CALIDAD HD
   const mejorarCalidadHD = async (pageNum) => {
-   // ✅ APLICAR FILTRO DE IMAGEN
+    setEnviandoValidacion(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          operaciones: { enhance_quality: { pages: [pageNum] } }
+        })
+      });
+      
+      if (response.ok) {
+        mostrarNotificacion('✨ Calidad mejorada', 'success');
+        await recargarPDFInPlace(casoSeleccionado.serial);
+      } else {
+        mostrarNotificacion('❌ Error mejorando calidad', 'error');
+      }
+    } catch (error) {
+      mostrarNotificacion('❌ Error de conexión', 'error');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  };
+
+  // ✅ APLICAR FILTRO DE IMAGEN
   const aplicarFiltro = async (tipo) => {
     setEnviandoValidacion(true);
     
@@ -489,30 +513,6 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
         await recargarPDFInPlace(casoSeleccionado.serial);
       } else {
         mostrarNotificacion('❌ Error corrigiendo', 'error');
-      }
-    } catch (error) {
-      mostrarNotificacion('❌ Error de conexión', 'error');
-    } finally {
-      setEnviandoValidacion(false);
-    }
-  }; 
-
-    setEnviandoValidacion(true);
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({
-          operaciones: { enhance_quality: { pages: [pageNum] } }
-        })
-      });
-      
-      if (response.ok) {
-  mostrarNotificacion('✨ Calidad mejorada', 'success');
-  await recargarPDFInPlace(casoSeleccionado.serial);
-} else {
-        mostrarNotificacion('❌ Error mejorando calidad', 'error');
       }
     } catch (error) {
       mostrarNotificacion('❌ Error de conexión', 'error');
