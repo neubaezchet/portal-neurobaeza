@@ -414,7 +414,88 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
 
   // ✅ MEJORAR CALIDAD HD
   const mejorarCalidadHD = async (pageNum) => {
+   // ✅ APLICAR FILTRO DE IMAGEN
+  const aplicarFiltro = async (tipo) => {
+    setEnviandoValidacion(true);
     
+    try {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          operaciones: { 
+            aplicar_filtro: { 
+              page_num: currentPage, 
+              filtro: tipo 
+            } 
+          }
+        })
+      });
+      
+      if (response.ok) {
+        mostrarNotificacion(`✨ Filtro ${tipo} aplicado`, 'success');
+        await recargarPDFInPlace(casoSeleccionado.serial);
+      } else {
+        mostrarNotificacion('❌ Error aplicando filtro', 'error');
+      }
+    } catch (error) {
+      mostrarNotificacion('❌ Error de conexión', 'error');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  };
+
+  // ✅ RECORTE AUTOMÁTICO
+  const recorteAutomatico = async (pageNum) => {
+    setEnviandoValidacion(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          operaciones: { crop_auto: [{ page_num: pageNum, margin: 10 }] }
+        })
+      });
+      
+      if (response.ok) {
+        mostrarNotificacion('✂️ Recorte aplicado', 'success');
+        await recargarPDFInPlace(casoSeleccionado.serial);
+      } else {
+        mostrarNotificacion('❌ Error recortando', 'error');
+      }
+    } catch (error) {
+      mostrarNotificacion('❌ Error de conexión', 'error');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  };
+
+  // ✅ CORREGIR INCLINACIÓN
+  const corregirInclinacion = async (pageNum) => {
+    setEnviandoValidacion(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          operaciones: { deskew: { page_num: pageNum } }
+        })
+      });
+      
+      if (response.ok) {
+        mostrarNotificacion('🔄 Inclinación corregida', 'success');
+        await recargarPDFInPlace(casoSeleccionado.serial);
+      } else {
+        mostrarNotificacion('❌ Error corrigiendo', 'error');
+      }
+    } catch (error) {
+      mostrarNotificacion('❌ Error de conexión', 'error');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  }; 
 
     setEnviandoValidacion(true);
     
@@ -1009,7 +1090,98 @@ return (
             </div>
           </div>
 
-          {/* CONTROLES DE EDICIÓN - SUTILES */}
+          {/* ✂️ BARRA DE HERRAMIENTAS PDF */}
+          <div className="relative group">
+            <button
+              className="p-2 bg-gray-800 hover:bg-purple-600 rounded-lg text-white transition-colors flex items-center gap-1"
+              title="Herramientas de edición PDF"
+            >
+              ✂️
+            </button>
+            
+            {/* Dropdown de herramientas */}
+            <div className="hidden group-hover:block absolute top-full right-0 mt-1 bg-gray-800 rounded-lg shadow-2xl border border-gray-700 min-w-[250px] z-50">
+              <div className="py-2 space-y-1">
+                {/* Mejorar Calidad */}
+                <button
+                  onClick={() => mejorarCalidadHD(currentPage)}
+                  disabled={enviandoValidacion}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
+                >
+                  ✨ Mejorar Calidad HD
+                </button>
+                
+                {/* Rotar 90° */}
+                <button
+                  onClick={() => rotarPagina(currentPage, 90, false)}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Rotar 90° (página actual)
+                </button>
+                
+                {/* Rotar todas */}
+                <button
+                  onClick={() => rotarPagina(currentPage, 90, true)}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Rotar 90° (todas las páginas)
+                </button>
+                
+                <hr className="border-gray-700 my-1" />
+                
+                {/* Filtros de imagen */}
+                <button
+                  onClick={() => aplicarFiltro('grayscale')}
+                  disabled={enviandoValidacion}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
+                >
+                  <Contrast className="w-4 h-4" />
+                  Blanco y Negro
+                </button>
+                
+                <button
+                  onClick={() => aplicarFiltro('contrast')}
+                  disabled={enviandoValidacion}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
+                >
+                  <Sun className="w-4 h-4" />
+                  Aumentar Contraste
+                </button>
+                
+                <button
+                  onClick={() => aplicarFiltro('brightness')}
+                  disabled={enviandoValidacion}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
+                >
+                  <Sun className="w-4 h-4" />
+                  Aumentar Brillo
+                </button>
+                
+                <hr className="border-gray-700 my-1" />
+                
+                {/* Recorte automático */}
+                <button
+                  onClick={() => recorteAutomatico(currentPage)}
+                  disabled={enviandoValidacion}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
+                >
+                  ✂️ Recorte Automático
+                </button>
+                
+                {/* Corregir inclinación */}
+                <button
+                  onClick={() => corregirInclinacion(currentPage)}
+                  disabled={enviandoValidacion}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
+                >
+                  🔄 Corregir Inclinación
+                </button>
+              </div>
+            </div>
+          </div>
+          
           <button
             onClick={() => rotarPagina(currentPage, 90, false)}
             className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-xs flex items-center gap-1 transition-colors"
@@ -1081,7 +1253,14 @@ return (
           </div>
 
           <a 
-  href={casoSeleccionado.drive_link || 'https://drive.google.com'} 
+  href={(() => {
+    const link = casoSeleccionado.drive_link || '';
+    if (link.includes('/file/d/')) {
+      const fileId = link.split('/file/d/')[1].split('/')[0];
+      return `https://drive.google.com/drive/folders/0B${fileId.substring(0, 10)}`;
+    }
+    return 'https://drive.google.com';
+  })()} 
   target="_blank" 
   rel="noopener noreferrer"
             className="p-2 hover:bg-gray-800 rounded transition-colors text-white" title="Abrir en Google Drive">
