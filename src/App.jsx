@@ -928,7 +928,7 @@ useEffect(() => {
   };
   
   verificarReenvios();
-}, [casoSeleccionado?.serial]);
+}, [casoActualizado?.serial]);
   // ✅ CARGA DE PDF
   useEffect(() => {
     const cargarPDF = async () => {
@@ -1072,7 +1072,7 @@ return (
 
           {/* Botón: Rotar 90° (rápido) */}
           <button
-            onClick={() => rotarPagina(currentPage, 90, false)}
+            onClick={() => rotarPagina(90, false)}
             disabled={enviandoValidacion}
             className="p-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-white transition-all duration-300 transform hover:scale-110 disabled:opacity-50"
             title="Rotar 90° (solo esta página)"
@@ -1154,7 +1154,7 @@ return (
                 
                 {/* Rotar 90° */}
                 <button
-                  onClick={() => rotarPagina(currentPage, 90, false)}
+                  onClick={() => rotarPagina(90, false)}
                   className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -1163,7 +1163,7 @@ return (
                 
                 {/* Rotar todas */}
                 <button
-                  onClick={() => rotarPagina(currentPage, 90, true)}
+                  onClick={() => rotarPagina(90, true)}
                   className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -1224,7 +1224,7 @@ return (
           </div>
           
           <button
-            onClick={() => rotarPagina(currentPage, 90, false)}
+            onClick={() => rotarPagina(90, false)}
             className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-xs flex items-center gap-1 transition-colors"
             title="Rotar página actual 90°"
           >
