@@ -3,7 +3,7 @@ import {
   User, CheckCircle, XCircle, FileText, Send, Edit3, Clock, 
   ChevronLeft, ChevronRight, FolderOpen, X, Download, RefreshCw, 
   AlertCircle, ZoomIn, ZoomOut, Grid, Sliders, Sun, Contrast, Maximize2,
-  Undo2, Image
+  Undo2, Image, Sparkles, Crop, Wand2, Loader2, Check
 } from 'lucide-react';
 
 // ==================== CONFIGURACIÓN API ====================
@@ -297,6 +297,42 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
     setTimeout(() => setNotificacion(null), 3000);
   };
 
+  // ✅ FUNCIÓN PARA RECARGAR PDF (después de editar)
+  const recargarPDFInPlace = async (serial) => {
+    setLoadingPdf(true);
+    try {
+      const pdfjsLib = window.pdfjsLib;
+      const pdfUrl = `${API_BASE_URL}/validador/casos/${serial}/pdf`;
+      const loadingTask = pdfjsLib.getDocument({
+        url: pdfUrl,
+        httpHeaders: getHeaders()
+      });
+      
+      const pdf = await loadingTask.promise;
+      const pagesArray = [];
+      
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: 3 });
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        await page.render({ canvasContext: context, viewport }).promise;
+        const fullImage = canvas.toDataURL('image/jpeg', 0.9);
+        pagesArray.push({ id: i - 1, fullImage });
+      }
+      
+      setPages(pagesArray);
+      setLoadingPdf(false);
+      mostrarNotificacion('✅ PDF actualizado', 'success');
+    } catch (error) {
+      console.error('Error recargando PDF:', error);
+      setLoadingPdf(false);
+      mostrarNotificacion('❌ Error recargando PDF', 'error');
+    }
+  };
+
   // ✅ Función para convertir Base64 a File
   const base64ToFile = (base64String, filename) => {
     const arr = base64String.split(',');
@@ -351,41 +387,10 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
     }
     return checksCalidad;
   };
- // ✅ FUNCIÓN RECARGA INTERNA (sin salir de fullscreen)
-  const recargarPDFInPlace = async (serial) => {
-    setLoadingPdf(true);
-    try {
-      const pdfjsLib = window.pdfjsLib;
-      const pdfUrl = `${API_BASE_URL}/validador/casos/${serial}/pdf`;
-      const loadingTask = pdfjsLib.getDocument({
-        url: pdfUrl,
-        httpHeaders: getHeaders()
-      });
-      
-      const pdf = await loadingTask.promise;
-      const pagesArray = [];
-      
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const viewport = page.getViewport({ scale: 3 });
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-        await page.render({ canvasContext: context, viewport }).promise;
-        const fullImage = canvas.toDataURL('image/jpeg', 0.9);
-        pagesArray.push({ id: i - 1, fullImage });
-      }
-      
-      setPages(pagesArray);
-      setLoadingPdf(false);
-    } catch (error) {
-      console.error('Error recargando PDF:', error);
-      setLoadingPdf(false);
-    }
-  }; 
+ 
 // ✅ ROTAR PÁGINA
-  const rotarPagina = async (pageNum, angle, aplicarATodas) => {
+  const rotarPagina = async (angle, aplicarATodas) => {
+    const pageNum = currentPage; // Usar página actual
     setEnviandoValidacion(true);
     
     try {
@@ -1015,12 +1020,15 @@ return (
   <>
     {/* Notificación Toast */}
     {notificacion && (
-      <div className={`fixed top-20 right-4 z-[70] px-4 py-2 rounded-lg shadow-lg border ${
+      <div className={`fixed top-20 right-4 z-[70] px-6 py-3 rounded-xl shadow-2xl border-2 flex items-center gap-3 animate-fade-in ${
         notificacion.tipo === 'success' ? 'bg-green-500 border-green-600' : 
         notificacion.tipo === 'error' ? 'bg-red-500 border-red-600' : 
         'bg-blue-500 border-blue-600'
-      } text-white text-sm font-medium`}>
-        {notificacion.mensaje}
+      } text-white font-semibold`}>
+        {notificacion.tipo === 'success' && <Check className="w-5 h-5" />}
+        {notificacion.tipo === 'error' && <X className="w-5 h-5" />}
+        {notificacion.tipo === 'info' && <Loader2 className="w-5 h-5 animate-spin" />}
+        <span>{notificacion.mensaje}</span>
       </div>
     )}
     
@@ -1043,11 +1051,42 @@ return (
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* ✨ DROPDOWN CAMBIAR PROTOTIPO (Estilo Microsoft 2025) */}
+        <div className="flex items-center gap-2">
+          {/* ✅ BOTÓN PRINCIPAL: Mejorar Calidad IA */}
+          <button
+            onClick={mejorarCalidadHD}
+            disabled={enviandoValidacion}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+            title="Mejorar calidad con IA (página actual)"
+          >
+            {enviandoValidacion ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            <span className="hidden md:inline">Mejorar IA</span>
+          </button>
+
+          {/* Separador visual */}
+          <div className="h-8 w-px bg-gray-600"></div>
+
+          {/* Botón: Rotar 90° (rápido) */}
+          <button
+            onClick={() => rotarPagina(currentPage, 90, false)}
+            disabled={enviandoValidacion}
+            className="p-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-white transition-all duration-300 transform hover:scale-110 disabled:opacity-50"
+            title="Rotar 90° (solo esta página)"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+
+          {/* Separador visual */}
+          <div className="h-8 w-px bg-gray-600"></div>
+
+          {/* ✨ DROPDOWN CAMBIAR PROTOTIPO */}
           <div className="relative group">
             <button
-              className="p-2 bg-gray-800 hover:bg-amber-600 rounded-lg text-white transition-colors flex items-center gap-1"
+              className="p-2 bg-gray-800 hover:bg-amber-600 rounded-xl text-white transition-colors flex items-center gap-1"
               title="Cambiar tipo de incapacidad"
             >
               🔄
@@ -1090,17 +1129,19 @@ return (
             </div>
           </div>
 
-          {/* ✂️ BARRA DE HERRAMIENTAS PDF */}
+          {/* ✂️ DROPDOWN: Más Herramientas */}
           <div className="relative group">
             <button
-              className="p-2 bg-gray-800 hover:bg-purple-600 rounded-lg text-white transition-colors flex items-center gap-1"
-              title="Herramientas de edición PDF"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-semibold transition-all duration-300"
+              title="Más herramientas de edición"
             >
-              ✂️
+              <Sliders className="w-4 h-4" />
+              <span className="hidden md:inline">Herramientas</span>
+              <ChevronDown className="w-4 h-4" />
             </button>
             
             {/* Dropdown de herramientas */}
-            <div className="hidden group-hover:block absolute top-full right-0 mt-1 bg-gray-800 rounded-lg shadow-2xl border border-gray-700 min-w-[250px] z-50">
+            <div className="hidden group-hover:block absolute top-full right-0 mt-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 min-w-[280px] z-50 overflow-hidden">
               <div className="py-2 space-y-1">
                 {/* Mejorar Calidad */}
                 <button
