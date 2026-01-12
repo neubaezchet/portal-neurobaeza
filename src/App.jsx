@@ -1125,6 +1125,19 @@ return (
                 >
                   🏭 Accidente Laboral
                 </button>
+                <hr className="border-gray-700 my-1" />
+                <button
+                  onClick={() => handleCambiarTipo('certificado_hospitalizacion')}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm"
+                >
+                  🏥 Certificado Hospitalización
+                </button>
+                <button
+                  onClick={() => handleCambiarTipo('prelicencia')}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-cyan-600 transition-colors text-sm"
+                >
+                  📋 Prelicencia
+                </button>
               </div>
             </div>
           </div>
@@ -1348,15 +1361,17 @@ return (
                     '• paternity → Paternidad\n' +
                     '• general → Enfermedad General\n' +
                     '• traffic → Accidente de Tránsito\n' +
-                    '• labor → Accidente Laboral\n\n' +
+                    '• labor → Accidente Laboral\n' +
+                    '• certificado_hospitalizacion → Certificado Hospitalización\n' +
+                    '• prelicencia → Prelicencia\n\n' +
                     'Escribe el tipo exacto:'
                   );
                   
                   if (!nuevoTipo) return;
                   
-                  const tiposValidos = ['maternity', 'paternity', 'general', 'traffic', 'labor'];
+                  const tiposValidos = ['maternity', 'paternity', 'general', 'traffic', 'labor', 'certificado_hospitalizacion', 'prelicencia'];
                   if (!tiposValidos.includes(nuevoTipo.toLowerCase())) {
-                    alert('❌ Tipo inválido. Usa: maternity, paternity, general, traffic o labor');
+                    alert('❌ Tipo inválido. Usa: maternity, paternity, general, traffic, labor, certificado_hospitalizacion o prelicencia');
                     return;
                   }
                   
