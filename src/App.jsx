@@ -75,6 +75,8 @@ const STATUS_MAP = {
 };
 
 // ==================== EDITOR PDF CON CANVAS ====================
+// Componente no utilizado - comentado para futuro uso
+/*
 function PDFEditorCanvas({ pageImage, onSave, onClose }) {
   const canvasRef = useRef(null);
   const [tool, setTool] = useState('draw'); // draw, highlight, arrow, crop
@@ -272,6 +274,7 @@ function PDFEditorCanvas({ pageImage, onSave, onClose }) {
     </div>
   );
 }
+*/
 
 // ==================== VISOR FULLSCREEN TIPO POWERPOINT ====================
 function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
@@ -2033,10 +2036,12 @@ export default function App() {
   useEffect(() => {
     cargarEmpresas();
     cargarStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     cargarCasos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtros]);
 
   const cargarEmpresas = async () => {
