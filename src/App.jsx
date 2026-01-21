@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 // ==================== CONFIGURACIÓN API ====================
-const API_BASE_URL = 'https://bakcend-gemi-cha-2.onrender.com';
+const API_BASE_URL = 'https://web-production-95ed.up.railway.app';
 const ADMIN_TOKEN = '0b9685e9a9ff3c24652acaad881ec7b2b4c17f6082ad164d10a6e67589f3f67c';
 
 // ✅ IMAGEN SOAT DE REFERENCIA (Base64)
@@ -290,11 +290,12 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
   const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
   const [casoActualizado, setCasoActualizado] = useState(casoSeleccionado); // ✅ NUEVO
   const [notificacion, setNotificacion] = useState(null);
+  const [showToolsMenu, setShowToolsMenu] = useState(false); // ✅ NUEVO: controlar dropdown
   const containerRef = useRef(null);
 
   const mostrarNotificacion = (mensaje, tipo = 'success') => {
     setNotificacion({ mensaje, tipo });
-    setTimeout(() => setNotificacion(null), 3000);
+    setTimeout(() => setNotificacion(null), 2500);
   };
 
   // ✅ FUNCIÓN PARA RECARGAR PDF (después de editar)
@@ -892,6 +893,18 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
       }
     };
   }, [onClose]);
+
+// ✅ CERRAR DROPDOWN AL PRESIONAR ESCAPE
+useEffect(() => {
+  const handleEscape = (e) => {
+    if (e.key === 'Escape' && showToolsMenu) {
+      setShowToolsMenu(false);
+    }
+  };
+  document.addEventListener('keydown', handleEscape);
+  return () => document.removeEventListener('keydown', handleEscape);
+}, [showToolsMenu]);
+
 // ✅ DETECTAR REENVÍOS AL ABRIR CASO
 useEffect(() => {
   const verificarReenvios = async () => {
@@ -1018,17 +1031,17 @@ const Icon = statusInfo.icon;
 
 return (
   <>
-    {/* Notificación Toast */}
+    {/* Notificación Toast - Sutil y minimalista */}
     {notificacion && (
-      <div className={`fixed top-20 right-4 z-[70] px-6 py-3 rounded-xl shadow-2xl border-2 flex items-center gap-3 animate-fade-in ${
-        notificacion.tipo === 'success' ? 'bg-green-500 border-green-600' : 
-        notificacion.tipo === 'error' ? 'bg-red-500 border-red-600' : 
-        'bg-blue-500 border-blue-600'
-      } text-white font-semibold`}>
-        {notificacion.tipo === 'success' && <Check className="w-5 h-5" />}
-        {notificacion.tipo === 'error' && <X className="w-5 h-5" />}
-        {notificacion.tipo === 'info' && <Loader2 className="w-5 h-5 animate-spin" />}
-        <span>{notificacion.mensaje}</span>
+      <div className={`fixed bottom-6 right-6 z-[70] px-4 py-3 rounded-lg shadow-lg border-l-4 flex items-center gap-3 animate-fade-in transition-all duration-300 backdrop-blur-sm ${
+        notificacion.tipo === 'success' ? 'bg-green-50/90 border-l-green-500 text-green-900' : 
+        notificacion.tipo === 'error' ? 'bg-red-50/90 border-l-red-500 text-red-900' : 
+        'bg-blue-50/90 border-l-blue-500 text-blue-900'
+      }`}>
+        {notificacion.tipo === 'success' && <Check className="w-4 h-4 flex-shrink-0 text-green-600" />}
+        {notificacion.tipo === 'error' && <X className="w-4 h-4 flex-shrink-0 text-red-600" />}
+        {notificacion.tipo === 'info' && <Loader2 className="w-4 h-4 animate-spin flex-shrink-0 text-blue-600" />}
+        <span className="text-sm font-medium">{notificacion.mensaje}</span>
       </div>
     )}
     
@@ -1145,20 +1158,26 @@ return (
           {/* ✂️ DROPDOWN: Más Herramientas */}
           <div className="relative group">
             <button
+              onClick={() => setShowToolsMenu(!showToolsMenu)}
               className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-semibold transition-all duration-300"
               title="Más herramientas de edición"
             >
               <Sliders className="w-4 h-4" />
               <span className="hidden md:inline">Herramientas</span>
-              <ChevronDown className="w-4 h-4" />
+              <ChevronDown className={`w-4 h-4 transition-transform ${showToolsMenu ? 'rotate-180' : ''}`} />
             </button>
             
             {/* Dropdown de herramientas */}
-            <div className="hidden group-hover:block absolute top-full right-0 mt-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 min-w-[280px] z-50 overflow-hidden">
+            <div className={`absolute top-full right-0 mt-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 min-w-[280px] z-50 overflow-hidden transition-all duration-200 ${
+              showToolsMenu ? 'block' : 'hidden'
+            }`}>
               <div className="py-2 space-y-1">
                 {/* Mejorar Calidad */}
                 <button
-                  onClick={() => mejorarCalidadHD(currentPage)}
+                  onClick={() => {
+                    mejorarCalidadHD(currentPage);
+                    setShowToolsMenu(false);
+                  }}
                   disabled={enviandoValidacion}
                   className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
                 >
@@ -1167,7 +1186,10 @@ return (
                 
                 {/* Rotar 90° */}
                 <button
-                  onClick={() => rotarPagina(90, false)}
+                  onClick={() => {
+                    rotarPagina(90, false);
+                    setShowToolsMenu(false);
+                  }}
                   className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -1176,7 +1198,10 @@ return (
                 
                 {/* Rotar todas */}
                 <button
-                  onClick={() => rotarPagina(90, true)}
+                  onClick={() => {
+                    rotarPagina(90, true);
+                    setShowToolsMenu(false);
+                  }}
                   className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -1187,7 +1212,10 @@ return (
                 
                 {/* Filtros de imagen */}
                 <button
-                  onClick={() => aplicarFiltro('grayscale')}
+                  onClick={() => {
+                    aplicarFiltro('grayscale');
+                    setShowToolsMenu(false);
+                  }}
                   disabled={enviandoValidacion}
                   className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
                 >
@@ -1196,7 +1224,10 @@ return (
                 </button>
                 
                 <button
-                  onClick={() => aplicarFiltro('contrast')}
+                  onClick={() => {
+                    aplicarFiltro('contrast');
+                    setShowToolsMenu(false);
+                  }}
                   disabled={enviandoValidacion}
                   className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
                 >
@@ -1205,7 +1236,10 @@ return (
                 </button>
                 
                 <button
-                  onClick={() => aplicarFiltro('brightness')}
+                  onClick={() => {
+                    aplicarFiltro('brightness');
+                    setShowToolsMenu(false);
+                  }}
                   disabled={enviandoValidacion}
                   className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
                 >
@@ -1217,7 +1251,10 @@ return (
                 
                 {/* Recorte automático */}
                 <button
-                  onClick={() => recorteAutomatico(currentPage)}
+                  onClick={() => {
+                    recorteAutomatico(currentPage);
+                    setShowToolsMenu(false);
+                  }}
                   disabled={enviandoValidacion}
                   className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
                 >
@@ -1226,7 +1263,10 @@ return (
                 
                 {/* Corregir inclinación */}
                 <button
-                  onClick={() => corregirInclinacion(currentPage)}
+                  onClick={() => {
+                    corregirInclinacion(currentPage);
+                    setShowToolsMenu(false);
+                  }}
                   disabled={enviandoValidacion}
                   className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
                 >
