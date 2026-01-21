@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   User, CheckCircle, XCircle, FileText, Send, Edit3, Clock, 
-  ChevronLeft, ChevronRight, FolderOpen, X, Download, RefreshCw, 
-  AlertCircle, ZoomIn, ZoomOut, Grid, Sliders, Sun, Contrast, Maximize2,
-  Undo2, Image, Sparkles, Crop, Wand2, Loader2, Check, ChevronDown
+  ChevronLeft, FolderOpen, X, Download, RefreshCw, 
+  AlertCircle, ZoomIn, ZoomOut, Sliders, Sun, Contrast,
+  Undo2, Image, Sparkles, Loader2, Check, ChevronDown
 } from 'lucide-react';
 
 // ==================== CONFIGURACIÓN API ====================
@@ -286,7 +286,6 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
   const [enviandoValidacion, setEnviandoValidacion] = useState(false);
   const [errorValidacion, setErrorValidacion] = useState('');
   const [ultimaAccion, setUltimaAccion] = useState(null);
-  const [mostrarReferentes, setMostrarReferentes] = useState(false);
   const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
   const [casoActualizado, setCasoActualizado] = useState(casoSeleccionado); // ✅ NUEVO
   const [notificacion, setNotificacion] = useState(null);
@@ -612,7 +611,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
       });
       
     if (response.ok) {
-  const data = await response.json();
+  await response.json();
   
   // ✅ GUARDAR ÚLTIMA ACCIÓN PARA DESHACER
   setUltimaAccion({
