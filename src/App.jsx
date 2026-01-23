@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   User, CheckCircle, XCircle, FileText, Send, Edit3, Clock, 
-  ChevronLeft, FolderOpen, X, Download, RefreshCw, 
+  ChevronLeft, X, Download, RefreshCw, 
   AlertCircle, ZoomIn, ZoomOut, Sliders, Sun, Contrast,
   Undo2, Image, Loader2, Check, ChevronDown
 } from 'lucide-react';
