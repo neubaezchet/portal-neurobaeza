@@ -910,7 +910,7 @@ return (
             </button>
             
             {/* Dropdown de herramientas */}
-            <div className={`absolute top-full right-0 mt-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 min-w-[280px] z-[9999] overflow-hidden transition-all duration-200 ${
+            <div className={`absolute top-full right-0 mt-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 min-w-[280px] z-[99999] overflow-hidden transition-all duration-200 ${
               showToolsMenu ? 'block' : 'hidden'
             }`}>
               <div className="py-2 space-y-1">
@@ -1215,7 +1215,16 @@ return (
           setPages(newPages);
         }
       }}
-      onClick={() => setCurrentPage(idx)}
+      onClick={() => {
+        setCurrentPage(idx);
+        // Desplazarse suavemente a la página
+        setTimeout(() => {
+          const pageElement = document.getElementById(`page-${idx}`);
+          if (pageElement) {
+            pageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 0);
+      }}
                 className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
                   currentPage === idx ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-700 hover:border-gray-500'
                 }`}
@@ -1252,6 +1261,7 @@ return (
                 <div 
                   key={page.id}
                   id={`page-${idx}`}
+                  data-page-index={idx}
                   className={`bg-white shadow-2xl transition-all duration-300 ${
                     currentPage === idx ? 'ring-4 ring-blue-500' : 'opacity-90 hover:opacity-100'
                   }`}
