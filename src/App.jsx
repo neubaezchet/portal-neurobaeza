@@ -3,7 +3,7 @@ import {
   User, CheckCircle, XCircle, FileText, Send, Edit3, Clock, 
   ChevronLeft, FolderOpen, X, Download, RefreshCw, 
   AlertCircle, ZoomIn, ZoomOut, Sliders, Sun, Contrast,
-  Undo2, Image, Sparkles, Loader2, Check, ChevronDown
+  Undo2, Image, Loader2, Check, ChevronDown
 } from 'lucide-react';
 
 // ==================== CONFIGURACIÓN API ====================
