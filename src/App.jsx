@@ -838,38 +838,7 @@ return (
         </div>
 
         <div className="flex items-center gap-2">
-          {/* ✅ BOTÓN PRINCIPAL: Mejorar Calidad IA */}
-          <button
-            onClick={mejorarCalidadHD}
-            disabled={enviandoValidacion}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-            title="Mejorar calidad con IA (página actual)"
-          >
-            {enviandoValidacion ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
-            ) : (
-              <Sparkles className="w-4 h-4" />
-            )}
-            <span className="hidden md:inline">Mejorar IA</span>
-          </button>
-
-          {/* Separador visual */}
-          <div className="h-8 w-px bg-gray-600"></div>
-
-          {/* Botón: Rotar 90° (rápido) */}
-          <button
-            onClick={() => rotarPagina(90, false)}
-            disabled={enviandoValidacion}
-            className="p-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-white transition-all duration-300 transform hover:scale-110 disabled:opacity-50"
-            title="Rotar 90° (solo esta página)"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-
-          {/* Separador visual */}
-          <div className="h-8 w-px bg-gray-600"></div>
-
-          {/* ✨ DROPDOWN CAMBIAR PROTOTIPO */}
+          {/* 🔄 DROPDOWN CAMBIAR TIPO */}
           <div className="relative group">
             <button
               className="p-2 bg-gray-800 hover:bg-amber-600 rounded-xl text-white transition-colors flex items-center gap-1"
@@ -879,7 +848,7 @@ return (
             </button>
             
             {/* Dropdown Menu */}
-            <div className="hidden group-hover:block absolute top-full left-0 mt-1 bg-gray-800 rounded-lg shadow-2xl border border-gray-700 min-w-[200px] z-50">
+            <div className="hidden group-hover:block absolute top-full left-0 mt-1 bg-gray-800 rounded-lg shadow-2xl border border-gray-700 min-w-[200px] z-[9999]">
               <div className="py-1">
                 <button
                   onClick={() => handleCambiarTipo('maternity')}
@@ -941,7 +910,7 @@ return (
             </button>
             
             {/* Dropdown de herramientas */}
-            <div className={`absolute top-full right-0 mt-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 min-w-[280px] z-50 overflow-hidden transition-all duration-200 ${
+            <div className={`absolute top-full right-0 mt-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 min-w-[280px] z-[9999] overflow-hidden transition-all duration-200 ${
               showToolsMenu ? 'block' : 'hidden'
             }`}>
               <div className="py-2 space-y-1">
