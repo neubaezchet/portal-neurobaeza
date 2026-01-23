@@ -540,33 +540,6 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
       setEnviandoValidacion(false);
     }
   };
-// ✅ FUNCIÓN ELIMINAR CASO
-  const handleEliminarCaso = async () => {
-    if (!window.confirm(`⚠️ ¿ELIMINAR CASO ${casoSeleccionado.serial}?\n\nEsta acción es PERMANENTE y solo quedará en historial.`)) {
-      return;
-    }
-    
-    setEnviandoValidacion(true);
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/eliminar`, {
-        method: 'POST',
-        headers: getHeaders()
-      });
-      
-      if (response.ok) {
-        alert('✅ Caso eliminado correctamente');
-        onClose();
-        if (onRecargarCasos) onRecargarCasos();
-      } else {
-        alert('❌ Error al eliminar caso');
-      }
-    } catch (error) {
-      alert('❌ Error de conexión');
-    } finally {
-      setEnviandoValidacion(false);
-    }
-  };
 
   // ✅ FUNCIÓN DESHACER/REVERTIR
   const handleDeshacer = async () => {
