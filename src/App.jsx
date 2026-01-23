@@ -1069,20 +1069,13 @@ return (
 
           {/* 📁 Drive */}
           <a 
-            href={(() => {
-              const link = casoSeleccionado.drive_link || '';
-              if (link.includes('/file/d/')) {
-                const fileId = link.split('/file/d/')[1].split('/')[0];
-                return `https://drive.google.com/drive/folders/0B${fileId.substring(0, 10)}`;
-              }
-              return 'https://drive.google.com';
-            })()} 
+            href={casoSeleccionado.drive_link || 'https://drive.google.com'}
             target="_blank" 
             rel="noopener noreferrer"
             className="p-3 bg-gray-700 hover:bg-gray-600 rounded-xl text-white transition-all duration-300 transform hover:scale-110 shadow-lg" 
-            title="📁 Abrir en Google Drive"
+            title="📄 Abrir PDF en Google Drive"
           >
-            <FolderOpen className="w-5 h-5" />
+            <FileText className="w-5 h-5" />
           </a>
         </div>
       </div>
