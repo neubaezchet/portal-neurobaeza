@@ -219,7 +219,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
   };
 
 // ✅ MEJORAR CALIDAD HD
-  const mejorarCalidadHD = async (pageNum) => {
+  const mejorarCalidadHD = async () => {
     setEnviandoValidacion(true);
     
     try {
@@ -227,7 +227,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
-          operaciones: { enhance_quality: { pages: [pageNum] } }
+          operaciones: { enhance_quality: { pages: [currentPage] } }
         })
       });
       
@@ -276,7 +276,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
   };
 
   // ✅ RECORTE AUTOMÁTICO
-  const recorteAutomatico = async (pageNum) => {
+  const recorteAutomatico = async () => {
     setEnviandoValidacion(true);
     
     try {
@@ -284,7 +284,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
-          operaciones: { crop_auto: [{ page_num: pageNum, margin: 10 }] }
+          operaciones: { crop_auto: [{ page_num: currentPage, margin: 10 }] }
         })
       });
       
@@ -302,7 +302,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
   };
 
   // ✅ CORREGIR INCLINACIÓN
-  const corregirInclinacion = async (pageNum) => {
+  const corregirInclinacion = async () => {
     setEnviandoValidacion(true);
     
     try {
@@ -310,7 +310,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
-          operaciones: { deskew: { page_num: pageNum } }
+          operaciones: { deskew: { page_num: currentPage } }
         })
       });
       
@@ -975,7 +975,7 @@ return (
                 {/* Mejorar Calidad */}
                 <button
                   onClick={() => {
-                    mejorarCalidadHD(currentPage);
+                    mejorarCalidadHD();
                     setShowToolsMenu(false);
                   }}
                   disabled={enviandoValidacion}
@@ -1052,11 +1052,11 @@ return (
                 {/* Recorte automático */}
                 <button
                   onClick={() => {
-                    recorteAutomatico(currentPage);
+                    recorteAutomatico();
                     setShowToolsMenu(false);
                   }}
                   disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left text-white hover:bg-gray-600 transition-colors text-sm flex items-center gap-2"
                 >
                   ✂️ Recorte Automático
                 </button>
@@ -1064,100 +1064,82 @@ return (
                 {/* Corregir inclinación */}
                 <button
                   onClick={() => {
-                    corregirInclinacion(currentPage);
+                    corregirInclinacion();
                     setShowToolsMenu(false);
                   }}
                   disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left text-white hover:bg-gray-600 transition-colors text-sm flex items-center gap-2"
                 >
-                  🔄 Corregir Inclinación
+                  📐 Corregir Inclinación
                 </button>
               </div>
             </div>
           </div>
-          
-          <button
-            onClick={() => rotarPagina(90, false)}
-            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-xs flex items-center gap-1 transition-colors"
-            title="Rotar página actual 90°"
-          >
-            <RefreshCw className="w-3 h-3" />
-          </button>
-          
-          <button
-            onClick={() => mejorarCalidadHD(currentPage)}
-            disabled={enviandoValidacion}
-            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-xs flex items-center gap-1 disabled:opacity-50 transition-colors"
-            title="Mejorar calidad HD con IA"
-          >
-            ✨
-          </button>
+          {/* Separador */}
+          <div className="h-10 w-px bg-gray-600"></div>
 
-          {/* BOTÓN ELIMINAR */}
-          <button
-            onClick={handleEliminarCaso}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors"
-            title="Eliminar caso permanentemente"
-          >
-            <X className="w-4 h-4" />
-            🗑️
-          </button>
-{/* BOTONES BLOQUEO/DESBLOQUEO (solo para INCOMPLETAS) */}
+          {/* 🔒/🔓 Bloqueo (solo para INCOMPLETAS) */}
           {['INCOMPLETA', 'ILEGIBLE', 'INCOMPLETA_ILEGIBLE'].includes(casoSeleccionado.estado) && (
             <>
               {casoSeleccionado.bloquea_nueva ? (
                 <button
                   onClick={() => handleToggleBloqueo('desbloquear')}
                   disabled={enviandoValidacion}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
-                  title="Permitir que el empleado suba nuevas incapacidades"
+                  className="p-3 bg-green-600 hover:bg-green-700 rounded-xl text-white transition-all duration-300 transform hover:scale-110 disabled:opacity-50 shadow-lg"
+                  title="🔓 Desbloquear - Permitir nuevas incapacidades"
                 >
                   <span className="text-xl">🔓</span>
-                  Desbloquear
                 </button>
               ) : (
                 <button
                   onClick={() => handleToggleBloqueo('bloquear')}
                   disabled={enviandoValidacion}
-                  className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
-                  title="Forzar que complete esta incapacidad primero"
+                  className="p-3 bg-orange-600 hover:bg-orange-700 rounded-xl text-white transition-all duration-300 transform hover:scale-110 disabled:opacity-50 shadow-lg"
+                  title="🔒 Bloquear - Forzar completar esta incapacidad"
                 >
                   <span className="text-xl">🔒</span>
-                  Bloquear
                 </button>
               )}
             </>
           )}
-          {/* BOTÓN DESHACER */}
+
+          {/* ↩️ Deshacer */}
           {ultimaAccion && (
             <button
               onClick={handleDeshacer}
               disabled={enviandoValidacion}
-              className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
+              className="p-3 bg-yellow-600 hover:bg-yellow-700 rounded-xl text-white transition-all duration-300 transform hover:scale-110 disabled:opacity-50 shadow-lg"
+              title="↩️ Deshacer última validación"
             >
-              <Undo2 className="w-4 h-4" />
-              Deshacer
+              <Undo2 className="w-5 h-5" />
             </button>
           )}
 
-          <div className="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2 text-white">
+          {/* Separador */}
+          <div className="h-10 w-px bg-gray-600"></div>
+
+          {/* 🔍 Zoom */}
+          <div className="flex items-center gap-2 bg-gray-800 rounded-xl px-3 py-2 text-white shadow-lg">
             <ZoomOut className="w-4 h-4" />
-            <span className="text-sm min-w-[50px] text-center">{zoom}%</span>
+            <span className="text-sm min-w-[50px] text-center font-semibold">{zoom}%</span>
             <ZoomIn className="w-4 h-4" />
           </div>
 
+          {/* 📁 Drive */}
           <a 
-  href={(() => {
-    const link = casoSeleccionado.drive_link || '';
-    if (link.includes('/file/d/')) {
-      const fileId = link.split('/file/d/')[1].split('/')[0];
-      return `https://drive.google.com/drive/folders/0B${fileId.substring(0, 10)}`;
-    }
-    return 'https://drive.google.com';
-  })()} 
-  target="_blank" 
-  rel="noopener noreferrer"
-            className="p-2 hover:bg-gray-800 rounded transition-colors text-white" title="Abrir en Google Drive">
+            href={(() => {
+              const link = casoSeleccionado.drive_link || '';
+              if (link.includes('/file/d/')) {
+                const fileId = link.split('/file/d/')[1].split('/')[0];
+                return `https://drive.google.com/drive/folders/0B${fileId.substring(0, 10)}`;
+              }
+              return 'https://drive.google.com';
+            })()} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="p-3 bg-gray-700 hover:bg-gray-600 rounded-xl text-white transition-all duration-300 transform hover:scale-110 shadow-lg" 
+            title="📁 Abrir en Google Drive"
+          >
             <FolderOpen className="w-5 h-5" />
           </a>
         </div>
