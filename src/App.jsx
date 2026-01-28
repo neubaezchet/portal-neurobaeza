@@ -784,50 +784,65 @@ useEffect(() => {
   useEffect(() => {
     const cargarPDF = async () => {
       setLoadingPdf(true);
-      try {
-        // 1️⃣ VERIFICAR CACHE PRIMERO
-        const pdfDelCache = cargarDelCache(casoSeleccionado.serial);
-        if (pdfDelCache) {
-          console.log('✅ PDF cargado del CACHE (instantáneo)');
-          setPages(pdfDelCache);
-          setLoadingPdf(false);
-          return;
-        }
+      let intentoActual = 0;
+      const maxIntentos = 3;
+      
+      const intentarCargar = async () => {
+        try {
+          // 1️⃣ VERIFICAR CACHE PRIMERO
+          const pdfDelCache = cargarDelCache(casoSeleccionado.serial);
+          if (pdfDelCache) {
+            console.log('✅ PDF cargado del CACHE (instantáneo)');
+            setPages(pdfDelCache);
+            setLoadingPdf(false);
+            return;
+          }
 
-        let intentos = 0;
-        while (!window.pdfjsLib && intentos < 10) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          intentos++;
-        }
+          let intentos = 0;
+          while (!window.pdfjsLib && intentos < 10) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            intentos++;
+          }
 
-        if (!window.pdfjsLib) {
-          throw new Error('PDF.js no está disponible');
-        }
+          if (!window.pdfjsLib) {
+            throw new Error('PDF.js no está disponible');
+          }
 
-        const pdfjsLib = window.pdfjsLib;
-        const pdfUrl = `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/pdf`;
-        
-        // 2️⃣ CONFIGURAR PDF.JS PARA MÁXIMA VELOCIDAD
-        const loadingTask = pdfjsLib.getDocument({
-          url: pdfUrl,
-          httpHeaders: getHeaders(),
-          disableAutoFetch: false,
-          disableStream: false,
-          rangeChunkSize: 65536,
-          withCredentials: true
-        });
-        
-        const pdf = await loadingTask.promise;
-        const pagesArray = [];
-        
-        // 3️⃣ LAZY LOADING: Cargar primera página INMEDIATAMENTE
-        const firstPage = await pdf.getPage(1);
-        const viewport1 = firstPage.getViewport({ scale: 2.7 });
-        const canvas1 = document.createElement('canvas');
-        const ctx1 = canvas1.getContext('2d');
-        canvas1.height = viewport1.height;
-        canvas1.width = viewport1.width;
-        
+          const pdfjsLib = window.pdfjsLib;
+          const pdfUrl = `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/pdf`;
+          
+          console.log(`📥 Cargando PDF (intento ${intentoActual + 1}/${maxIntentos}): ${pdfUrl}`);
+          
+          // 2️⃣ CONFIGURAR PDF.JS CON RETRY AUTOMÁTICO
+          const loadingTask = pdfjsLib.getDocument({
+            url: pdfUrl,
+            httpHeaders: getHeaders(),
+            disableAutoFetch: false,
+            disableStream: false,
+            rangeChunkSize: 65536,
+            withCredentials: true,
+            // Agregar timeout
+            timeout: 30000 // 30 segundos
+          });
+          
+          // Agregar listener de error
+          loadingTask.onProgress = (progress) => {
+            console.log(`⏳ Progreso: ${Math.round((progress.loaded / progress.total) * 100)}%`);
+          };
+          
+          const pdf = await loadingTask.promise;
+          const pagesArray = [];
+          
+          console.log(`✅ PDF descargado. Total páginas: ${pdf.numPages}`);
+          
+          // 3️⃣ LAZY LOADING: Cargar primera página INMEDIATAMENTE
+          const firstPage = await pdf.getPage(1);
+          const viewport1 = firstPage.getViewport({ scale: 2.7 });
+          const canvas1 = document.createElement('canvas');
+          const ctx1 = canvas1.getContext('2d');
+          canvas1.height = viewport1.height;
+          canvas1.width = viewport1.width;
+          
         // 4️⃣ PROGRESSIVE JPEG: Primera página en baja calidad, luego mejora
         await firstPage.render({ 
           canvasContext: ctx1, 
@@ -926,12 +941,29 @@ useEffect(() => {
         setPages(allPages);
         
         console.log(`✅ PDF cargado en ${allPages.length} páginas (optimizado)`);
-      } catch (error) {
-        console.error('Error cargando PDF:', error);
-        alert('Error al cargar el PDF: ' + error.message);
-      } finally {
         setLoadingPdf(false);
-      }
+        } catch (error) {
+          console.error(`❌ Error en intento ${intentoActual + 1}:`, error.message);
+          
+          // Reintentar si es un error de red y quedan intentos
+          if (error.message?.includes('fetch') || error.message?.includes('timeout')) {
+            intentoActual++;
+            if (intentoActual < maxIntentos) {
+              console.log(`🔄 Reintentando en 2 segundos... (${intentoActual}/${maxIntentos})`);
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              return intentarCargar();
+            }
+          }
+          
+          // Si ya no hay intentos, mostrar error
+          console.error('❌ No se pudo cargar el PDF después de', maxIntentos, 'intentos');
+          mostrarNotificacion(`❌ Error cargando PDF: ${error.message}`, 'error');
+          setLoadingPdf(false);
+        }
+      };
+      
+      // Intentar cargar
+      return intentarCargar();
     };
     
     cargarPDF();
