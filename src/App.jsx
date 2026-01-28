@@ -793,6 +793,35 @@ useEffect(() => {
     cargarPDF();
   }, [casoSeleccionado]);
 
+  // ✅ PRECARGA DEL SIGUIENTE PDF (para instantaneidad)
+  useEffect(() => {
+    // Solo precarga si hay un siguiente caso
+    if (indiceActual < casosLista.length - 1) {
+      const siguienteCaso = casosLista[indiceActual + 1];
+      
+      // Precarga silenciosa del siguiente PDF
+      setTimeout(async () => {
+        try {
+          const pdfjsLib = window.pdfjsLib;
+          if (!pdfjsLib) return;
+          
+          const pdfUrl = `${API_BASE_URL}/validador/casos/${siguienteCaso.serial}/pdf`;
+          const loadingTask = pdfjsLib.getDocument({
+            url: pdfUrl,
+            httpHeaders: getHeaders()
+          });
+          
+          // Solo cargamos la primera página para verificar que es válido
+          // Esto trae todo a caché
+          await loadingTask.promise;
+          console.log(`✅ Precargué PDF del siguiente caso: ${siguienteCaso.serial}`);
+        } catch (error) {
+          console.log('⚠️ No se pudo precargar siguiente PDF (no crítico):', error);
+        }
+      }, 1000); // Espera 1 segundo después de abrir el caso actual
+    }
+  }, [indiceActual, casosLista]);
+
   // ✅ ZOOM CON SCROLL DEL MOUSE
   const handleWheel = useCallback((e) => {
     if (e.ctrlKey || e.metaKey) {
@@ -809,7 +838,6 @@ useEffect(() => {
       return () => container.removeEventListener('wheel', handleWheel);
     }
   }, [handleWheel]);
-
   // ✅ NAVEGACIÓN CON TECLADO (tanto páginas como incapacidades)
   const handleKeyPress = useCallback((e) => {
     // Verificar si hay un modal abierto - no navegar si estamos escribiendo
@@ -822,7 +850,7 @@ useEffect(() => {
       return;
     }
     
-    // ✅ NAVEGACIÓN DE INCAPACIDADES (solo con Ctrl+Flecha o Alt+Flecha para no interfir con pages)
+    // ✅ NAVEGACIÓN DE INCAPACIDADES (con Ctrl+Flecha O sin Ctrl si es borde del PDF)
     if (e.ctrlKey || e.altKey) {
       if (e.key === 'ArrowRight') {
         e.preventDefault();
@@ -836,12 +864,29 @@ useEffect(() => {
       }
     }
     
-    // NAVEGACIÓN DE PÁGINAS (sin modificadores)
+    // ✅ FLECHAS SIN MODIFICADORES: 
+    // Si estamos en la última página → siguiente incapacidad
+    // Si estamos en la primera página → anterior incapacidad
+    // Si estamos en una página intermedia → navegar páginas
     if (!tieneInputFocused) {
       if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+        // Si estamos en la ÚLTIMA página del PDF, ir al siguiente caso
+        if (currentPage === pages.length - 1 && pages.length > 0) {
+          e.preventDefault();
+          irAlSiguiente();
+          return;
+        }
+        // Si no, navegar a la siguiente página
         setCurrentPage(p => Math.min(pages.length - 1, p + 1));
       }
       if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        // Si estamos en la PRIMERA página del PDF, ir al caso anterior
+        if (currentPage === 0 && pages.length > 0) {
+          e.preventDefault();
+          irAlAnterior();
+          return;
+        }
+        // Si no, navegar a la página anterior
         setCurrentPage(p => Math.max(0, p - 1));
       }
       if (e.key === 'Home') setCurrentPage(0);
@@ -849,7 +894,7 @@ useEffect(() => {
     }
     
     if (e.key === 'Escape') onClose();
-  }, [pages, onClose, accionSeleccionada, irAlSiguiente, irAlAnterior]);
+  }, [pages, onClose, accionSeleccionada, irAlSiguiente, irAlAnterior, currentPage]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
@@ -877,44 +922,44 @@ return (
     
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {/* HEADER FULLSCREEN */}
-      <div className="bg-gray-900/95 backdrop-blur border-b border-gray-700 p-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button onClick={onClose} className="p-2 hover:bg-gray-800 rounded-lg transition-colors">
+      <div className="bg-gray-900/95 backdrop-blur border-b border-gray-700 p-3 flex items-center justify-between overflow-x-auto">
+        <div className="flex items-center gap-2 min-w-0">
+          <button onClick={onClose} className="p-2 hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0">
             <X className="w-5 h-5 text-white" />
           </button>
           
-          {/* ✅ BOTONES DE NAVEGACIÓN ENTRE INCAPACIDADES */}
-          <div className="flex items-center gap-1 px-2 py-1 bg-gray-800 rounded-lg border border-gray-700">
+          {/* ✅ BOTONES DE NAVEGACIÓN ENTRE INCAPACIDADES (RESPONSIVE) */}
+          <div className="flex items-center gap-0.5 px-1.5 py-1 bg-gray-800 rounded-lg border border-gray-700 flex-shrink-0">
             <button
               onClick={irAlAnterior}
               disabled={indiceActual === 0}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              title="Incapacidad anterior (← Arrow Left)"
+              className="p-1.5 hover:bg-gray-700 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Anterior (← o Ctrl+←)"
             >
-              <ChevronLeft className="w-5 h-5 text-white" />
+              <ChevronLeft className="w-4 h-4 text-white" />
             </button>
-            <span className="text-xs font-semibold text-gray-400 px-2 min-w-[60px] text-center">
-              {indiceActual + 1} / {casosLista.length}
+            <span className="text-xs font-semibold text-gray-400 px-1.5 min-w-[50px] text-center whitespace-nowrap">
+              {indiceActual + 1}/{casosLista.length}
             </span>
             <button
               onClick={irAlSiguiente}
               disabled={indiceActual >= casosLista.length - 1}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              title="Siguiente incapacidad (→ Arrow Right)"
+              className="p-1.5 hover:bg-gray-700 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Siguiente (→ o Ctrl+→)"
             >
-              <ChevronRight className="w-5 h-5 text-white" />
+              <ChevronRight className="w-4 h-4 text-white" />
             </button>
           </div>
           
           <div 
-            className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+            className="w-8 h-8 rounded-full flex items-center justify-center shadow-lg flex-shrink-0"
             style={{backgroundColor: statusInfo.color}}
           >
-            <Icon className="w-6 h-6 text-white" />
+            <Icon className="w-5 h-5 text-white" />
           </div>
-          <div className="text-white">
-            <div className="font-bold text-yellow-300">{casoSeleccionado.serial}</div>
-            <div className="text-xs text-gray-400">{casoSeleccionado.nombre} • {casoSeleccionado.empresa}</div>
+          <div className="text-white min-w-0">
+            <div className="font-bold text-yellow-300 text-sm truncate">{casoSeleccionado.serial}</div>
+            <div className="text-xs text-gray-400 truncate">{casoSeleccionado.nombre} • {casoSeleccionado.empresa}</div>
           </div>
         </div>
 
