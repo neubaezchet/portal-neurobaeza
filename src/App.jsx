@@ -99,7 +99,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   };
 
   // ✅ NAVEGACIÓN ENTRE INCAPACIDADES (respetando filtros)
-  const irAlSiguiente = () => {
+  const irAlSiguiente = useCallback(() => {
     if (indiceActual < casosLista.length - 1) {
       const siguienteIndice = indiceActual + 1;
       const siguienteCaso = casosLista[siguienteIndice];
@@ -111,9 +111,9 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     } else {
       mostrarNotificacion('✅ Ya estás en la última incapacidad', 'info');
     }
-  };
+  }, [indiceActual, casosLista, onCambiarCaso]);
 
-  const irAlAnterior = () => {
+  const irAlAnterior = useCallback(() => {
     if (indiceActual > 0) {
       const anteriorIndice = indiceActual - 1;
       const anteriorCaso = casosLista[anteriorIndice];
@@ -125,7 +125,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     } else {
       mostrarNotificacion('✅ Ya estás en la primera incapacidad', 'info');
     }
-  };
+  }, [indiceActual, casosLista, onCambiarCaso]);
 
   // ✅ FUNCIÓN PARA RECARGAR PDF (después de editar)
   const recargarPDFInPlace = async (serial) => {
