@@ -663,9 +663,14 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
 
   // ✅ FULLSCREEN AUTOMÁTICO
   useEffect(() => {
-    // Entrar en fullscreen al abrir
+    // Entrar en fullscreen al abrir (solo si no estamos ya en fullscreen)
     const enterFullscreen = async () => {
       try {
+        // Si ya estamos en fullscreen, no hacer nada
+        if (document.fullscreenElement) {
+          console.log('✅ Ya en fullscreen');
+          return;
+        }
         await document.documentElement.requestFullscreen();
         console.log('✅ Fullscreen activado');
       } catch (err) {
@@ -690,9 +695,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     
     return () => {
       window.removeEventListener('keydown', handleFullscreenExit);
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      }
+      // NO salir de fullscreen al cambiar de caso - solo salir al cerrar el visor
     };
   }, [onClose]);
 
@@ -744,7 +747,7 @@ useEffect(() => {
   
   verificarReenvios();
 }, [casoActualizado?.serial]);
-  // ✅ CARGA DE PDF
+  // ✅ CARGA DE PDF OPTIMIZADA (paralelo, comprimida, rápida)
   useEffect(() => {
     const cargarPDF = async () => {
       setLoadingPdf(true);
@@ -761,27 +764,71 @@ useEffect(() => {
 
         const pdfjsLib = window.pdfjsLib;
         const pdfUrl = `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/pdf`;
+        
+        // Configurar PDF.js para máxima velocidad
         const loadingTask = pdfjsLib.getDocument({
           url: pdfUrl,
-          httpHeaders: getHeaders()
+          httpHeaders: getHeaders(),
+          disableAutoFetch: false, // Descargar todo agresivamente
+          disableStream: false, // Usar streaming
+          rangeChunkSize: 65536, // Chunks más grandes para velocidad
+          withCredentials: true
         });
         
         const pdf = await loadingTask.promise;
         const pagesArray = [];
+        const renderPromises = [];
         
+        // Renderizar páginas en paralelo (hasta 3 al mismo tiempo)
+        const renderQueue = [];
+        let renderingCount = 0;
+        const maxConcurrent = 3;
+        
+        const renderPage = async (pageNum) => {
+          try {
+            const page = await pdf.getPage(pageNum);
+            // Escala más baja para velocidad (2 en lugar de 3)
+            const viewport = page.getViewport({ scale: 2.5 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            
+            // Renderizar con prioridad alta
+            await page.render({ 
+              canvasContext: context, 
+              viewport,
+              maxImageSize: 8192 // Limitar tamaño de imagen
+            }).promise;
+            
+            // Compresión más agresiva (0.75 en lugar de 0.9)
+            const fullImage = canvas.toDataURL('image/jpeg', 0.75);
+            return { id: pageNum - 1, fullImage };
+          } catch (error) {
+            console.error(`Error renderizando página ${pageNum}:`, error);
+            return null;
+          }
+        };
+        
+        // Cola de renderizado paralelo
         for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 3 });
-          const canvas = document.createElement('canvas');
-          const context = canvas.getContext('2d');
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
-          await page.render({ canvasContext: context, viewport }).promise;
-          const fullImage = canvas.toDataURL('image/jpeg', 0.9);
-          pagesArray.push({ id: i - 1, fullImage });
+          const promise = (async () => {
+            while (renderingCount >= maxConcurrent) {
+              await new Promise(resolve => setTimeout(resolve, 10));
+            }
+            renderingCount++;
+            const result = await renderPage(i);
+            renderingCount--;
+            return result;
+          })();
+          renderPromises.push(promise);
         }
         
-        setPages(pagesArray);
+        // Esperar todas las páginas
+        const results = await Promise.all(renderPromises);
+        const validPages = results.filter(r => r !== null);
+        
+        setPages(validPages);
       } catch (error) {
         console.error('Error cargando PDF:', error);
         alert('Error al cargar el PDF: ' + error.message);
@@ -793,32 +840,49 @@ useEffect(() => {
     cargarPDF();
   }, [casoSeleccionado]);
 
-  // ✅ PRECARGA DEL SIGUIENTE PDF (para instantaneidad)
+  // ✅ PRECARGA AGRESIVA DEL SIGUIENTE + PRÓXIMO PDF (triple carga para velocidad)
   useEffect(() => {
-    // Solo precarga si hay un siguiente caso
-    if (indiceActual < casosLista.length - 1) {
-      const siguienteCaso = casosLista[indiceActual + 1];
+    // Precarga el siguiente y el siguiente del siguiente
+    const precargaMultiple = async () => {
+      const pdfjsLib = window.pdfjsLib;
+      if (!pdfjsLib) return;
       
-      // Precarga silenciosa del siguiente PDF
-      setTimeout(async () => {
-        try {
-          const pdfjsLib = window.pdfjsLib;
-          if (!pdfjsLib) return;
-          
-          const pdfUrl = `${API_BASE_URL}/validador/casos/${siguienteCaso.serial}/pdf`;
-          const loadingTask = pdfjsLib.getDocument({
-            url: pdfUrl,
-            httpHeaders: getHeaders()
-          });
-          
-          // Solo cargamos la primera página para verificar que es válido
-          // Esto trae todo a caché
-          await loadingTask.promise;
-          console.log(`✅ Precargué PDF del siguiente caso: ${siguienteCaso.serial}`);
-        } catch (error) {
-          console.log('⚠️ No se pudo precargar siguiente PDF (no crítico):', error);
+      // Precarga los próximos 3 casos en paralelo (no secuencial)
+      const indicesToPrefetch = [];
+      for (let i = 1; i <= 3; i++) {
+        if (indiceActual + i < casosLista.length) {
+          indicesToPrefetch.push(indiceActual + i);
         }
-      }, 1000); // Espera 1 segundo después de abrir el caso actual
+      }
+      
+      // Cargar todos en paralelo sin esperar (fire and forget)
+      indicesToPrefetch.forEach((idx) => {
+        const caso = casosLista[idx];
+        const delay = idx === indiceActual + 1 ? 500 : (idx === indiceActual + 2 ? 2000 : 5000);
+        
+        setTimeout(() => {
+          try {
+            const pdfUrl = `${API_BASE_URL}/validador/casos/${caso.serial}/pdf`;
+            const loadingTask = pdfjsLib.getDocument({
+              url: pdfUrl,
+              httpHeaders: getHeaders(),
+              disableAutoFetch: false // Asegurar que descarga todo
+            });
+            
+            // Trigger la descarga pero no esperar
+            loadingTask.promise
+              .then(() => console.log(`✅ Precargué: ${caso.serial}`))
+              .catch(() => console.log(`⚠️ Precarga falló: ${caso.serial}`));
+          } catch (error) {
+            console.log(`⚠️ Error en precarga de ${caso.serial}`);
+          }
+        }, delay);
+      });
+    };
+    
+    // Ejecutar precarga sin bloquear la renderización
+    if (casosLista.length > 0) {
+      precargaMultiple();
     }
   }, [indiceActual, casosLista]);
 
