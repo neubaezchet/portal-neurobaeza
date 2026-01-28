@@ -848,10 +848,8 @@ useEffect(() => {
         setPages([...pagesArray]);
         
         // 5️⃣ RENDERIZADO PARALELO DEL RESTO (máximo 3 simultáneas)
-        let renderingCount = 0;
         const maxConcurrent = 3;
         const queue = [];
-        let processing = 0;
         
         const renderPage = async (pageNum) => {
           try {
