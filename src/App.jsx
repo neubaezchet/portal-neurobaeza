@@ -3,7 +3,7 @@ import {
   User, CheckCircle, XCircle, FileText, Send, Edit3, Clock, 
   ChevronLeft, X, Download, RefreshCw, 
   AlertCircle, ZoomIn, ZoomOut, Sliders, Sun, Contrast,
-  Undo2, Image, Loader2, Check, ChevronDown
+  Undo2, Image, Loader2, Check, ChevronDown, ChevronRight
 } from 'lucide-react';
 
 // ==================== CONFIGURACIÓN API ====================
@@ -75,7 +75,7 @@ const STATUS_MAP = {
 };
 
 // ==================== VISOR FULLSCREEN TIPO POWERPOINT ====================
-function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
+function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista = [], indiceActual = 0, onCambiarCaso }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [zoom, setZoom] = useState(100);
   const [pages, setPages] = useState([]);
@@ -96,6 +96,35 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos }) {
   const mostrarNotificacion = (mensaje, tipo = 'success') => {
     setNotificacion({ mensaje, tipo });
     setTimeout(() => setNotificacion(null), 2500);
+  };
+
+  // ✅ NAVEGACIÓN ENTRE INCAPACIDADES (respetando filtros)
+  const irAlSiguiente = () => {
+    if (indiceActual < casosLista.length - 1) {
+      const siguienteIndice = indiceActual + 1;
+      const siguienteCaso = casosLista[siguienteIndice];
+      if (onCambiarCaso) {
+        onCambiarCaso(siguienteCaso, siguienteIndice);
+      }
+      setCurrentPage(0);
+      mostrarNotificacion(`📄 Siguiente: ${siguienteCaso.serial}`, 'info');
+    } else {
+      mostrarNotificacion('✅ Ya estás en la última incapacidad', 'info');
+    }
+  };
+
+  const irAlAnterior = () => {
+    if (indiceActual > 0) {
+      const anteriorIndice = indiceActual - 1;
+      const anteriorCaso = casosLista[anteriorIndice];
+      if (onCambiarCaso) {
+        onCambiarCaso(anteriorCaso, anteriorIndice);
+      }
+      setCurrentPage(0);
+      mostrarNotificacion(`📄 Anterior: ${anteriorCaso.serial}`, 'info');
+    } else {
+      mostrarNotificacion('✅ Ya estás en la primera incapacidad', 'info');
+    }
   };
 
   // ✅ FUNCIÓN PARA RECARGAR PDF (después de editar)
@@ -781,18 +810,46 @@ useEffect(() => {
     }
   }, [handleWheel]);
 
-  // ✅ NAVEGACIÓN CON TECLADO
+  // ✅ NAVEGACIÓN CON TECLADO (tanto páginas como incapacidades)
   const handleKeyPress = useCallback((e) => {
-    if (e.key === 'ArrowRight' || e.key === 'PageDown') {
-      setCurrentPage(p => Math.min(pages.length - 1, p + 1));
+    // Verificar si hay un modal abierto - no navegar si estamos escribiendo
+    const modalAbierto = accionSeleccionada !== null;
+    const tieneInputFocused = document.activeElement?.tagName === 'TEXTAREA' || 
+                               document.activeElement?.tagName === 'INPUT';
+    
+    // Si hay un modal o un input enfocado, solo permitir ESC
+    if (modalAbierto && e.key !== 'Escape') {
+      return;
     }
-    if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-      setCurrentPage(p => Math.max(0, p - 1));
+    
+    // ✅ NAVEGACIÓN DE INCAPACIDADES (solo con Ctrl+Flecha o Alt+Flecha para no interfir con pages)
+    if (e.ctrlKey || e.altKey) {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        irAlSiguiente();
+        return;
+      }
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        irAlAnterior();
+        return;
+      }
     }
+    
+    // NAVEGACIÓN DE PÁGINAS (sin modificadores)
+    if (!tieneInputFocused) {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+        setCurrentPage(p => Math.min(pages.length - 1, p + 1));
+      }
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        setCurrentPage(p => Math.max(0, p - 1));
+      }
+      if (e.key === 'Home') setCurrentPage(0);
+      if (e.key === 'End') setCurrentPage(pages.length - 1);
+    }
+    
     if (e.key === 'Escape') onClose();
-    if (e.key === 'Home') setCurrentPage(0);
-    if (e.key === 'End') setCurrentPage(pages.length - 1);
-  }, [pages, onClose]);
+  }, [pages, onClose, accionSeleccionada, irAlSiguiente, irAlAnterior]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
@@ -825,6 +882,30 @@ return (
           <button onClick={onClose} className="p-2 hover:bg-gray-800 rounded-lg transition-colors">
             <X className="w-5 h-5 text-white" />
           </button>
+          
+          {/* ✅ BOTONES DE NAVEGACIÓN ENTRE INCAPACIDADES */}
+          <div className="flex items-center gap-1 px-2 py-1 bg-gray-800 rounded-lg border border-gray-700">
+            <button
+              onClick={irAlAnterior}
+              disabled={indiceActual === 0}
+              className="p-2 hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Incapacidad anterior (← Arrow Left)"
+            >
+              <ChevronLeft className="w-5 h-5 text-white" />
+            </button>
+            <span className="text-xs font-semibold text-gray-400 px-2 min-w-[60px] text-center">
+              {indiceActual + 1} / {casosLista.length}
+            </span>
+            <button
+              onClick={irAlSiguiente}
+              disabled={indiceActual >= casosLista.length - 1}
+              className="p-2 hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Siguiente incapacidad (→ Arrow Right)"
+            >
+              <ChevronRight className="w-5 h-5 text-white" />
+            </button>
+          </div>
+          
           <div 
             className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
             style={{backgroundColor: statusInfo.color}}
@@ -1757,6 +1838,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [casoSeleccionado, setCasoSeleccionado] = useState(null);
   const [totalPages, setTotalPages] = useState(1);
+  const [indiceActual, setIndiceActual] = useState(0); // ✅ Índice en la lista filtrada
 
   useEffect(() => {
     cargarEmpresas();
@@ -1806,6 +1888,12 @@ export default function App() {
 
   const handlePageChange = (newPage) => {
     setFiltros(prev => ({ ...prev, page: newPage }));
+  };
+
+  // ✅ CAMBIAR DE CASO DENTRO DEL VISOR
+  const handleCambiarCaso = (nuevoCaso, nuevoIndice) => {
+    setCasoSeleccionado(nuevoCaso);
+    setIndiceActual(nuevoIndice);
   };
 
   return (
@@ -1933,7 +2021,10 @@ export default function App() {
                         </td>
                         <td className="px-4 py-3">
                           <button
-                            onClick={() => setCasoSeleccionado(caso)}
+                            onClick={() => {
+                              setCasoSeleccionado(caso);
+                              setIndiceActual(casos.indexOf(caso));
+                            }}
                             className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                           >
                             Ver Documento
@@ -1978,9 +2069,12 @@ export default function App() {
           onRecargarCasos={() => {
             cargarCasos();
             cargarStats();
-   }}
-      />
-    )}
+          }}
+          casosLista={casos}
+          indiceActual={indiceActual}
+          onCambiarCaso={handleCambiarCaso}
+        />
+      )}
     </div>
   );
 }     
