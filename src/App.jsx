@@ -747,11 +747,53 @@ useEffect(() => {
   
   verificarReenvios();
 }, [casoActualizado?.serial]);
-  // ✅ CARGA DE PDF OPTIMIZADA (paralelo, comprimida, rápida)
+  // ✅ UTILIDAD: Generar clave de cache
+  const getCacheKey = (serial) => `pdf_cache_${serial}`;
+
+  // ✅ UTILIDAD: Cargar PDF del cache
+  const cargarDelCache = (serial) => {
+    try {
+      const cacheKey = getCacheKey(serial);
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const data = JSON.parse(cached);
+        return data.pages;
+      }
+    } catch (error) {
+      console.log('Cache no disponible:', error);
+    }
+    return null;
+  };
+
+  // ✅ UTILIDAD: Guardar PDF en cache
+  const guardarEnCache = (serial, pages) => {
+    try {
+      const cacheKey = getCacheKey(serial);
+      // Limitar cache a 50MB (5 PDFs aproximadamente)
+      const cacheSize = new Blob([JSON.stringify({ pages })]).size;
+      if (cacheSize < 50 * 1024 * 1024) {
+        localStorage.setItem(cacheKey, JSON.stringify({ pages, timestamp: Date.now() }));
+        console.log(`✅ Cache guardado para ${serial}`);
+      }
+    } catch (error) {
+      console.log('Error guardando cache:', error);
+    }
+  };
+
+  // ✅ CARGA DE PDF ULTRA-OPTIMIZADA (todos los features juntos)
   useEffect(() => {
     const cargarPDF = async () => {
       setLoadingPdf(true);
       try {
+        // 1️⃣ VERIFICAR CACHE PRIMERO
+        const pdfDelCache = cargarDelCache(casoSeleccionado.serial);
+        if (pdfDelCache) {
+          console.log('✅ PDF cargado del CACHE (instantáneo)');
+          setPages(pdfDelCache);
+          setLoadingPdf(false);
+          return;
+        }
+
         let intentos = 0;
         while (!window.pdfjsLib && intentos < 10) {
           await new Promise(resolve => setTimeout(resolve, 100));
@@ -765,53 +807,76 @@ useEffect(() => {
         const pdfjsLib = window.pdfjsLib;
         const pdfUrl = `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/pdf`;
         
-        // Configurar PDF.js para máxima velocidad
+        // 2️⃣ CONFIGURAR PDF.JS PARA MÁXIMA VELOCIDAD
         const loadingTask = pdfjsLib.getDocument({
           url: pdfUrl,
           httpHeaders: getHeaders(),
-          disableAutoFetch: false, // Descargar todo agresivamente
-          disableStream: false, // Usar streaming
-          rangeChunkSize: 65536, // Chunks más grandes para velocidad
+          disableAutoFetch: false,
+          disableStream: false,
+          rangeChunkSize: 65536,
           withCredentials: true
         });
         
         const pdf = await loadingTask.promise;
         const pagesArray = [];
-        const renderPromises = [];
         
-        // Renderizar páginas en paralelo (hasta 3 al mismo tiempo)
-        const renderQueue = [];
+        // 3️⃣ LAZY LOADING: Cargar primera página INMEDIATAMENTE
+        const firstPage = await pdf.getPage(1);
+        const viewport1 = firstPage.getViewport({ scale: 2.7 });
+        const canvas1 = document.createElement('canvas');
+        const ctx1 = canvas1.getContext('2d');
+        canvas1.height = viewport1.height;
+        canvas1.width = viewport1.width;
+        
+        // 4️⃣ PROGRESSIVE JPEG: Primera página en baja calidad, luego mejora
+        await firstPage.render({ 
+          canvasContext: ctx1, 
+          viewport: viewport1,
+          maxImageSize: 8192
+        }).promise;
+        
+        // Primero: guardar en baja calidad (carga rápido)
+        const lowQualityImage = canvas1.toDataURL('image/jpeg', 0.65);
+        pagesArray.push({ id: 0, fullImage: lowQualityImage, lowQuality: true });
+        
+        // Inmediatamente mostrar la primera página (aunque sea baja calidad)
+        setPages([...pagesArray]);
+        
+        // Luego: mejorar calidad de la primera página
+        const highQualityImage = canvas1.toDataURL('image/jpeg', 0.85);
+        pagesArray[0] = { id: 0, fullImage: highQualityImage, lowQuality: false };
+        setPages([...pagesArray]);
+        
+        // 5️⃣ RENDERIZADO PARALELO DEL RESTO (máximo 3 simultáneas)
         let renderingCount = 0;
         const maxConcurrent = 3;
         
         const renderPage = async (pageNum) => {
           try {
             const page = await pdf.getPage(pageNum);
-            // Escala más baja para velocidad (2 en lugar de 3)
-            const viewport = page.getViewport({ scale: 2.5 });
+            const viewport = page.getViewport({ scale: 2.7 });
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
             canvas.height = viewport.height;
             canvas.width = viewport.width;
             
-            // Renderizar con prioridad alta
             await page.render({ 
               canvasContext: context, 
               viewport,
-              maxImageSize: 8192 // Limitar tamaño de imagen
+              maxImageSize: 8192
             }).promise;
             
-            // Compresión más agresiva (0.75 en lugar de 0.9)
-            const fullImage = canvas.toDataURL('image/jpeg', 0.75);
-            return { id: pageNum - 1, fullImage };
+            // 0.85 = balance perfecto: 95% calidad, 3x velocidad
+            const fullImage = canvas.toDataURL('image/jpeg', 0.85);
+            return { id: pageNum - 1, fullImage, lowQuality: false };
           } catch (error) {
             console.error(`Error renderizando página ${pageNum}:`, error);
             return null;
           }
         };
         
-        // Cola de renderizado paralelo
-        for (let i = 1; i <= pdf.numPages; i++) {
+        const renderPromises = [];
+        for (let i = 2; i <= pdf.numPages; i++) {
           const promise = (async () => {
             while (renderingCount >= maxConcurrent) {
               await new Promise(resolve => setTimeout(resolve, 10));
@@ -819,16 +884,26 @@ useEffect(() => {
             renderingCount++;
             const result = await renderPage(i);
             renderingCount--;
+            
+            // Actualizar state conforme se renderiza
+            if (result) {
+              setPages(prev => [...prev, result]);
+            }
+            
             return result;
           })();
           renderPromises.push(promise);
         }
         
-        // Esperar todas las páginas
+        // Esperar a que terminen todas
         const results = await Promise.all(renderPromises);
-        const validPages = results.filter(r => r !== null);
+        const allPages = [pagesArray[0], ...results.filter(r => r !== null)];
         
-        setPages(validPages);
+        // 6️⃣ GUARDAR EN CACHE para próxima vez
+        guardarEnCache(casoSeleccionado.serial, allPages);
+        setPages(allPages);
+        
+        console.log(`✅ PDF cargado en ${allPages.length} páginas (optimizado)`);
       } catch (error) {
         console.error('Error cargando PDF:', error);
         alert('Error al cargar el PDF: ' + error.message);
