@@ -748,10 +748,10 @@ useEffect(() => {
   verificarReenvios();
 }, [casoActualizado?.serial]);
   // ✅ UTILIDAD: Generar clave de cache
-  const getCacheKey = (serial) => `pdf_cache_${serial}`;
+  const getCacheKey = useCallback((serial) => `pdf_cache_${serial}`, []);
 
   // ✅ UTILIDAD: Cargar PDF del cache
-  const cargarDelCache = (serial) => {
+  const cargarDelCache = useCallback((serial) => {
     try {
       const cacheKey = getCacheKey(serial);
       const cached = localStorage.getItem(cacheKey);
@@ -763,10 +763,10 @@ useEffect(() => {
       console.log('Cache no disponible:', error);
     }
     return null;
-  };
+  }, [getCacheKey]);
 
   // ✅ UTILIDAD: Guardar PDF en cache
-  const guardarEnCache = (serial, pages) => {
+  const guardarEnCache = useCallback((serial, pages) => {
     try {
       const cacheKey = getCacheKey(serial);
       // Limitar cache a 50MB (5 PDFs aproximadamente)
@@ -778,7 +778,7 @@ useEffect(() => {
     } catch (error) {
       console.log('Error guardando cache:', error);
     }
-  };
+  }, [getCacheKey]);
 
   // ✅ CARGA DE PDF ULTRA-OPTIMIZADA (todos los features juntos)
   useEffect(() => {
@@ -850,6 +850,8 @@ useEffect(() => {
         // 5️⃣ RENDERIZADO PARALELO DEL RESTO (máximo 3 simultáneas)
         let renderingCount = 0;
         const maxConcurrent = 3;
+        const queue = [];
+        let processing = 0;
         
         const renderPage = async (pageNum) => {
           try {
@@ -875,29 +877,51 @@ useEffect(() => {
           }
         };
         
-        const renderPromises = [];
-        for (let i = 2; i <= pdf.numPages; i++) {
-          const promise = (async () => {
-            while (renderingCount >= maxConcurrent) {
-              await new Promise(resolve => setTimeout(resolve, 10));
-            }
-            renderingCount++;
-            const result = await renderPage(i);
-            renderingCount--;
+        const processQueue = async () => {
+          while (queue.length > 0) {
+            const pageNum = queue.shift();
+            const result = await renderPage(pageNum);
             
             // Actualizar state conforme se renderiza
             if (result) {
               setPages(prev => [...prev, result]);
             }
-            
-            return result;
-          })();
-          renderPromises.push(promise);
+          }
+        };
+        
+        // Agregar páginas a la cola (no en el loop)
+        for (let i = 2; i <= pdf.numPages; i++) {
+          queue.push(i);
+        }
+        
+        // Procesar cola con máximo de concurrencia
+        const queuePromises = [];
+        for (let i = 0; i < Math.min(maxConcurrent, queue.length); i++) {
+          queuePromises.push(processQueue());
         }
         
         // Esperar a que terminen todas
-        const results = await Promise.all(renderPromises);
-        const allPages = [pagesArray[0], ...results.filter(r => r !== null)];
+        await Promise.all(queuePromises);
+        
+        // Construir array final
+        const allPages = [pagesArray[0]];
+        for (let i = 2; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 2.7 });
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+          
+          await page.render({ 
+            canvasContext: context, 
+            viewport,
+            maxImageSize: 8192
+          }).promise;
+          
+          const fullImage = canvas.toDataURL('image/jpeg', 0.85);
+          allPages.push({ id: i - 1, fullImage, lowQuality: false });
+        }
         
         // 6️⃣ GUARDAR EN CACHE para próxima vez
         guardarEnCache(casoSeleccionado.serial, allPages);
@@ -913,7 +937,7 @@ useEffect(() => {
     };
     
     cargarPDF();
-  }, [casoSeleccionado]);
+  }, [casoSeleccionado, cargarDelCache, guardarEnCache]);
 
   // ✅ PRECARGA AGRESIVA DEL SIGUIENTE + PRÓXIMO PDF (triple carga para velocidad)
   useEffect(() => {
