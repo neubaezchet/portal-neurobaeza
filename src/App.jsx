@@ -720,120 +720,153 @@ useEffect(() => {
   verificarReenvios();
 }, [casoActualizado?.serial]);
 
-  // ✅ NUEVA FUNCIÓN: Cargar PDF INSTANTÁNEO desde stream
+  // ✅ NUEVA FUNCIÓN: Cargar PDF INSTANTÁNEO desde stream - OPTIMIZADO PARA RAILWAY
   useEffect(() => {
     const cargarPDFDirecto = async () => {
       setLoadingPdf(true);
+      let retryCount = 0;
+      const maxRetries = 3;
       
-      try {
-        console.log(`📥 Cargando PDF stream para ${casoSeleccionado.serial}...`);
-        
-        // URL del nuevo endpoint
-        const pdfUrl = `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/pdf/stream`;
-        
-        // ✅ Configurar PDF.js para trabajar directamente con el stream
-        const pdfjsLib = window.pdfjsLib;
-        if (!pdfjsLib) {
-          throw new Error('PDF.js no cargado');
-        }
-        
-        // Configurar worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 
-          `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-        
-        // ✅ CLAVE: Usar TypedArray para streaming eficiente
-        const response = await fetch(pdfUrl, {
-          headers: getHeaders()
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        
-        // Leer como ArrayBuffer para máxima velocidad
-        const arrayBuffer = await response.arrayBuffer();
-        
-        // Cargar PDF desde buffer
-        const loadingTask = pdfjsLib.getDocument({
-          data: arrayBuffer,
-          disableAutoFetch: false,
-          disableStream: false
-        });
-        
-        const pdf = await loadingTask.promise;
-        
-        console.log(`✅ PDF cargado: ${pdf.numPages} páginas`);
-        
-        // ✅ RENDERIZADO ULTRA-RÁPIDO: Solo la primera página al instante
-        const pagesArray = [];
-        
-        // Página 1 INMEDIATAMENTE (sin esperar otras)
-        const page1 = await pdf.getPage(1);
-        const viewport1 = page1.getViewport({ scale: 2.5 }); // Mejor que 3.0 para velocidad
-        const canvas1 = document.createElement('canvas');
-        canvas1.width = viewport1.width;
-        canvas1.height = viewport1.height;
-        
-        const ctx1 = canvas1.getContext('2d');
-        await page1.render({
-          canvasContext: ctx1,
-          viewport: viewport1,
-          enableWebGL: true  // ✅ Aceleración GPU si está disponible
-        }).promise;
-        
-        pagesArray.push({
-          id: 0,
-          fullImage: canvas1.toDataURL('image/webp', 0.95)  // ✅ WebP es más rápido que JPEG
-        });
-        
-        // ✅ MOSTRAR INMEDIATAMENTE
-        setPages([...pagesArray]);
-        setCurrentPage(0);
-        setLoadingPdf(false);
-        
-        console.log('⚡ Primera página visible');
-        
-        // ✅ CARGAR RESTO EN BACKGROUND (no bloquea UI)
-        (async () => {
-          for (let i = 2; i <= pdf.numPages; i++) {
-            try {
-              const page = await pdf.getPage(i);
-              const viewport = page.getViewport({ scale: 2.5 });
-              const canvas = document.createElement('canvas');
-              canvas.width = viewport.width;
-              canvas.height = viewport.height;
-              
-              const context = canvas.getContext('2d');
-              await page.render({
-                canvasContext: context,
-                viewport: viewport,
-                enableWebGL: true
-              }).promise;
-              
-              pagesArray.push({
-                id: i - 1,
-                fullImage: canvas.toDataURL('image/webp', 0.95)
-              });
-              
-              setPages([...pagesArray]);
-            } catch (error) {
-              console.error(`Error renderizando página ${i}:`, error);
-            }
+      const intentarCargar = async () => {
+        try {
+          console.log(`📥 [PDF] Cargando para ${casoSeleccionado.serial}... (intento ${retryCount + 1}/${maxRetries + 1})`);
+          
+          const pdfUrl = `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/pdf/stream`;
+          
+          // ✅ CRÍTICO: Configurar AbortController con timeout de 25s para Railway
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => {
+            console.warn('⏱️ [PDF] Timeout de 25s alcanzado, abortando...');
+            controller.abort();
+          }, 25000);
+          
+          const pdfjsLib = window.pdfjsLib;
+          if (!pdfjsLib) {
+            throw new Error('PDF.js no cargado');
           }
           
-          console.log(`✅ PDF completamente cargado`);
-        })();
-        
-      } catch (error) {
-        console.error('❌ Error cargando PDF:', error);
-        mostrarNotificacion(`Error: ${error.message}`, 'error');
-        setLoadingPdf(false);
+          pdfjsLib.GlobalWorkerOptions.workerSrc = 
+            `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+          
+          // ✅ Fetch con AbortSignal para timeout
+          console.log('📡 [PDF] Descargando desde Drive...');
+          const response = await fetch(pdfUrl, {
+            headers: getHeaders(),
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          
+          console.log('✅ [PDF] Descarga completada');
+          
+          const arrayBuffer = await response.arrayBuffer();
+          
+          // Cargar PDF desde buffer
+          const loadingTask = pdfjsLib.getDocument({
+            data: arrayBuffer,
+            disableAutoFetch: false,
+            disableStream: false
+          });
+          
+          const pdf = await loadingTask.promise;
+          
+          console.log(`✅ [PDF] Documento cargado: ${pdf.numPages} páginas`);
+          
+          // ✅ Renderizar primera página INMEDIATAMENTE (escala optimizada para Railway)
+          const pagesArray = [];
+          
+          const page1 = await pdf.getPage(1);
+          const viewport1 = page1.getViewport({ scale: 1.8 }); // ✅ 1.8 más rápido que 2.5
+          const canvas1 = document.createElement('canvas');
+          canvas1.width = viewport1.width;
+          canvas1.height = viewport1.height;
+          
+          const ctx1 = canvas1.getContext('2d');
+          await page1.render({
+            canvasContext: ctx1,
+            viewport: viewport1,
+            enableWebGL: true
+          }).promise;
+          
+          // ✅ JPEG es más rápido que WebP para Railway
+          pagesArray.push({
+            id: 0,
+            fullImage: canvas1.toDataURL('image/jpeg', 0.85)
+          });
+          
+          // ✅ MOSTRAR INMEDIATAMENTE (< 500ms)
+          setPages([...pagesArray]);
+          setCurrentPage(0);
+          setLoadingPdf(false);
+          
+          console.log('⚡ [PDF] Primera página visible en < 500ms');
+          
+          // ✅ CARGAR RESTO EN BACKGROUND
+          (async () => {
+            for (let i = 2; i <= pdf.numPages; i++) {
+              try {
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({ scale: 1.8 });
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                
+                const context = canvas.getContext('2d');
+                await page.render({
+                  canvasContext: context,
+                  viewport: viewport,
+                  enableWebGL: true
+                }).promise;
+                
+                pagesArray.push({
+                  id: i - 1,
+                  fullImage: canvas.toDataURL('image/jpeg', 0.85)
+                });
+                
+                setPages([...pagesArray]);
+              } catch (error) {
+                console.error(`⚠️ Error página ${i}:`, error);
+              }
+            }
+            
+            console.log(`✅ [PDF] Completamente cargado`);
+          })();
+          
+        } catch (error) {
+          // ✅ Manejo específico de AbortError (timeout)
+          if (error.name === 'AbortError') {
+            console.error('⏱️ [PDF] TIMEOUT (25s) - Reintentando...');
+            
+            if (retryCount < maxRetries) {
+              retryCount++;
+              mostrarNotificacion(`⏱️ PDF tardó. Reintento ${retryCount}/${maxRetries}...`, 'warning');
+              
+              // Reintentar después de 2 segundos
+              await new Promise(r => setTimeout(r, 2000));
+              return intentarCargar();
+            } else {
+              console.error('❌ [PDF] Máximo de reintentos alcanzado');
+              mostrarNotificacion('❌ PDF tardó más de lo esperado. Intenta más tarde.', 'error');
+            }
+          } else {
+            console.error('❌ [PDF] Error:', error.message);
+            mostrarNotificacion(`Error: ${error.message}`, 'error');
+          }
+          
+          setLoadingPdf(false);
+        }
+      };
+      
+      if (casoSeleccionado?.serial) {
+        intentarCargar();
       }
     };
     
-    if (casoSeleccionado?.serial) {
-      cargarPDFDirecto();
-    }
+    cargarPDFDirecto();
   }, [casoSeleccionado?.serial]);
 
   // ✅ PRECARGA AGRESIVA DEL SIGUIENTE + PRÓXIMO PDF (triple carga para velocidad)
