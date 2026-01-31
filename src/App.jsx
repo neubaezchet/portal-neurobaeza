@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   User, CheckCircle, XCircle, FileText, Send, Edit3, Clock, 
   ChevronLeft, X, Download, RefreshCw, 
-  AlertCircle, ZoomIn, ZoomOut, Sliders, Contrast,
+  AlertCircle, ZoomIn, ZoomOut, Sliders, Sun, Contrast,
   Undo2, Image, Loader2, Check, ChevronDown, ChevronRight
 } from 'lucide-react';
 
@@ -294,6 +294,32 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
         await recargarPDFInPlace(casoSeleccionado.serial);
       } else {
         mostrarNotificacion('❌ Error recortando', 'error');
+      }
+    } catch (error) {
+      mostrarNotificacion('❌ Error de conexión', 'error');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  };
+
+  // ✅ CORREGIR INCLINACIÓN
+  const corregirInclinacion = async () => {
+    setEnviandoValidacion(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          operaciones: { deskew: { page_num: currentPage } }
+        })
+      });
+      
+      if (response.ok) {
+        mostrarNotificacion('🔄 Inclinación corregida', 'success');
+        await recargarPDFInPlace(casoSeleccionado.serial);
+      } else {
+        mostrarNotificacion('❌ Error corrigiendo', 'error');
       }
     } catch (error) {
       mostrarNotificacion('❌ Error de conexión', 'error');
@@ -1045,19 +1071,102 @@ return (
               showToolsMenu ? 'block' : 'hidden'
             }`}>
               <div className="py-2 space-y-1">
-                <button onClick={() => rotarPagina(90, false)} className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2">
+                <button 
+                  onClick={() => {
+                    rotarPagina(90, false);
+                    setShowToolsMenu(false);
+                  }} 
+                  disabled={enviandoValidacion}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
+                >
                   <RefreshCw className="w-4 h-4" />
                   Rotar 90° (página actual)
                 </button>
-                <button onClick={() => mejorarCalidadHD()} className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2">
+                
+                <button 
+                  onClick={() => {
+                    rotarPagina(90, true);
+                    setShowToolsMenu(false);
+                  }} 
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Rotar 90° (todas las páginas)
+                </button>
+                
+                <hr className="border-gray-700 my-1" />
+                
+                <button 
+                  onClick={() => {
+                    mejorarCalidadHD();
+                    setShowToolsMenu(false);
+                  }} 
+                  disabled={enviandoValidacion}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
+                >
                   ✨ Mejorar Calidad HD
                 </button>
-                <button onClick={() => aplicarFiltro('grayscale')} className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2">
+                
+                <hr className="border-gray-700 my-1" />
+                
+                <button 
+                  onClick={() => {
+                    aplicarFiltro('grayscale');
+                    setShowToolsMenu(false);
+                  }} 
+                  disabled={enviandoValidacion}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
+                >
                   <Contrast className="w-4 h-4" />
                   Blanco y Negro
                 </button>
-                <button onClick={() => recorteAutomatico()} className="w-full px-4 py-2 text-left text-white hover:bg-gray-600 transition-colors text-sm flex items-center gap-2">
+                
+                <button 
+                  onClick={() => {
+                    aplicarFiltro('contrast');
+                    setShowToolsMenu(false);
+                  }} 
+                  disabled={enviandoValidacion}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Contrast className="w-4 h-4" />
+                  Aumentar Contraste
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    aplicarFiltro('brightness');
+                    setShowToolsMenu(false);
+                  }} 
+                  disabled={enviandoValidacion}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Sun className="w-4 h-4" />
+                  Aumentar Brillo
+                </button>
+                
+                <hr className="border-gray-700 my-1" />
+                
+                <button 
+                  onClick={() => {
+                    recorteAutomatico();
+                    setShowToolsMenu(false);
+                  }} 
+                  disabled={enviandoValidacion}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-gray-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
+                >
                   ✂️ Recorte Automático
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    corregirInclinacion();
+                    setShowToolsMenu(false);
+                  }} 
+                  disabled={enviandoValidacion}
+                  className="w-full px-4 py-2 text-left text-white hover:bg-gray-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
+                >
+                  📐 Corregir Inclinación
                 </button>
               </div>
             </div>
