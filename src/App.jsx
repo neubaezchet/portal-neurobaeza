@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   User, CheckCircle, XCircle, FileText, Send, Edit3, Clock, 
   ChevronLeft, X, Download, RefreshCw, 
-  AlertCircle, ZoomIn, ZoomOut, Sliders, Sun, Contrast,
+  AlertCircle, ZoomIn, ZoomOut, Sliders, Contrast,
   Undo2, Image, Loader2, Check, ChevronDown, ChevronRight
 } from 'lucide-react';
 
@@ -294,32 +294,6 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
         await recargarPDFInPlace(casoSeleccionado.serial);
       } else {
         mostrarNotificacion('❌ Error recortando', 'error');
-      }
-    } catch (error) {
-      mostrarNotificacion('❌ Error de conexión', 'error');
-    } finally {
-      setEnviandoValidacion(false);
-    }
-  };
-
-  // ✅ CORREGIR INCLINACIÓN
-  const corregirInclinacion = async () => {
-    setEnviandoValidacion(true);
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({
-          operaciones: { deskew: { page_num: currentPage } }
-        })
-      });
-      
-      if (response.ok) {
-        mostrarNotificacion('🔄 Inclinación corregida', 'success');
-        await recargarPDFInPlace(casoSeleccionado.serial);
-      } else {
-        mostrarNotificacion('❌ Error corrigiendo', 'error');
       }
     } catch (error) {
       mostrarNotificacion('❌ Error de conexión', 'error');
