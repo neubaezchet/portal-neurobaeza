@@ -720,153 +720,91 @@ useEffect(() => {
   verificarReenvios();
 }, [casoActualizado?.serial]);
 
-  // ✅ NUEVA FUNCIÓN: Cargar PDF INSTANTÁNEO desde stream - OPTIMIZADO PARA RAILWAY
+  // ✅ NUEVA FUNCIÓN: Cargar PDF INSTANTÁNEO desde stream
   useEffect(() => {
     const cargarPDFDirecto = async () => {
       setLoadingPdf(true);
-      let retryCount = 0;
-      const maxRetries = 3;
       
-      const intentarCargar = async () => {
-        try {
-          console.log(`📥 [PDF] Cargando para ${casoSeleccionado.serial}... (intento ${retryCount + 1}/${maxRetries + 1})`);
+      try {
+        const pdfUrl = `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/pdf/stream`;
+        
+        // ✅ AbortController con timeout de 25s para Railway
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 25000);
+        
+        const pdfjsLib = window.pdfjsLib;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 
+          `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+        
+        const response = await fetch(pdfUrl, {
+          headers: getHeaders(),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        const arrayBuffer = await response.arrayBuffer();
+        
+        const loadingTask = pdfjsLib.getDocument({
+          data: arrayBuffer,
+          disableAutoFetch: false
+        });
+        
+        const pdf = await loadingTask.promise;
+        const pagesArray = [];
+        
+        // ⚡ Renderizar SOLO primera página INMEDIATAMENTE
+        const page1 = await pdf.getPage(1);
+        const viewport1 = page1.getViewport({ scale: 1.8 });
+        const canvas1 = document.createElement('canvas');
+        canvas1.width = viewport1.width;
+        canvas1.height = viewport1.height;
+        
+        const ctx1 = canvas1.getContext('2d');
+        await page1.render({
+          canvasContext: ctx1,
+          viewport: viewport1
+        }).promise;
+        
+        pagesArray.push({
+          id: 0,
+          fullImage: canvas1.toDataURL('image/jpeg', 0.85)
+        });
+        
+        setPages([...pagesArray]);
+        setCurrentPage(0);
+        setLoadingPdf(false);
+        
+        // 📥 Cargar resto en background
+        for (let i = 2; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 1.8 });
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
           
-          const pdfUrl = `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/pdf/stream`;
-          
-          // ✅ CRÍTICO: Configurar AbortController con timeout de 25s para Railway
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => {
-            console.warn('⏱️ [PDF] Timeout de 25s alcanzado, abortando...');
-            controller.abort();
-          }, 25000);
-          
-          const pdfjsLib = window.pdfjsLib;
-          if (!pdfjsLib) {
-            throw new Error('PDF.js no cargado');
-          }
-          
-          pdfjsLib.GlobalWorkerOptions.workerSrc = 
-            `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-          
-          // ✅ Fetch con AbortSignal para timeout
-          console.log('📡 [PDF] Descargando desde Drive...');
-          const response = await fetch(pdfUrl, {
-            headers: getHeaders(),
-            signal: controller.signal
-          });
-          
-          clearTimeout(timeoutId);
-          
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-          
-          console.log('✅ [PDF] Descarga completada');
-          
-          const arrayBuffer = await response.arrayBuffer();
-          
-          // Cargar PDF desde buffer
-          const loadingTask = pdfjsLib.getDocument({
-            data: arrayBuffer,
-            disableAutoFetch: false,
-            disableStream: false
-          });
-          
-          const pdf = await loadingTask.promise;
-          
-          console.log(`✅ [PDF] Documento cargado: ${pdf.numPages} páginas`);
-          
-          // ✅ Renderizar primera página INMEDIATAMENTE (escala optimizada para Railway)
-          const pagesArray = [];
-          
-          const page1 = await pdf.getPage(1);
-          const viewport1 = page1.getViewport({ scale: 1.8 }); // ✅ 1.8 más rápido que 2.5
-          const canvas1 = document.createElement('canvas');
-          canvas1.width = viewport1.width;
-          canvas1.height = viewport1.height;
-          
-          const ctx1 = canvas1.getContext('2d');
-          await page1.render({
-            canvasContext: ctx1,
-            viewport: viewport1,
-            enableWebGL: true
+          const context = canvas.getContext('2d');
+          await page.render({
+            canvasContext: context,
+            viewport: viewport
           }).promise;
           
-          // ✅ JPEG es más rápido que WebP para Railway
           pagesArray.push({
-            id: 0,
-            fullImage: canvas1.toDataURL('image/jpeg', 0.85)
+            id: i - 1,
+            fullImage: canvas.toDataURL('image/jpeg', 0.85)
           });
           
-          // ✅ MOSTRAR INMEDIATAMENTE (< 500ms)
           setPages([...pagesArray]);
-          setCurrentPage(0);
-          setLoadingPdf(false);
-          
-          console.log('⚡ [PDF] Primera página visible en < 500ms');
-          
-          // ✅ CARGAR RESTO EN BACKGROUND
-          (async () => {
-            for (let i = 2; i <= pdf.numPages; i++) {
-              try {
-                const page = await pdf.getPage(i);
-                const viewport = page.getViewport({ scale: 1.8 });
-                const canvas = document.createElement('canvas');
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                
-                const context = canvas.getContext('2d');
-                await page.render({
-                  canvasContext: context,
-                  viewport: viewport,
-                  enableWebGL: true
-                }).promise;
-                
-                pagesArray.push({
-                  id: i - 1,
-                  fullImage: canvas.toDataURL('image/jpeg', 0.85)
-                });
-                
-                setPages([...pagesArray]);
-              } catch (error) {
-                console.error(`⚠️ Error página ${i}:`, error);
-              }
-            }
-            
-            console.log(`✅ [PDF] Completamente cargado`);
-          })();
-          
-        } catch (error) {
-          // ✅ Manejo específico de AbortError (timeout)
-          if (error.name === 'AbortError') {
-            console.error('⏱️ [PDF] TIMEOUT (25s) - Reintentando...');
-            
-            if (retryCount < maxRetries) {
-              retryCount++;
-              mostrarNotificacion(`⏱️ PDF tardó. Reintento ${retryCount}/${maxRetries}...`, 'warning');
-              
-              // Reintentar después de 2 segundos
-              await new Promise(r => setTimeout(r, 2000));
-              return intentarCargar();
-            } else {
-              console.error('❌ [PDF] Máximo de reintentos alcanzado');
-              mostrarNotificacion('❌ PDF tardó más de lo esperado. Intenta más tarde.', 'error');
-            }
-          } else {
-            console.error('❌ [PDF] Error:', error.message);
-            mostrarNotificacion(`Error: ${error.message}`, 'error');
-          }
-          
-          setLoadingPdf(false);
         }
-      };
-      
-      if (casoSeleccionado?.serial) {
-        intentarCargar();
+        
+      } catch (error) {
+        console.error('❌ Error cargando PDF:', error);
+        setLoadingPdf(false);
       }
     };
     
-    cargarPDFDirecto();
+    if (casoSeleccionado?.serial) {
+      cargarPDFDirecto();
+    }
   }, [casoSeleccionado?.serial]);
 
   // ✅ PRECARGA AGRESIVA DEL SIGUIENTE + PRÓXIMO PDF (triple carga para velocidad)
@@ -1133,105 +1071,19 @@ return (
               showToolsMenu ? 'block' : 'hidden'
             }`}>
               <div className="py-2 space-y-1">
-                {/* Mejorar Calidad */}
-                <button
-                  onClick={() => {
-                    mejorarCalidadHD();
-                    setShowToolsMenu(false);
-                  }}
-                  disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
-                >
-                  ✨ Mejorar Calidad HD
-                </button>
-                
-                {/* Rotar 90° */}
-                <button
-                  onClick={() => {
-                    rotarPagina(90, false);
-                    setShowToolsMenu(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
-                >
+                <button onClick={() => rotarPagina(90, false)} className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2">
                   <RefreshCw className="w-4 h-4" />
                   Rotar 90° (página actual)
                 </button>
-                
-                {/* Rotar todas */}
-                <button
-                  onClick={() => {
-                    rotarPagina(90, true);
-                    setShowToolsMenu(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Rotar 90° (todas las páginas)
+                <button onClick={() => mejorarCalidadHD()} className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2">
+                  ✨ Mejorar Calidad HD
                 </button>
-                
-                <hr className="border-gray-700 my-1" />
-                
-                {/* Filtros de imagen */}
-                <button
-                  onClick={() => {
-                    aplicarFiltro('grayscale');
-                    setShowToolsMenu(false);
-                  }}
-                  disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
-                >
+                <button onClick={() => aplicarFiltro('grayscale')} className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2">
                   <Contrast className="w-4 h-4" />
                   Blanco y Negro
                 </button>
-                
-                <button
-                  onClick={() => {
-                    aplicarFiltro('contrast');
-                    setShowToolsMenu(false);
-                  }}
-                  disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
-                >
-                  <Sun className="w-4 h-4" />
-                  Aumentar Contraste
-                </button>
-                
-                <button
-                  onClick={() => {
-                    aplicarFiltro('brightness');
-                    setShowToolsMenu(false);
-                  }}
-                  disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
-                >
-                  <Sun className="w-4 h-4" />
-                  Aumentar Brillo
-                </button>
-                
-                <hr className="border-gray-700 my-1" />
-                
-                {/* Recorte automático */}
-                <button
-                  onClick={() => {
-                    recorteAutomatico();
-                    setShowToolsMenu(false);
-                  }}
-                  disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-gray-600 transition-colors text-sm flex items-center gap-2"
-                >
+                <button onClick={() => recorteAutomatico()} className="w-full px-4 py-2 text-left text-white hover:bg-gray-600 transition-colors text-sm flex items-center gap-2">
                   ✂️ Recorte Automático
-                </button>
-                
-                {/* Corregir inclinación */}
-                <button
-                  onClick={() => {
-                    corregirInclinacion();
-                    setShowToolsMenu(false);
-                  }}
-                  disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-gray-600 transition-colors text-sm flex items-center gap-2"
-                >
-                  📐 Corregir Inclinación
                 </button>
               </div>
             </div>
@@ -1396,6 +1248,29 @@ return (
         </div>
       )}
   
+      {/* ✅ BANNER DE REENVÍO */}
+      {casoActualizado.metadata_reenvio?.tiene_reenvios && (
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-4 border-b-4 border-orange-600 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <RefreshCw className="w-6 h-6 animate-spin" />
+              <div>
+                <h3 className="font-bold text-lg">🔄 REENVÍO DETECTADO</h3>
+                <p className="text-sm text-orange-100">
+                  Total de intentos: {casoActualizado.metadata_reenvio.total_reenvios}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => window.open(casoActualizado.metadata_reenvio.ultimo_reenvio.link, '_blank')}
+              className="bg-white text-orange-600 px-4 py-2 rounded-lg font-semibold hover:bg-orange-50 transition-colors"
+            >
+              📄 Ver Nueva Versión
+            </button>
+          </div>
+        </div>
+      )}
+
 {/* VIEWER FULLSCREEN */}
       <div className="flex-1 flex overflow-hidden">
         {/* Panel lateral de miniaturas */}
@@ -1474,6 +1349,19 @@ return (
                   key={page.id}
                   id={`page-${idx}`}
                   data-page-index={idx}
+                  draggable
+                  onDragStart={(e) => e.dataTransfer.setData('pageIndex', idx)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const fromIndex = parseInt(e.dataTransfer.getData('pageIndex'));
+                    if (fromIndex !== idx) {
+                      const newPages = [...pages];
+                      const [movedPage] = newPages.splice(fromIndex, 1);
+                      newPages.splice(idx, 0, movedPage);
+                      setPages(newPages);
+                    }
+                  }}
                   className={`bg-white shadow-2xl transition-all duration-300 ${
                     currentPage === idx ? 'ring-4 ring-blue-500' : 'opacity-90 hover:opacity-100'
                   }`}
