@@ -1002,7 +1002,7 @@ useEffect(() => {
     
     window.addEventListener('keydown', handleToolsKeyPress);
     return () => window.removeEventListener('keydown', handleToolsKeyPress);
-  }, [showToolsMenu, accionSeleccionada]);
+  }, [showToolsMenu, accionSeleccionada, rotarPagina, mejorarCalidadHD, recorteAutomatico, aplicarFiltro, corregirInclinacion, mostrarNotificacion]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
