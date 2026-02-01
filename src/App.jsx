@@ -635,14 +635,18 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
 
   // ✅ FULLSCREEN AUTOMÁTICO
   useEffect(() => {
-    // Entrar en fullscreen al abrir (solo si no estamos ya en fullscreen)
+    // Entrar en fullscreen al abrir
     const enterFullscreen = async () => {
       try {
-        // Si ya estamos en fullscreen, no hacer nada
         if (document.fullscreenElement) {
           console.log('✅ Ya en fullscreen');
           return;
         }
+        
+        // ✅ DESACTIVAR SCROLL DEL NAVEGADOR
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+        
         await document.documentElement.requestFullscreen();
         console.log('✅ Fullscreen activado');
       } catch (err) {
@@ -656,6 +660,11 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     const handleFullscreenExit = (e) => {
       if (e.key === 'F11' || (e.key === 'Escape' && document.fullscreenElement)) {
         e.preventDefault();
+        
+        // ✅ RESTAURAR SCROLL DEL NAVEGADOR
+        document.documentElement.style.overflow = 'auto';
+        document.body.style.overflow = 'auto';
+        
         if (document.fullscreenElement) {
           document.exitFullscreen();
         }
@@ -667,7 +676,9 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     
     return () => {
       window.removeEventListener('keydown', handleFullscreenExit);
-      // NO salir de fullscreen al cambiar de caso - solo salir al cerrar el visor
+      // Restaurar al desmontar
+      document.documentElement.style.overflow = 'auto';
+      document.body.style.overflow = 'auto';
     };
   }, [onClose]);
 
@@ -927,6 +938,72 @@ useEffect(() => {
     if (e.key === 'Escape') onClose();
   }, [pages, onClose, accionSeleccionada, irAlSiguiente, irAlAnterior, currentPage]);
 
+  // ✅ ATAJOS DE TECLADO PARA HERRAMIENTAS
+  useEffect(() => {
+    const handleToolsKeyPress = (e) => {
+      // Ignorar si hay modal abierto o input enfocado
+      const modalAbierto = accionSeleccionada !== null;
+      const tieneInputFocused = document.activeElement?.tagName === 'TEXTAREA' || 
+                                document.activeElement?.tagName === 'INPUT';
+      
+      if (modalAbierto || tieneInputFocused) return;
+      
+      // 🔧 TECLA + : Abrir/Cerrar Herramientas
+      if (e.key === '+' || (e.shiftKey && e.key === '=')) {
+        e.preventDefault();
+        setShowToolsMenu(prev => !prev);
+        mostrarNotificacion(
+          showToolsMenu ? '❌ Herramientas cerradas' : '✅ Herramientas abiertas',
+          'info'
+        );
+        return;
+      }
+      
+      // ✨ TECLA R : Rotar 90° página actual
+      if ((e.key === 'r' || e.key === 'R') && !e.ctrlKey) {
+        e.preventDefault();
+        rotarPagina(90, false);
+        setShowToolsMenu(false);
+        return;
+      }
+      
+      // 🎨 TECLA Q : Mejorar Calidad
+      if ((e.key === 'q' || e.key === 'Q') && !e.ctrlKey) {
+        e.preventDefault();
+        mejorarCalidadHD();
+        setShowToolsMenu(false);
+        return;
+      }
+      
+      // ✂️ TECLA C : Recorte Automático
+      if ((e.key === 'c' || e.key === 'C') && !e.ctrlKey) {
+        e.preventDefault();
+        recorteAutomatico();
+        setShowToolsMenu(false);
+        return;
+      }
+      
+      // ⚪ TECLA B : Blanco y Negro
+      if ((e.key === 'b' || e.key === 'B') && !e.ctrlKey) {
+        e.preventDefault();
+        aplicarFiltro('grayscale');
+        setShowToolsMenu(false);
+        return;
+      }
+      
+      // 📐 TECLA A : Corregir Ángulo
+      if ((e.key === 'a' || e.key === 'A') && !e.ctrlKey) {
+        e.preventDefault();
+        corregirInclinacion();
+        setShowToolsMenu(false);
+        return;
+      }
+    };
+    
+    window.addEventListener('keydown', handleToolsKeyPress);
+    return () => window.removeEventListener('keydown', handleToolsKeyPress);
+  }, [showToolsMenu, accionSeleccionada]);
+
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
@@ -1059,7 +1136,7 @@ return (
             <button
               onClick={() => setShowToolsMenu(!showToolsMenu)}
               className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-semibold transition-all duration-300"
-              title="Más herramientas de edición"
+              title="Herramientas de edición (Tecla +) | R: Rotar | Q: Calidad | C: Recorte | B: B&N | A: Ángulo"
             >
               <Sliders className="w-4 h-4" />
               <span className="hidden md:inline">Herramientas</span>
