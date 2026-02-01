@@ -5,6 +5,8 @@ import {
   AlertCircle, ZoomIn, ZoomOut, Sliders,
   Undo2, Image, Loader2, Check, ChevronDown, ChevronRight, Save
 } from 'lucide-react';
+import ReportsDashboard from './components/Dashboard/ReportsDashboard';
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 
 // ==================== CONFIGURACIÓN API ====================
 const API_BASE_URL = 'https://web-production-95ed.up.railway.app';
@@ -2208,6 +2210,15 @@ return (
 
 
 // ==================== COMPONENTE PRINCIPAL ====================
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 15000,
+    },
+  },
+});
+
 export default function App() {
   const [empresas, setEmpresas] = useState([]);
   const [casos, setCasos] = useState([]);
@@ -2217,6 +2228,7 @@ export default function App() {
   const [casoSeleccionado, setCasoSeleccionado] = useState(null);
   const [totalPages, setTotalPages] = useState(1);
   const [indiceActual, setIndiceActual] = useState(0); // ✅ Índice en la lista filtrada
+  const [tabActual, setTabActual] = useState('validacion'); // 'validacion' o 'reportes'
 
   useEffect(() => {
     cargarEmpresas();
@@ -2275,19 +2287,47 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-      <div className="max-w-7xl mx-auto p-4 space-y-6">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 shadow-2xl">
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <User className="w-8 h-8" />
-            Portal de Validadores - IncaBaeza
-          </h1>
-          <p className="text-blue-100 mt-2">Sistema de gestión de incapacidades médicas</p>
-        </div>
+    <QueryClientProvider client={queryClient}>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+        <div className="max-w-7xl mx-auto p-4 space-y-6">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 shadow-2xl">
+            <h1 className="text-3xl font-bold flex items-center gap-3">
+              <User className="w-8 h-8" />
+              Portal de Validadores - IncaBaeza
+            </h1>
+            <p className="text-blue-100 mt-2">Sistema de gestión de incapacidades médicas</p>
+          </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* ⭐ TABS SELECTOR */}
+          <div className="flex gap-2 border-b-2 border-gray-700">
+            <button
+              onClick={() => setTabActual('validacion')}
+              className={`px-4 py-3 font-semibold transition-colors ${
+                tabActual === 'validacion'
+                  ? 'border-b-2 border-blue-500 text-blue-400'
+                  : 'text-gray-400 hover:text-gray-300'
+              }`}
+            >
+              ✅ Validación de Casos
+            </button>
+            <button
+              onClick={() => setTabActual('reportes')}
+              className={`px-4 py-3 font-semibold transition-colors ${
+                tabActual === 'reportes'
+                  ? 'border-b-2 border-blue-500 text-blue-400'
+                  : 'text-gray-400 hover:text-gray-300'
+              }`}
+            >
+              📊 Reportes y Tablas Vivas
+            </button>
+          </div>
+
+          {/* ⭐ TAB 1: VALIDACIÓN (CÓDIGO EXISTENTE) */}
+          {tabActual === 'validacion' && (
+            <>
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Object.entries(stats).map(([key, value]) => (
             <div key={key} className="bg-gray-800/50 backdrop-blur rounded-xl p-4 border border-gray-700">
               <div className="text-2xl font-bold">{value || 0}</div>
@@ -2437,22 +2477,30 @@ export default function App() {
             </button>
           </div>
         </div>
-      </div>
+            </>
+          )}
 
-      {/* Visor de Documentos (Modal) */}
-      {casoSeleccionado && (
-        <DocumentViewer
-          casoSeleccionado={casoSeleccionado}
-          onClose={() => setCasoSeleccionado(null)}
-          onRecargarCasos={() => {
-            cargarCasos();
-            cargarStats();
-          }}
-          casosLista={casos}
-          indiceActual={indiceActual}
-          onCambiarCaso={handleCambiarCaso}
-        />
-      )}
-    </div>
+          {/* ⭐ TAB 2: REPORTES (CÓDIGO NUEVO) */}
+          {tabActual === 'reportes' && (
+            <ReportsDashboard empresas={empresas} />
+          )}
+        </div>
+
+        {/* Visor de Documentos (Modal) */}
+        {casoSeleccionado && (
+          <DocumentViewer
+            casoSeleccionado={casoSeleccionado}
+            onClose={() => setCasoSeleccionado(null)}
+            onRecargarCasos={() => {
+              cargarCasos();
+              cargarStats();
+            }}
+            casosLista={casos}
+            indiceActual={indiceActual}
+            onCambiarCaso={handleCambiarCaso}
+          />
+        )}
+      </div>
+    </QueryClientProvider>
   );
 }     
