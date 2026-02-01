@@ -340,6 +340,80 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     }
   }, [currentPage, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
 
+  // ✅ ELIMINAR PÁGINAS SELECCIONADAS
+  const eliminarPaginasSeleccionadas = useCallback(async () => {
+    if (paginasSeleccionadas.length === 0) {
+      mostrarNotificacion('⚠️ Selecciona páginas primero', 'error');
+      return;
+    }
+    
+    if (!window.confirm(`¿Eliminar ${paginasSeleccionadas.length} página(s)?\n\nEsta acción no se puede deshacer.`)) {
+      return;
+    }
+    
+    setEnviandoValidacion(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          operaciones: { delete_pages: paginasSeleccionadas.sort((a, b) => a - b) }
+        })
+      });
+      
+      if (response.ok) {
+        mostrarNotificacion(`🗑️ ${paginasSeleccionadas.length} página(s) eliminada(s)`, 'success');
+        setPaginasSeleccionadas([]);
+        await recargarPDFInPlace(casoSeleccionado.serial);
+        if (currentPage >= paginasSeleccionadas.length) {
+          setCurrentPage(Math.max(0, currentPage - 1));
+        }
+      } else {
+        mostrarNotificacion('❌ Error eliminando páginas', 'error');
+      }
+    } catch (error) {
+      mostrarNotificacion('❌ Error de conexión', 'error');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  }, [paginasSeleccionadas, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace, currentPage]);
+
+  // ✅ TOGGLE SELECCIÓN DE PÁGINA
+  const toggleSeleccionPagina = useCallback((pageIndex) => {
+    setPaginasSeleccionadas(prev => {
+      if (prev.includes(pageIndex)) {
+        return prev.filter(p => p !== pageIndex);
+      } else {
+        return [...prev, pageIndex];
+      }
+    });
+  }, []);
+
+  // ✅ GUARDAR PDF EN DRIVE
+  const guardarPDFEnDrive = useCallback(async () => {
+    setGuardandoPDF(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/guardar-drive`, {
+        method: 'POST',
+        headers: getHeaders()
+      });
+      
+      if (response.ok) {
+        mostrarNotificacion('💾 Guardado en Drive', 'success');
+        setMostradoGuardadoExitoso(true);
+        setTimeout(() => setMostradoGuardadoExitoso(false), 3000);
+      } else {
+        mostrarNotificacion('❌ Error guardando', 'error');
+      }
+    } catch (error) {
+      mostrarNotificacion('❌ Error de conexión', 'error');
+    } finally {
+      setGuardandoPDF(false);
+    }
+  }, [casoSeleccionado.serial, mostrarNotificacion]);
+
   // ✅ Función validar con imagen SOAT automática
   const handleValidar = async (serial, accion) => {
     // ✅ DETECTAR SI ES UN REENVÍO
