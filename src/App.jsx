@@ -191,7 +191,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   };
  
 // ✅ ROTAR PÁGINA
-  const rotarPagina = async (angle, aplicarATodas) => {
+  const rotarPagina = useCallback(async (angle, aplicarATodas) => {
     const pageNum = currentPage; // Usar página actual
     setEnviandoValidacion(true);
     
@@ -217,10 +217,10 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     } finally {
       setEnviandoValidacion(false);
     }
-  };
+  }, [currentPage, pages, casoSeleccionado.serial]);
 
 // ✅ MEJORAR CALIDAD HD
-  const mejorarCalidadHD = async () => {
+  const mejorarCalidadHD = useCallback(async () => {
     setEnviandoValidacion(true);
     
     try {
@@ -243,10 +243,10 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     } finally {
       setEnviandoValidacion(false);
     }
-  };
+  }, [currentPage, casoSeleccionado.serial]);
 
   // ✅ APLICAR FILTRO DE IMAGEN
-  const aplicarFiltro = async (tipo) => {
+  const aplicarFiltro = useCallback(async (tipo) => {
     setEnviandoValidacion(true);
     
     try {
@@ -274,10 +274,10 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     } finally {
       setEnviandoValidacion(false);
     }
-  };
+  }, [currentPage, casoSeleccionado.serial]);
 
   // ✅ RECORTE AUTOMÁTICO
-  const recorteAutomatico = async () => {
+  const recorteAutomatico = useCallback(async () => {
     setEnviandoValidacion(true);
     
     try {
@@ -300,10 +300,10 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     } finally {
       setEnviandoValidacion(false);
     }
-  };
+  }, [currentPage, casoSeleccionado.serial]);
 
   // ✅ CORREGIR INCLINACIÓN
-  const corregirInclinacion = async () => {
+  const corregirInclinacion = useCallback(async () => {
     setEnviandoValidacion(true);
     
     try {
@@ -326,7 +326,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     } finally {
       setEnviandoValidacion(false);
     }
-  };
+  }, [currentPage, casoSeleccionado.serial]);
 
   // ✅ Función validar con imagen SOAT automática
   const handleValidar = async (serial, accion) => {
@@ -1002,7 +1002,7 @@ useEffect(() => {
     
     window.addEventListener('keydown', handleToolsKeyPress);
     return () => window.removeEventListener('keydown', handleToolsKeyPress);
-  }, [showToolsMenu, accionSeleccionada, rotarPagina, mejorarCalidadHD, aplicarFiltro, recorteAutomatico, corregirInclinacion]);
+  }, [showToolsMenu, accionSeleccionada]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
