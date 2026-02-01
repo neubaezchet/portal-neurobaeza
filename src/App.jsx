@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   User, CheckCircle, XCircle, FileText, Send, Edit3, Clock, 
   ChevronLeft, X, Download, RefreshCw, 
-  AlertCircle, ZoomIn, ZoomOut, Sliders, Sun, Contrast,
+  AlertCircle, ZoomIn, ZoomOut, Sliders,
   Undo2, Image, Loader2, Check, ChevronDown, ChevronRight
 } from 'lucide-react';
 
