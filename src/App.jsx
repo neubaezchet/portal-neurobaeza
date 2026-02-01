@@ -93,10 +93,10 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   const [showToolsMenu, setShowToolsMenu] = useState(false); // ✅ NUEVO: controlar dropdown
   const containerRef = useRef(null);
 
-  const mostrarNotificacion = (mensaje, tipo = 'success') => {
+  const mostrarNotificacion = useCallback((mensaje, tipo = 'success') => {
     setNotificacion({ mensaje, tipo });
     setTimeout(() => setNotificacion(null), 2500);
-  };
+  }, []);
 
   // ✅ NAVEGACIÓN ENTRE INCAPACIDADES (respetando filtros)
   const irAlSiguiente = useCallback(() => {
@@ -217,7 +217,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     } finally {
       setEnviandoValidacion(false);
     }
-  }, [currentPage, pages, casoSeleccionado.serial]);
+  }, [currentPage, pages, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
 
 // ✅ MEJORAR CALIDAD HD
   const mejorarCalidadHD = useCallback(async () => {
@@ -243,7 +243,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     } finally {
       setEnviandoValidacion(false);
     }
-  }, [currentPage, casoSeleccionado.serial]);
+  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
 
   // ✅ APLICAR FILTRO DE IMAGEN
   const aplicarFiltro = useCallback(async (tipo) => {
@@ -274,7 +274,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     } finally {
       setEnviandoValidacion(false);
     }
-  }, [currentPage, casoSeleccionado.serial]);
+  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
 
   // ✅ RECORTE AUTOMÁTICO
   const recorteAutomatico = useCallback(async () => {
@@ -300,7 +300,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     } finally {
       setEnviandoValidacion(false);
     }
-  }, [currentPage, casoSeleccionado.serial]);
+  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
 
   // ✅ CORREGIR INCLINACIÓN
   const corregirInclinacion = useCallback(async () => {
@@ -326,7 +326,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     } finally {
       setEnviandoValidacion(false);
     }
-  }, [currentPage, casoSeleccionado.serial]);
+  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
 
   // ✅ Función validar con imagen SOAT automática
   const handleValidar = async (serial, accion) => {
