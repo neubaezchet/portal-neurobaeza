@@ -3,7 +3,7 @@ import {
   User, CheckCircle, XCircle, FileText, Send, Edit3, Clock, 
   ChevronLeft, X, Download, RefreshCw, 
   AlertCircle, ZoomIn, ZoomOut, Sliders,
-  Undo2, Image, Loader2, Check, ChevronDown, ChevronRight
+  Undo2, Image, Loader2, Check, ChevronDown, ChevronRight, Save
 } from 'lucide-react';
 
 // ==================== CONFIGURACIÓN API ====================
@@ -88,9 +88,13 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   const [errorValidacion, setErrorValidacion] = useState('');
   const [ultimaAccion, setUltimaAccion] = useState(null);
   const [mostrarMiniaturas, setMostrarMiniaturas] = useState(true);
-  const [casoActualizado, setCasoActualizado] = useState(casoSeleccionado); // ✅ NUEVO
+  const [casoActualizado, setCasoActualizado] = useState(casoSeleccionado);
   const [notificacion, setNotificacion] = useState(null);
-  const [showToolsMenu, setShowToolsMenu] = useState(false); // ✅ NUEVO: controlar dropdown
+  const [showToolsMenu, setShowToolsMenu] = useState(false);
+  const [paginasSeleccionadas, setPaginasSeleccionadas] = useState([]);
+  const [mostrarInfoDesplegable, setMostrarInfoDesplegable] = useState(true);
+  const [guardandoPDF, setGuardandoPDF] = useState(false);
+  const [mostradoGuardadoExitoso, setMostradoGuardadoExitoso] = useState(false);
   const containerRef = useRef(null);
 
   const mostrarNotificacion = useCallback((mensaje, tipo = 'success') => {
@@ -219,21 +223,29 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     }
   }, [currentPage, pages, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
 
-// ✅ MEJORAR CALIDAD HD
-  const mejorarCalidadHD = useCallback(async () => {
+// ✅ MEJORAR CALIDAD HD CON 3 NIVELES
+  const mejorarCalidadHD = useCallback(async (nivel = 'estandar') => {
     setEnviandoValidacion(true);
+    
+    const niveles = {
+      'rapido': { scale: 1.8, label: 'Rápido (1.8x)' },
+      'estandar': { scale: 2.5, label: 'Estándar (2.5x)' },
+      'premium': { scale: 3.5, label: 'Premium (3.5x)' }
+    };
+    
+    const config = niveles[nivel];
     
     try {
       const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
-          operaciones: { enhance_quality: { pages: [currentPage] } }
+          operaciones: { enhance_quality: { pages: [currentPage], scale: config.scale } }
         })
       });
       
       if (response.ok) {
-        mostrarNotificacion('✨ Calidad mejorada', 'success');
+        mostrarNotificacion(`✨ Calidad ${config.label} aplicada`, 'success');
         await recargarPDFInPlace(casoSeleccionado.serial);
       } else {
         mostrarNotificacion('❌ Error mejorando calidad', 'error');
@@ -1191,7 +1203,25 @@ return (
             <ZoomIn className="w-4 h-4" />
           </div>
 
-          {/* 📁 Drive */}
+          {/* � Botón Guardar */}
+          {!mostradoGuardadoExitoso ? (
+            <button
+              onClick={guardarPDFEnDrive}
+              disabled={guardandoPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-xl text-white font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              title="Guardar cambios en Drive"
+            >
+              <Save className="w-4 h-4" />
+              <span className="hidden md:inline text-xs">{guardandoPDF ? 'Guardando...' : 'Guardar'}</span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 px-4 py-2 bg-green-600/20 border border-green-500/30 rounded-xl text-green-400 font-semibold animate-pulse">
+              <CheckCircle className="w-4 h-4" />
+              <span className="hidden md:inline text-xs">Guardado en Drive</span>
+            </div>
+          )}
+
+          {/* �📁 Drive */}
           <a 
             href={casoSeleccionado.drive_link || 'https://drive.google.com'}
             target="_blank" 
@@ -1365,10 +1395,23 @@ return (
           }
         }, 0);
       }}
-                className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
                   currentPage === idx ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-700 hover:border-gray-500'
                 }`}
               >
+                {/* Checkbox para eliminar */}
+                <input
+                  type="checkbox"
+                  checked={paginasSeleccionadas.includes(idx)}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    toggleSeleccionPagina(idx);
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute top-2 right-2 w-4 h-4 z-10 cursor-pointer accent-red-600"
+                  title="Seleccionar para eliminar"
+                />
+                
                 <img 
                   src={page.fullImage} 
                   alt={`Página ${idx + 1}`}
@@ -1461,6 +1504,80 @@ return (
 
         {/* Contenido */}
         <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+          {/* INFORMACIÓN (DESPLEGABLE) */}
+          <div className="border-b border-gray-700 pb-4 mb-4">
+            <button 
+              onClick={() => setMostrarInfoDesplegable(!mostrarInfoDesplegable)}
+              className="w-full px-4 py-3 bg-gray-800/50 text-white font-semibold text-sm hover:bg-gray-800 flex items-center justify-between transition-colors rounded-t-lg"
+            >
+              <span className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                👤 Información
+              </span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${mostrarInfoDesplegable ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {mostrarInfoDesplegable && (
+              <div className="bg-gray-800/30 p-3 space-y-2 rounded-b-lg">
+                <div>
+                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Nombre</div>
+                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.nombre || 'N/A'}</div>
+                </div>
+                
+                <div>
+                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Cédula</div>
+                  <div className="text-xs text-yellow-300 font-semibold bg-black/30 px-2 py-1.5 rounded">{casoActualizado.cedula || 'N/A'}</div>
+                </div>
+                
+                <div>
+                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Teléfono</div>
+                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.telefono || 'N/A'}</div>
+                </div>
+                
+                <div>
+                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Email</div>
+                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded break-all">{casoActualizado.email || 'N/A'}</div>
+                </div>
+                
+                <div>
+                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Empresa</div>
+                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.empresa || 'N/A'}</div>
+                </div>
+                
+                <div>
+                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Estado</div>
+                  <div className="flex items-center gap-2 bg-red-600/20 px-2 py-1.5 rounded border border-red-500/30">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                    <span className="text-xs text-red-300 font-semibold">{casoActualizado.estado}</span>
+                  </div>
+                </div>
+                
+                {casoActualizado.metadata_reenvio?.tiene_reenvios && (
+                  <div>
+                    <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Reenvíos</div>
+                    <div className="text-xs text-orange-300 bg-black/30 px-2 py-1.5 rounded">
+                      {casoActualizado.metadata_reenvio.total_reenvios} intentos
+                    </div>
+                  </div>
+                )}
+                
+                <div>
+                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Días</div>
+                  <div className="text-xs text-yellow-300 font-semibold bg-black/30 px-2 py-1.5 rounded">
+                    {casoActualizado.dias || 'N/A'} días
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Tipo</div>
+                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded capitalize">
+                    {casoActualizado.tipo?.replace('_', ' ') || 'N/A'}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* ROTACIÓN */}
           <div className="border border-gray-700 rounded-lg overflow-hidden">
             <button className="w-full px-4 py-2 bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 flex items-center justify-between">
@@ -1477,11 +1594,13 @@ return (
           {/* CALIDAD */}
           <div className="border border-gray-700 rounded-lg overflow-hidden">
             <button className="w-full px-4 py-2 bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 flex items-center justify-between">
-              <span>✨ Calidad</span>
+              <span>✨ Mejorar Calidad</span>
               <span>▼</span>
             </button>
             <div className="bg-gray-800/50 p-2 space-y-1">
-              <button onClick={() => {mejorarCalidadHD(); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">📈 Mejorar HD</button>
+              <button onClick={() => {mejorarCalidadHD('rapido'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">⚡ Rápido (1.8x)</button>
+              <button onClick={() => {mejorarCalidadHD('estandar'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">⚡ Estándar (2.5x)</button>
+              <button onClick={() => {mejorarCalidadHD('premium'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">⚡ Premium (3.5x)</button>
             </div>
           </div>
 
@@ -1495,6 +1614,7 @@ return (
               <button onClick={() => {aplicarFiltro('grayscale'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">⚪ B&N</button>
               <button onClick={() => {aplicarFiltro('contrast'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">◈ Contraste</button>
               <button onClick={() => {aplicarFiltro('brightness'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">☀️ Brillo</button>
+              <button onClick={() => {aplicarFiltro('sharpen'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">🎯 Enfoque</button>
             </div>
           </div>
 
@@ -1507,6 +1627,28 @@ return (
             <div className="bg-gray-800/50 p-2 space-y-1">
               <button onClick={() => {recorteAutomatico(); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">✂️ Recorte</button>
               <button onClick={() => {corregirInclinacion(); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">📐 Ángulo</button>
+            </div>
+          </div>
+
+          {/* ELIMINAR PÁGINAS */}
+          <div className="border border-red-700/30 rounded-lg overflow-hidden">
+            <button className="w-full px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-300 font-semibold text-sm flex items-center justify-between transition-colors">
+              <span className="flex items-center gap-2">
+                🗑️ Eliminar Páginas
+              </span>
+              <span>▼</span>
+            </button>
+            <div className="bg-gray-800/50 p-3">
+              <div className="text-xs text-gray-300 mb-2">
+                Seleccionadas: <strong className="text-white">{paginasSeleccionadas.length}/{pages.length}</strong>
+              </div>
+              <button
+                onClick={eliminarPaginasSeleccionadas}
+                disabled={paginasSeleccionadas.length === 0 || enviandoValidacion}
+                className="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs rounded font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {paginasSeleccionadas.length === 0 ? '❌ Selecciona primero' : `🗑️ Eliminar ${paginasSeleccionadas.length} pág.`}
+              </button>
             </div>
           </div>
 
