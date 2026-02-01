@@ -1416,7 +1416,7 @@ return (
         {/* Visor principal - SCROLL VERTICAL CON PÁGINAS EN CASCADA */}
         <div 
           ref={containerRef} 
-          className="flex-1 bg-gradient-to-b from-gray-900 to-black overflow-y-auto p-8"
+          className="flex-1 bg-gradient-to-b from-gray-900 to-black overflow-y-auto p-8 scrollbar-hide"
           style={{ scrollBehavior: 'smooth' }}
         >
           {loadingPdf ? (

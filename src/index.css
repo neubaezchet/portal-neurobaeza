@@ -42,3 +42,13 @@ code {
 .animate-fade-in {
   animation: fade-in 0.4s ease-out forwards;
 }
+
+/* ✅ Ocultar scrollbar pero mantener scroll funcional */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE y Edge */
+  scrollbar-width: none;      /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari */
+}
