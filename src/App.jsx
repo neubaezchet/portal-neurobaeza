@@ -111,7 +111,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     } else {
       mostrarNotificacion('✅ Ya estás en la última incapacidad', 'info');
     }
-  }, [indiceActual, casosLista, onCambiarCaso]);
+  }, [indiceActual, casosLista, onCambiarCaso, mostrarNotificacion]);
 
   const irAlAnterior = useCallback(() => {
     if (indiceActual > 0) {
@@ -125,7 +125,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     } else {
       mostrarNotificacion('✅ Ya estás en la primera incapacidad', 'info');
     }
-  }, [indiceActual, casosLista, onCambiarCaso]);
+  }, [indiceActual, casosLista, onCambiarCaso, mostrarNotificacion]);
 
   // ✅ FUNCIÓN PARA RECARGAR PDF (después de editar)
   const recargarPDFInPlace = useCallback(async (serial) => {
