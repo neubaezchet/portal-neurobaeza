@@ -1131,123 +1131,16 @@ return (
             </div>
           </div>
 
-          {/* ✂️ DROPDOWN: Más Herramientas */}
-          <div className="relative group">
-            <button
-              onClick={() => setShowToolsMenu(!showToolsMenu)}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-semibold transition-all duration-300"
-              title="Herramientas de edición (Tecla +) | R: Rotar | Q: Calidad | C: Recorte | B: B&N | A: Ángulo"
-            >
-              <Sliders className="w-4 h-4" />
-              <span className="hidden md:inline">Herramientas</span>
-              <ChevronDown className={`w-4 h-4 transition-transform ${showToolsMenu ? 'rotate-180' : ''}`} />
-            </button>
-            
-            {/* Dropdown de herramientas */}
-            <div className={`absolute top-full right-0 mt-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 min-w-[280px] z-[99999] overflow-hidden transition-all duration-200 ${
-              showToolsMenu ? 'block' : 'hidden'
-            }`}>
-              <div className="py-2 space-y-1">
-                <button 
-                  onClick={() => {
-                    rotarPagina(90, false);
-                    setShowToolsMenu(false);
-                  }} 
-                  disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Rotar 90° (página actual)
-                </button>
-                
-                <button 
-                  onClick={() => {
-                    rotarPagina(90, true);
-                    setShowToolsMenu(false);
-                  }} 
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Rotar 90° (todas las páginas)
-                </button>
-                
-                <hr className="border-gray-700 my-1" />
-                
-                <button 
-                  onClick={() => {
-                    mejorarCalidadHD();
-                    setShowToolsMenu(false);
-                  }} 
-                  disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
-                >
-                  ✨ Mejorar Calidad HD
-                </button>
-                
-                <hr className="border-gray-700 my-1" />
-                
-                <button 
-                  onClick={() => {
-                    aplicarFiltro('grayscale');
-                    setShowToolsMenu(false);
-                  }} 
-                  disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
-                >
-                  <Contrast className="w-4 h-4" />
-                  Blanco y Negro
-                </button>
-                
-                <button 
-                  onClick={() => {
-                    aplicarFiltro('contrast');
-                    setShowToolsMenu(false);
-                  }} 
-                  disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
-                >
-                  <Contrast className="w-4 h-4" />
-                  Aumentar Contraste
-                </button>
-                
-                <button 
-                  onClick={() => {
-                    aplicarFiltro('brightness');
-                    setShowToolsMenu(false);
-                  }} 
-                  disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
-                >
-                  <Sun className="w-4 h-4" />
-                  Aumentar Brillo
-                </button>
-                
-                <hr className="border-gray-700 my-1" />
-                
-                <button 
-                  onClick={() => {
-                    recorteAutomatico();
-                    setShowToolsMenu(false);
-                  }} 
-                  disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-gray-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
-                >
-                  ✂️ Recorte Automático
-                </button>
-                
-                <button 
-                  onClick={() => {
-                    corregirInclinacion();
-                    setShowToolsMenu(false);
-                  }} 
-                  disabled={enviandoValidacion}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-gray-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
-                >
-                  📐 Corregir Inclinación
-                </button>
-              </div>
-            </div>
-          </div>
+          {/* ✂️ Botón Herramientas */}
+          <button
+            onClick={() => setShowToolsMenu(!showToolsMenu)}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-semibold transition-all duration-300"
+            title="Herramientas (Tecla +)"
+          >
+            <Sliders className="w-4 h-4" />
+            <span className="hidden md:inline">Herramientas</span>
+            <ChevronDown className={`w-4 h-4 transition-transform ${showToolsMenu ? 'rotate-180' : ''}`} />
+          </button>
           {/* Separador */}
           <div className="h-10 w-px bg-gray-600"></div>
 
@@ -1546,6 +1439,89 @@ return (
               ))}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* ⭐ TAB HANDLE - DERECHA */}
+      <div 
+        className={`fixed right-0 top-[60px] bottom-[60px] w-7 bg-gradient-to-l from-blue-500/10 border-l border-blue-500/30 flex items-center justify-center cursor-pointer z-[80] transition-all hover:w-10 ${showToolsMenu ? 'bg-blue-500/20' : ''}`}
+        onClick={() => setShowToolsMenu(!showToolsMenu)}
+        title="Herramientas (Tecla +)"
+      >
+        <span className="text-blue-400 text-lg transition-transform" style={{transform: showToolsMenu ? 'scaleX(-1)' : 'scaleX(1)'}}>◀</span>
+      </div>
+
+      {/* ⭐ SIDEBAR DERECHO - HERRAMIENTAS */}
+      <div className={`fixed right-0 top-[60px] bottom-[60px] w-80 bg-gray-900/95 backdrop-blur border-l border-gray-700 transform transition-transform duration-300 z-[85] overflow-y-auto flex flex-col ${showToolsMenu ? 'translate-x-0' : 'translate-x-full'}`}>
+        {/* Header */}
+        <div className="bg-blue-600/20 border-b border-gray-700 p-4 flex items-center justify-between flex-shrink-0">
+          <span className="text-white font-bold flex items-center gap-2">🔧 Herramientas</span>
+          <button onClick={() => setShowToolsMenu(false)} className="p-1 hover:bg-gray-800 rounded text-white">✕</button>
+        </div>
+
+        {/* Contenido */}
+        <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+          {/* ROTACIÓN */}
+          <div className="border border-gray-700 rounded-lg overflow-hidden">
+            <button className="w-full px-4 py-2 bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 flex items-center justify-between">
+              <span>🔄 Rotación</span>
+              <span>▼</span>
+            </button>
+            <div className="bg-gray-800/50 p-2 space-y-1">
+              <button onClick={() => {rotarPagina(90, false); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">↻ 90° Derecha</button>
+              <button onClick={() => {rotarPagina(-90, false); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">↺ 90° Izquierda</button>
+              <button onClick={() => {rotarPagina(180, false); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">↻ 180°</button>
+            </div>
+          </div>
+
+          {/* CALIDAD */}
+          <div className="border border-gray-700 rounded-lg overflow-hidden">
+            <button className="w-full px-4 py-2 bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 flex items-center justify-between">
+              <span>✨ Calidad</span>
+              <span>▼</span>
+            </button>
+            <div className="bg-gray-800/50 p-2 space-y-1">
+              <button onClick={() => {mejorarCalidadHD(); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">📈 Mejorar HD</button>
+            </div>
+          </div>
+
+          {/* FILTROS */}
+          <div className="border border-gray-700 rounded-lg overflow-hidden">
+            <button className="w-full px-4 py-2 bg-green-600 text-white font-semibold text-sm hover:bg-green-700 flex items-center justify-between">
+              <span>🎨 Filtros</span>
+              <span>▼</span>
+            </button>
+            <div className="bg-gray-800/50 p-2 space-y-1">
+              <button onClick={() => {aplicarFiltro('grayscale'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">⚪ B&N</button>
+              <button onClick={() => {aplicarFiltro('contrast'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">◈ Contraste</button>
+              <button onClick={() => {aplicarFiltro('brightness'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">☀️ Brillo</button>
+            </div>
+          </div>
+
+          {/* GEOMETRÍA */}
+          <div className="border border-gray-700 rounded-lg overflow-hidden">
+            <button className="w-full px-4 py-2 bg-orange-600 text-white font-semibold text-sm hover:bg-orange-700 flex items-center justify-between">
+              <span>📐 Geometría</span>
+              <span>▼</span>
+            </button>
+            <div className="bg-gray-800/50 p-2 space-y-1">
+              <button onClick={() => {recorteAutomatico(); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">✂️ Recorte</button>
+              <button onClick={() => {corregirInclinacion(); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">📐 Ángulo</button>
+            </div>
+          </div>
+
+          {/* INFO */}
+          <div className="border border-red-700/30 rounded-lg bg-red-900/10 p-3">
+            <h4 className="text-red-300 font-semibold text-xs mb-2">📋 Atajos</h4>
+            <ul className="text-xs text-red-200 space-y-1">
+              <li>+ = Abrir/Cerrar</li>
+              <li>R = Rotar</li>
+              <li>Q = Calidad</li>
+              <li>C = Recorte</li>
+              <li>B = B&N</li>
+              <li>A = Ángulo</li>
+            </ul>
+          </div>
         </div>
       </div>
 
