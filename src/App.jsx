@@ -128,12 +128,12 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   }, [indiceActual, casosLista, onCambiarCaso]);
 
   // ✅ FUNCIÓN PARA RECARGAR PDF (después de editar)
-  const recargarPDFInPlace = async (serial) => {
+  const recargarPDFInPlace = useCallback(async (serial) => {
     // Simplemente limpiar pages y dejar que el useEffect recargue
     setPages([]);
     setLoadingPdf(true);
     mostrarNotificacion('🔄 Recargando PDF...', 'info');
-  };
+  }, [mostrarNotificacion]);
 
   // ✅ Función para convertir Base64 a File
   const base64ToFile = (base64String, filename) => {
