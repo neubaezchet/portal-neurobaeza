@@ -6,7 +6,8 @@
 import { useState, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import reporteService from '../services/reporteService';
-import { downloadFile, generarNombreArchivo } from '../utils/exportHelpers';
+import { downloadFile } from '../utils/exportHelpers';
+import { generarNombreArchivo } from '../utils/dateHelpers';
 
 export function useExportData() {
   const [previewDatos, setPreviewDatos] = useState(null);
