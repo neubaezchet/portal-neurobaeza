@@ -27,7 +27,7 @@ export function ExportModal({ isOpen, onClose, empresas = [] }) {
   });
 
   const [exportFormat, setExportFormat] = useState('xlsx');
-  const { cargarPreview, exportar, previewDatos, mostrarPreview, cargandoPreview, cargandoExport, limpiarPreview } = useExportData();
+  const { cargarPreview, exportar, previewDatos, mostrarPreview, cargandoPreview, cargandoExport } = useExportData();
 
   // Calcular fechas automáticas según período
   useEffect(() => {

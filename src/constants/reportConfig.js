@@ -125,7 +125,7 @@ export const EXPORT_FORMATS = [
   { key: 'json', label: 'JSON', ext: '.json', icon: '{ }' },
 ];
 
-export default {
+const reportConfig = {
   ESTADOS_MAP,
   TIPOS_INCAPACIDAD,
   PERIODOS,
@@ -133,3 +133,5 @@ export default {
   API_CONFIG,
   EXPORT_FORMATS,
 };
+
+export default reportConfig;

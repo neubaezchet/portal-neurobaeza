@@ -3,14 +3,13 @@
  * Maneja la lógica de tabla viva con auto-refresh
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import reporteService from '../services/reporteService';
 import { API_CONFIG } from '../constants/reportConfig';
 
 export function useTableViva(empresa = 'all', periodo = 'mes_actual', autoRefresh = true) {
   const [ultimaActualizacion, setUltimaActualizacion] = useState(new Date());
-  const intervalRef = useRef(null);
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['tablaViva', empresa, periodo],

@@ -86,4 +86,5 @@ class ReporteService {
   }
 }
 
-export default new ReporteService();
+const reporteServiceInstance = new ReporteService();
+export default reporteServiceInstance;
