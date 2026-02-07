@@ -206,7 +206,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
         ? { rotate: pages.map((_, i) => ({ page_num: i, angle })) }
         : { rotate: [{ page_num: pageNum, angle }] };
       
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/editar-pdf`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({ operaciones })
@@ -238,7 +238,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     const config = niveles[nivel];
     
     try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/editar-pdf`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
@@ -264,7 +264,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     setEnviandoValidacion(true);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/editar-pdf`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
@@ -295,7 +295,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     setEnviandoValidacion(true);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/editar-pdf`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
@@ -321,7 +321,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     setEnviandoValidacion(true);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/editar-pdf`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
@@ -356,7 +356,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     setEnviandoValidacion(true);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/editar-pdf`, {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/editar-pdf`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
@@ -397,7 +397,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     setGuardandoPDF(true);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/guardar-drive`, {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/guardar-drive`, {
         method: 'POST',
         headers: getHeaders()
       });
@@ -424,6 +424,13 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     if (esReenvio) {
       // Si es reenvío, usar endpoint especial
       if (accion === 'completa') {
+        // ✅ CORRECCIÓN 3: Validar serial antes de aprobar reenvío
+        const partesSerial = casoSeleccionado.serial.split(' ');
+        if (partesSerial.length < 7) {
+          alert('❌ Error: Serial con formato inválido. No se puede aprobar.');
+          return;
+        }
+        
         // ✅ APROBAR REENVÍO
         if (!window.confirm('✅ ¿Aprobar este reenvío?\n\nSe desbloqueará el caso y se marcará como COMPLETA.')) {
           return;
@@ -437,7 +444,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
         
         try {
           const response = await fetch(
-            `${API_BASE_URL}/validador/casos/${serial}/aprobar-reenvio`,
+            `${API_BASE_URL}/validador/casos/${encodeURIComponent(serial)}/aprobar-reenvio`,
             {
               method: 'POST',
               headers: { 'X-Admin-Token': ADMIN_TOKEN },
@@ -494,7 +501,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     });
     
     try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${serial}/validar`, {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(serial)}/validar`, {
         method: 'POST',
         headers: { 'X-Admin-Token': ADMIN_TOKEN },
         body: formData
@@ -564,7 +571,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     
     try {
       const response = await fetch(
-        `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/cambiar-tipo`,
+        `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/cambiar-tipo`,
         {
           method: 'POST',
           headers: getHeaders(),
@@ -601,7 +608,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     formData.append('motivo', motivo);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/toggle-bloqueo`, {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/toggle-bloqueo`, {
         method: 'POST',
         headers: { 'X-Admin-Token': ADMIN_TOKEN },
         body: formData
@@ -645,7 +652,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     
     try {
       // Cambiar estado a NUEVO
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${ultimaAccion.serial}/estado`, {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(ultimaAccion.serial)}/estado`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
@@ -687,7 +694,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     });
     
     try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${serial}/notificar-libre`, {
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(serial)}/notificar-libre`, {
         method: 'POST',
         headers: { 'X-Admin-Token': ADMIN_TOKEN },
         body: formData
@@ -788,7 +795,7 @@ useEffect(() => {
     
     try {
       const response = await fetch(
-        `${API_BASE_URL}/validador/casos/${casoActualizado.serial}/historial-reenvios`,
+        `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoActualizado.serial)}/historial-reenvios`,
         { headers: getHeaders() }
       );
       
@@ -825,11 +832,11 @@ useEffect(() => {
       setLoadingPdf(true);
       
       try {
-        const pdfUrl = `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/pdf/stream`;
+        const pdfUrl = `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/stream`;
         
-        // ✅ AbortController con timeout de 25s para Railway
+        // ✅ CORRECCIÓN 2: Timeout aumentado para Railway (25s → 35s)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 25000);
+        const timeoutId = setTimeout(() => controller.abort(), 35000);
         
         const pdfjsLib = window.pdfjsLib;
         pdfjsLib.GlobalWorkerOptions.workerSrc = 
@@ -928,7 +935,7 @@ useEffect(() => {
         
         setTimeout(() => {
           try {
-            const pdfUrl = `${API_BASE_URL}/validador/casos/${caso.serial}/pdf`;
+            const pdfUrl = `${API_BASE_URL}/validador/casos/${encodeURIComponent(caso.serial)}/pdf`;
             const loadingTask = pdfjsLib.getDocument({
               url: pdfUrl,
               httpHeaders: getHeaders(),
@@ -1373,7 +1380,7 @@ return (
                   
                   try {
                     const response = await fetch(
-                      `${API_BASE_URL}/validador/casos/${casoActualizado.serial}/cambiar-tipo`,
+                      `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoActualizado.serial)}/cambiar-tipo`,
                       {
                         method: 'POST',
                         headers: getHeaders(),
@@ -1952,7 +1959,7 @@ return (
       
       try {
         const response = await fetch(
-          `${API_BASE_URL}/validador/casos/${casoSeleccionado.serial}/aprobar-reenvio`,
+          `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/aprobar-reenvio`,
           {
             method: 'POST',
             headers: { 'X-Admin-Token': ADMIN_TOKEN },
