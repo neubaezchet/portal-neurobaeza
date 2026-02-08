@@ -600,6 +600,54 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     }
   };
   // ✅ FUNCIÓN TOGGLE BLOQUEO
+  // ✅ FUNCIÓN ELIMINAR INCAPACIDAD COMPLETAMENTE
+  const handleEliminarIncapacidad = async () => {
+    if (!window.confirm(
+      '🗑️ ¿ELIMINAR PERMANENTEMENTE esta incapacidad?\n\n' +
+      '⚠️ ADVERTENCIA:\n' +
+      '• Se eliminará de la base de datos\n' +
+      '• Se eliminará de Google Drive\n' +
+      '• Esta acción NO se puede deshacer\n\n' +
+      '¿Estás seguro?'
+    )) {
+      return;
+    }
+    
+    setEnviandoValidacion(true);
+    
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'X-Admin-Token': ADMIN_TOKEN,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        mostrarNotificacion(`✅ ${data.mensaje}`, 'success');
+        
+        // Cerrar el caso actual
+        onClose();
+        
+        // Recargar lista
+        if (onRecargarCasos) onRecargarCasos();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        mostrarNotificacion(`❌ Error: ${errorData.detail || 'No se pudo eliminar'}`, 'error');
+      }
+    } catch (error) {
+      mostrarNotificacion('❌ Error de conexión', 'error');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  };
+
+  // ✅ FUNCIÓN TOGGLE BLOQUEO
   const handleToggleBloqueo = async (accion) => {
     const accionTexto = accion === 'bloquear' ? 'BLOQUEAR' : 'DESBLOQUEAR';
     const motivo = prompt(`¿Por qué deseas ${accionTexto} este caso?\n\n(Ejemplo: "Casos especiales", "Urgencia médica", etc.)`);
@@ -1172,64 +1220,18 @@ return (
         </div>
 
         <div className="flex items-center gap-2">
-          {/* 🔄 DROPDOWN CAMBIAR TIPO */}
-          <div className="relative group">
-            <button
-              className="p-2 bg-gray-800 hover:bg-amber-600 rounded-xl text-white transition-colors flex items-center gap-1"
-              title="Cambiar tipo de incapacidad"
-            >
-              🔄
-            </button>
-            
-            {/* Dropdown Menu */}
-            <div className="hidden group-hover:block absolute top-full left-0 mt-1 bg-gray-800 rounded-lg shadow-2xl border border-gray-700 min-w-[200px] z-[9999]">
-              <div className="py-1">
-                <button
-                  onClick={() => handleCambiarTipo('maternity')}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-amber-600 transition-colors text-sm"
-                >
-                  👶 Maternidad
-                </button>
-                <button
-                  onClick={() => handleCambiarTipo('paternity')}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-amber-600 transition-colors text-sm"
-                >
-                  👨‍👦 Paternidad
-                </button>
-                <button
-                  onClick={() => handleCambiarTipo('general')}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-amber-600 transition-colors text-sm"
-                >
-                  🏥 Enfermedad General
-                </button>
-                <button
-                  onClick={() => handleCambiarTipo('traffic')}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-amber-600 transition-colors text-sm"
-                >
-                  🚗 Accidente Tránsito
-                </button>
-                <button
-                  onClick={() => handleCambiarTipo('labor')}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-amber-600 transition-colors text-sm"
-                >
-                  🏭 Accidente Laboral
-                </button>
-                <hr className="border-gray-700 my-1" />
-                <button
-                  onClick={() => handleCambiarTipo('certificado_hospitalizacion')}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-purple-600 transition-colors text-sm"
-                >
-                  🏥 Certificado Hospitalización
-                </button>
-                <button
-                  onClick={() => handleCambiarTipo('prelicencia')}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-cyan-600 transition-colors text-sm"
-                >
-                  📋 Prelicencia
-                </button>
-              </div>
-            </div>
-          </div>
+          {/* 🗑️ BOTÓN ELIMINAR */}
+          <button
+            onClick={handleEliminarIncapacidad}
+            disabled={enviandoValidacion}
+            className="p-2 bg-red-600/20 hover:bg-red-600 rounded-xl text-red-300 hover:text-white transition-all duration-300 border border-red-600/30 hover:border-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Eliminar incapacidad permanentemente"
+          >
+            🗑️
+          </button>
+
+          {/* Separador */}
+          <div className="h-10 w-px bg-gray-600"></div>
 
           {/* ✂️ Botón Herramientas */}
           <button
@@ -1715,6 +1717,26 @@ return (
             <div className="bg-gray-800/50 p-2 space-y-1">
               <button onClick={() => {recorteAutomatico(); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">✂️ Recorte</button>
               <button onClick={() => {corregirInclinacion(); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">📐 Ángulo</button>
+            </div>
+          </div>
+
+          {/* CAMBIAR TIPO */}
+          <div className="border border-amber-700/30 rounded-lg overflow-hidden">
+            <button className="w-full px-4 py-2 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 font-semibold text-sm flex items-center justify-between transition-colors">
+              <span className="flex items-center gap-2">
+                🔄 Cambiar Tipo
+              </span>
+              <span>▼</span>
+            </button>
+            <div className="bg-gray-800/50 p-2 space-y-1">
+              <button onClick={() => {handleCambiarTipo('maternity'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-amber-600 text-white text-xs rounded disabled:opacity-50">👶 Maternidad</button>
+              <button onClick={() => {handleCambiarTipo('paternity'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-amber-600 text-white text-xs rounded disabled:opacity-50">👨‍👦 Paternidad</button>
+              <button onClick={() => {handleCambiarTipo('general'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-amber-600 text-white text-xs rounded disabled:opacity-50">🏥 Enfermedad General</button>
+              <button onClick={() => {handleCambiarTipo('traffic'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-amber-600 text-white text-xs rounded disabled:opacity-50">🚗 Accidente Tránsito</button>
+              <button onClick={() => {handleCambiarTipo('labor'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-amber-600 text-white text-xs rounded disabled:opacity-50">🏭 Accidente Laboral</button>
+              <hr className="border-gray-700 my-1" />
+              <button onClick={() => {handleCambiarTipo('certificado_hospitalizacion'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-purple-600 text-white text-xs rounded disabled:opacity-50">🏥 Certificado Hospitalización</button>
+              <button onClick={() => {handleCambiarTipo('prelicencia'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-cyan-600 text-white text-xs rounded disabled:opacity-50">📋 Prelicencia</button>
             </div>
           </div>
 
