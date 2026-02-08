@@ -108,12 +108,11 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   const irAlSiguiente = useCallback(() => {
     if (indiceActual < casosLista.length - 1) {
       const siguienteIndice = indiceActual + 1;
-      const siguienteCaso = casosLista[siguienteIndice];
       if (onCambiarCaso) {
-        onCambiarCaso(siguienteCaso, siguienteIndice);
+        onCambiarCaso(siguienteIndice); // Solo pasar índice
       }
       setCurrentPage(0);
-      mostrarNotificacion(`📄 Siguiente: ${siguienteCaso.serial}`, 'info');
+      mostrarNotificacion(`📄 Siguiente: ${casosLista[siguienteIndice].serial}`, 'info');
     } else {
       mostrarNotificacion('✅ Ya estás en la última incapacidad', 'info');
     }
@@ -122,12 +121,11 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   const irAlAnterior = useCallback(() => {
     if (indiceActual > 0) {
       const anteriorIndice = indiceActual - 1;
-      const anteriorCaso = casosLista[anteriorIndice];
       if (onCambiarCaso) {
-        onCambiarCaso(anteriorCaso, anteriorIndice);
+        onCambiarCaso(anteriorIndice); // Solo pasar índice
       }
       setCurrentPage(0);
-      mostrarNotificacion(`📄 Anterior: ${anteriorCaso.serial}`, 'info');
+      mostrarNotificacion(`📄 Anterior: ${casosLista[anteriorIndice].serial}`, 'info');
     } else {
       mostrarNotificacion('✅ Ya estás en la primera incapacidad', 'info');
     }
@@ -528,22 +526,29 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   setChecksSeleccionados([]);
   setAdjuntos([]);
   
-  // Buscar siguiente caso NUEVO automáticamente
+  // ✅ Buscar siguiente caso del MISMO FILTRO automáticamente
   setTimeout(async () => {
     try {
-      const filtros = { estado: 'NUEVO', page: 1, page_size: 1 };
-      const siguienteCasoData = await api.getCasos(filtros);
-      
-      if (siguienteCasoData.items && siguienteCasoData.items.length > 0) {
-        const siguienteSerial = siguienteCasoData.items[0].serial;
-        const detalle = await api.getCasoDetalle(siguienteSerial);
-        setCasoActualizado(detalle);
-        mostrarNotificacion('📄 Siguiente caso cargado', 'success');
+      // Usar el siguiente caso de la lista actual (respetando filtro)
+      if (onCambiarCaso && casosLista) {
+        const siguienteCasoEnLista = casosLista[indiceActual + 1];
+        
+        if (siguienteCasoEnLista) {
+          // Hay más casos en la lista actual
+          const detalle = await api.getCasoDetalle(siguienteCasoEnLista.serial);
+          setCasoActualizado(detalle);
+          onCambiarCaso(indiceActual + 1);
+          mostrarNotificacion('📄 Siguiente caso cargado', 'success');
+        } else {
+          // No hay más casos en esta página/filtro
+          onClose();
+          mostrarNotificacion('✅ No hay más casos en este filtro', 'success');
+        }
       } else {
         onClose();
-        mostrarNotificacion('✅ No hay más casos nuevos', 'success');
       }
     } catch (error) {
+      console.error('Error al cargar siguiente caso:', error);
       onClose();
     }
   }, 1500);
@@ -2287,10 +2292,19 @@ export default function App() {
     setFiltros(prev => ({ ...prev, page: newPage }));
   };
 
-  // ✅ CAMBIAR DE CASO DENTRO DEL VISOR
-  const handleCambiarCaso = (nuevoCaso, nuevoIndice) => {
-    setCasoSeleccionado(nuevoCaso);
-    setIndiceActual(nuevoIndice);
+  // ✅ CAMBIAR DE CASO DENTRO DEL VISOR (por índice)
+  const handleCambiarCaso = async (nuevoIndice) => {
+    if (nuevoIndice >= 0 && nuevoIndice < casos.length) {
+      const nuevoCaso = casos[nuevoIndice];
+      try {
+        // Cargar detalle completo del caso
+        const detalle = await api.getCasoDetalle(nuevoCaso.serial);
+        setCasoSeleccionado(detalle);
+        setIndiceActual(nuevoIndice);
+      } catch (error) {
+        console.error('Error al cargar caso:', error);
+      }
+    }
   };
 
   return (
