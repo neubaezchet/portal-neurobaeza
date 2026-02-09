@@ -2529,20 +2529,6 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    cargarCasos();
-  }, [cargarCasos]);
-
-  useEffect(() => {
-    if (tabActual !== 'validacion') return;
-
-    const intervalId = setInterval(() => {
-      cargarCasos({ silent: true, keepSelection: true });
-    }, 5000);
-
-    return () => clearInterval(intervalId);
-  }, [tabActual, filtros, casoSeleccionado?.serial]);
-
   const cargarEmpresas = async () => {
     try {
       const data = await api.getEmpresas();
@@ -2581,6 +2567,20 @@ export default function App() {
       if (!silent) setLoading(false);
     }
   }, [filtros, casoSeleccionado?.serial]);
+
+  useEffect(() => {
+    cargarCasos();
+  }, [cargarCasos]);
+
+  useEffect(() => {
+    if (tabActual !== 'validacion') return;
+
+    const intervalId = setInterval(() => {
+      cargarCasos({ silent: true, keepSelection: true });
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [tabActual, filtros, casoSeleccionado?.serial, cargarCasos]);
 
   const handleFiltroChange = (key, value) => {
     setFiltros(prev => ({ ...prev, [key]: value, page: 1 }));
