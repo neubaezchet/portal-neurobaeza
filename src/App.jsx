@@ -1,5 +1,5 @@
 import React, { 
-  useState, useEffect, useCallback, useRef, useMemo 
+  useState, useEffect, useCallback, useRef 
 } from 'react';
 import ProgressBar, { useProgress } from './components/ProgressBar';
 import { 
@@ -12,18 +12,13 @@ import ReportsDashboard from './components/Dashboard/ReportsDashboard';
 import BeforeAfterPDF from './components/BeforeAfterPDF';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import {
-  rotatePDFPage,
   convertPageToGrayscale,
   enhanceContrast,
   sharpenPage,
-  deletePageFromPDF,
-  comparePDFPages,
-  downloadPDF
+  comparePDFPages
 } from './utils/pdfUtils';
 import { pdfCacheManager } from './utils/pdfCache';
 import { 
-  validarCasoOptimizado,
-  confirmarAccionConProgreso,
   preloadNextCase
 } from './utils/validationOptimizations';
 
@@ -119,7 +114,6 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   const [mostraModalLimpiar, setMostrarModalLimpiar] = useState(false);
   const [contraseniaLimpiar, setContraseniaLimpiar] = useState('');
   const [limpiarEnProgreso, setLimpiarEnProgreso] = useState(false);
-  const [currentPDFFile, setCurrentPDFFile] = useState(null);
   const [editedPDFFile, setEditedPDFFile] = useState(null);
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
   const [beforeAfterCanvases, setBeforeAfterCanvases] = useState(null);
@@ -269,7 +263,6 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
       
       mostrarNotificacion('✅ Contraste mejorado');
       setEditedPDFFile(new File([newPdfBlob], 'edited.pdf'));
-      setCurrentPDFFile(pdfFile);
       
       const canvases = await comparePDFPages(pdfFile, new File([newPdfBlob], 'edited.pdf'), currentPage);
       setBeforeAfterCanvases(canvases);
@@ -299,7 +292,6 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
       
       mostrarNotificacion('✅ Filtro aplicado');
       setEditedPDFFile(new File([newPdfBlob], 'edited.pdf'));
-      setCurrentPDFFile(pdfFile);
       
       const canvases = await comparePDFPages(pdfFile, new File([newPdfBlob], 'edited.pdf'), currentPage);
       setBeforeAfterCanvases(canvases);
@@ -328,7 +320,6 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
       
       mostrarNotificacion('✅ Enfoque aplicado');
       setEditedPDFFile(new File([newPdfBlob], 'edited.pdf'));
-      setCurrentPDFFile(pdfFile);
       
       const canvases = await comparePDFPages(pdfFile, new File([newPdfBlob], 'edited.pdf'), currentPage);
       setBeforeAfterCanvases(canvases);
@@ -357,7 +348,6 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
       
       mostrarNotificacion('✅ Mejorado');
       setEditedPDFFile(new File([newPdfBlob], 'edited.pdf'));
-      setCurrentPDFFile(pdfFile);
       
       const canvases = await comparePDFPages(pdfFile, new File([newPdfBlob], 'edited.pdf'), currentPage);
       setBeforeAfterCanvases(canvases);
@@ -606,31 +596,29 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   setAdjuntos([]);
   
   // ✅ Buscar siguiente caso del MISMO FILTRO automáticamente
-  setTimeout(async () => {
-    try {
-      // Usar el siguiente caso de la lista actual (respetando filtro)
-      if (onCambiarCaso && casosLista) {
-        const siguienteCasoEnLista = casosLista[indiceActual + 1];
-        
-        if (siguienteCasoEnLista) {
-          // Hay más casos en la lista actual
-          const detalle = await api.getCasoDetalle(siguienteCasoEnLista.serial);
-          setCasoActualizado(detalle);
-          onCambiarCaso(indiceActual + 1);
-          mostrarNotificacion('📄 Siguiente caso cargado', 'success');
-        } else {
-          // No hay más casos en esta página/filtro
-          onClose();
-          mostrarNotificacion('✅ No hay más casos en este filtro', 'success');
-        }
+  try {
+    // Usar el siguiente caso de la lista actual (respetando filtro)
+    if (onCambiarCaso && casosLista) {
+      const siguienteCasoEnLista = casosLista[indiceActual + 1];
+      
+      if (siguienteCasoEnLista) {
+        // Hay más casos en la lista actual
+        const detalle = await api.getCasoDetalle(siguienteCasoEnLista.serial);
+        setCasoActualizado(detalle);
+        onCambiarCaso(indiceActual + 1);
+        mostrarNotificacion('📄 Siguiente caso cargado', 'success');
       } else {
+        // No hay más casos en esta página/filtro
         onClose();
+        mostrarNotificacion('✅ No hay más casos en este filtro', 'success');
       }
-    } catch (error) {
-      console.error('Error al cargar siguiente caso:', error);
+    } else {
       onClose();
     }
-  }, 1500);
+  } catch (error) {
+    console.error('Error al cargar siguiente caso:', error);
+    onClose();
+  }
 } else {
         const errorData = await response.json().catch(() => ({}));
         setErrorValidacion(errorData.detail || 'Error al validar caso');
@@ -2546,6 +2534,16 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtros]);
 
+  useEffect(() => {
+    if (tabActual !== 'validacion') return;
+
+    const intervalId = setInterval(() => {
+      cargarCasos({ silent: true, keepSelection: true });
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [tabActual, filtros, casoSeleccionado?.serial]);
+
   const cargarEmpresas = async () => {
     try {
       const data = await api.getEmpresas();
@@ -2564,16 +2562,24 @@ export default function App() {
     }
   };
 
-  const cargarCasos = async () => {
-    setLoading(true);
+  const cargarCasos = async ({ silent = false, keepSelection = true } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const data = await api.getCasos(filtros);
-      setCasos(data.items || []);
+      const items = data.items || [];
+      setCasos(items);
       setTotalPages(data.total_pages || 1);
+
+      if (keepSelection && casoSeleccionado?.serial) {
+        const nuevoIndice = items.findIndex(item => item.serial === casoSeleccionado.serial);
+        if (nuevoIndice >= 0) {
+          setIndiceActual(nuevoIndice);
+        }
+      }
     } catch (error) {
       console.error('Error cargando casos:', error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 

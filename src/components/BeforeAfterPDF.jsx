@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, ChevronLeft, Download, Upload, RotateCw } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Upload } from 'lucide-react';
 
 /**
  * Componente de vista antes/después para PDFs
