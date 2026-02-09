@@ -97,6 +97,9 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   const [mostrarInfoDesplegable, setMostrarInfoDesplegable] = useState(true);
   const [guardandoPDF, setGuardandoPDF] = useState(false);
   const [mostradoGuardadoExitoso, setMostradoGuardadoExitoso] = useState(false);
+  const [mostraModalLimpiar, setMostrarModalLimpiar] = useState(false);
+  const [contraseniaLimpiar, setContraseniaLimpiar] = useState('');
+  const [limpiarEnProgreso, setLimpiarEnProgreso] = useState(false);
   const containerRef = useRef(null);
 
   const mostrarNotificacion = useCallback((mensaje, tipo = 'success') => {
@@ -647,6 +650,58 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     }
   };
 
+  // ✅ FUNCIÓN LIMPIAR TODOS LOS CASOS
+  const handleLimpiarSistema = async () => {
+    if (!contraseniaLimpiar) {
+      mostrarNotificacion('❌ Debes ingresar la contraseña', 'error');
+      return;
+    }
+    
+    if (!window.confirm(
+      '🧹 ¿LIMPIAR TODO EL SISTEMA?\n\n' +
+      '⚠️ ADVERTENCIA:\n' +
+      '• Se eliminarán TODOS los casos\n' +
+      '• Se eliminarán de la base de datos\n' +
+      '• Se eliminarán de Google Drive\n' +
+      '• Esta acción NO se puede deshacer\n\n' +
+      '¿Estás 100% seguro?'
+    )) {
+      return;
+    }
+    
+    setLimpiarEnProgreso(true);
+    
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/validador/casos-limpiar-todos?contraseña=${encodeURIComponent(contraseniaLimpiar)}`,
+        {
+          method: 'DELETE',
+          headers: getHeaders()
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        mostrarNotificacion(`🧹 ${data.mensaje}`, 'success');
+        setMostrarModalLimpiar(false);
+        setContraseniaLimpiar('');
+        
+        // Cerrar el caso actual
+        onClose();
+        
+        // Recargar lista
+        if (onRecargarCasos) onRecargarCasos();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        mostrarNotificacion(`❌ ${errorData.detail || 'Error al limpiar'}`, 'error');
+      }
+    } catch (error) {
+      mostrarNotificacion('❌ Error de conexión', 'error');
+    } finally {
+      setLimpiarEnProgreso(false);
+    }
+  };
+
   // ✅ FUNCIÓN TOGGLE BLOQUEO
   const handleToggleBloqueo = async (accion) => {
     const accionTexto = accion === 'bloquear' ? 'BLOQUEAR' : 'DESBLOQUEAR';
@@ -840,6 +895,18 @@ useEffect(() => {
   document.addEventListener('keydown', handleEscape);
   return () => document.removeEventListener('keydown', handleEscape);
 }, [showToolsMenu]);
+
+// ✅ ATAJO CTRL+F11 PARA LIMPIAR SISTEMA
+useEffect(() => {
+  const handleCtrlF11 = (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'F11') {
+      e.preventDefault();
+      setMostrarModalLimpiar(true);
+    }
+  };
+  document.addEventListener('keydown', handleCtrlF11);
+  return () => document.removeEventListener('keydown', handleCtrlF11);
+}, []);
 
 // ✅ DETECTAR REENVÍOS AL ABRIR CASO
 useEffect(() => {
@@ -2234,6 +2301,70 @@ return (
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🧹 MODAL LIMPIAR SISTEMA */}
+      {mostraModalLimpiar && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur flex items-center justify-center z-[9999]">
+          <div className="bg-gray-900 rounded-xl border border-red-500/50 p-8 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="text-4xl">🧹</div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Limpiar Sistema</h2>
+                <p className="text-xs text-gray-400">Ingresa contraseña para continuar</p>
+              </div>
+            </div>
+
+            <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-6">
+              <p className="text-sm text-red-300">
+                <strong>⚠️ ADVERTENCIA:</strong> Esta acción eliminará TODOS los casos del sistema.
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Contraseña</label>
+              <input
+                type="password"
+                value={contraseniaLimpiar}
+                onChange={(e) => setContraseniaLimpiar(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleLimpiarSistema();
+                  if (e.key === 'Escape') {
+                    setMostrarModalLimpiar(false);
+                    setContraseniaLimpiar('');
+                  }
+                }}
+                placeholder="Ingresa la contraseña..."
+                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleLimpiarSistema}
+                disabled={limpiarEnProgreso || !contraseniaLimpiar}
+                className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {limpiarEnProgreso ? '⏳ Limpiando...' : '🧹 Limpiar Todo'}
+              </button>
+              <button
+                onClick={() => {
+                  setMostrarModalLimpiar(false);
+                  setContraseniaLimpiar('');
+                }}
+                disabled={limpiarEnProgreso}
+                className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold disabled:opacity-50 transition-colors"
+              >
+                ❌ Cancelar
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 mt-4 text-center">
+              Atajo: <kbd className="px-2 py-1 bg-gray-800 rounded text-gray-300">Ctrl + F11</kbd>
+            </p>
           </div>
         </div>
       )}
