@@ -896,16 +896,22 @@ useEffect(() => {
   return () => document.removeEventListener('keydown', handleEscape);
 }, [showToolsMenu]);
 
-// ✅ ATAJO CTRL+F11 PARA LIMPIAR SISTEMA
+// ✅ ATAJOS PARA LIMPIAR SISTEMA (Ctrl+Shift+Delete o Ctrl+F11)
 useEffect(() => {
-  const handleCtrlF11 = (e) => {
+  const handleLimpiarHotkey = (e) => {
+    // Opción 1: Ctrl + Shift + Delete (funciona en portátiles)
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Delete') {
+      e.preventDefault();
+      setMostrarModalLimpiar(true);
+    }
+    // Opción 2: Ctrl + F11 (backup para teclados normales)
     if ((e.ctrlKey || e.metaKey) && e.key === 'F11') {
       e.preventDefault();
       setMostrarModalLimpiar(true);
     }
   };
-  document.addEventListener('keydown', handleCtrlF11);
-  return () => document.removeEventListener('keydown', handleCtrlF11);
+  document.addEventListener('keydown', handleLimpiarHotkey);
+  return () => document.removeEventListener('keydown', handleLimpiarHotkey);
 }, []);
 
 // ✅ DETECTAR REENVÍOS AL ABRIR CASO
@@ -2363,7 +2369,8 @@ return (
             </div>
 
             <p className="text-xs text-gray-500 mt-4 text-center">
-              Atajo: <kbd className="px-2 py-1 bg-gray-800 rounded text-gray-300">Ctrl + F11</kbd>
+              Atajos: <kbd className="px-2 py-1 bg-gray-800 rounded text-gray-300 mr-2">Ctrl + Shift + Delete</kbd>
+              o <kbd className="px-2 py-1 bg-gray-800 rounded text-gray-300 ml-2">Ctrl + F11</kbd>
             </p>
           </div>
         </div>
