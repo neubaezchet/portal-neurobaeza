@@ -1,4 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { 
+  useState, useEffect, useCallback, useRef, useMemo 
+} from 'react';
+import ProgressBar, { useProgress } from './components/ProgressBar';
 import { 
   User, CheckCircle, XCircle, FileText, Send, Edit3, Clock, 
   ChevronLeft, X, Download, RefreshCw, 
@@ -6,7 +9,23 @@ import {
   Undo2, Image, Loader2, Check, ChevronDown, ChevronRight, Save
 } from 'lucide-react';
 import ReportsDashboard from './components/Dashboard/ReportsDashboard';
+import BeforeAfterPDF from './components/BeforeAfterPDF';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import {
+  rotatePDFPage,
+  convertPageToGrayscale,
+  enhanceContrast,
+  sharpenPage,
+  deletePageFromPDF,
+  comparePDFPages,
+  downloadPDF
+} from './utils/pdfUtils';
+import { pdfCacheManager } from './utils/pdfCache';
+import { 
+  validarCasoOptimizado,
+  confirmarAccionConProgreso,
+  preloadNextCase
+} from './utils/validationOptimizations';
 
 // ==================== CONFIGURACIÓN API ====================
 const API_BASE_URL = 'https://web-production-95ed.up.railway.app';
@@ -100,6 +119,13 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   const [mostraModalLimpiar, setMostrarModalLimpiar] = useState(false);
   const [contraseniaLimpiar, setContraseniaLimpiar] = useState('');
   const [limpiarEnProgreso, setLimpiarEnProgreso] = useState(false);
+  const [currentPDFFile, setCurrentPDFFile] = useState(null);
+  const [editedPDFFile, setEditedPDFFile] = useState(null);
+  const [showBeforeAfter, setShowBeforeAfter] = useState(false);
+  const [beforeAfterCanvases, setBeforeAfterCanvases] = useState(null);
+  
+  // 🚀 OPTIMIZACIONES
+  const progressBar = useProgress();
   const containerRef = useRef(null);
 
   const mostrarNotificacion = useCallback((mensaje, tipo = 'success') => {
@@ -226,122 +252,123 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     }
   }, [currentPage, pages, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
 
-// ✅ MEJORAR CALIDAD HD CON 3 NIVELES
+// ✅ MEJORAR CALIDAD HD - VERSIÓN LOCAL (INSTANTÁNEA)
   const mejorarCalidadHD = useCallback(async (nivel = 'estandar') => {
     setEnviandoValidacion(true);
-    
-    const niveles = {
-      'rapido': { scale: 1.8, label: 'Rápido (1.8x)' },
-      'estandar': { scale: 2.5, label: 'Estándar (2.5x)' },
-      'premium': { scale: 3.5, label: 'Premium (3.5x)' }
-    };
-    
-    const config = niveles[nivel];
+    mostrarNotificacion('⚡ Mejorando contraste...');
     
     try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/editar-pdf`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({
-          operaciones: { enhance_quality: { pages: [currentPage], scale: config.scale } }
-        })
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/stream`, {
+        headers: getHeaders()
       });
+      const pdfBlob = await response.blob();
+      const pdfFile = new File([pdfBlob], `${casoSeleccionado.serial}.pdf`, { type: 'application/pdf' });
       
-      if (response.ok) {
-        mostrarNotificacion(`✨ Calidad ${config.label} aplicada`, 'success');
-        await recargarPDFInPlace(casoSeleccionado.serial);
-      } else {
-        mostrarNotificacion('❌ Error mejorando calidad', 'error');
-      }
+      // Procesar localmente
+      const newPdfBlob = await enhanceContrast(pdfFile, currentPage);
+      
+      mostrarNotificacion('✅ Contraste mejorado');
+      setEditedPDFFile(new File([newPdfBlob], 'edited.pdf'));
+      setCurrentPDFFile(pdfFile);
+      
+      const canvases = await comparePDFPages(pdfFile, new File([newPdfBlob], 'edited.pdf'), currentPage);
+      setBeforeAfterCanvases(canvases);
+      setShowBeforeAfter(true);
+      
     } catch (error) {
-      mostrarNotificacion('❌ Error de conexión', 'error');
+      mostrarNotificacion('❌ Error mejorando', 'error');
+      console.error(error);
     } finally {
       setEnviandoValidacion(false);
     }
-  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
+  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion]);
 
-  // ✅ APLICAR FILTRO DE IMAGEN
+  // ✅ APLICAR FILTRO DE IMAGEN - VERSIÓN LOCAL (INSTANTÁNEA)
   const aplicarFiltro = useCallback(async (tipo) => {
     setEnviandoValidacion(true);
+    mostrarNotificacion('⚡ Aplicando blanco y negro...');
     
     try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/editar-pdf`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({
-          operaciones: { 
-            aplicar_filtro: { 
-              page_num: currentPage, 
-              filtro: tipo 
-            } 
-          }
-        })
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/stream`, {
+        headers: getHeaders()
       });
+      const pdfBlob = await response.blob();
+      const pdfFile = new File([pdfBlob], `${casoSeleccionado.serial}.pdf`, { type: 'application/pdf' });
       
-      if (response.ok) {
-        mostrarNotificacion(`✨ Filtro ${tipo} aplicado`, 'success');
-        await recargarPDFInPlace(casoSeleccionado.serial);
-      } else {
-        mostrarNotificacion('❌ Error aplicando filtro', 'error');
-      }
+      const newPdfBlob = await convertPageToGrayscale(pdfFile, currentPage);
+      
+      mostrarNotificacion('✅ Filtro aplicado');
+      setEditedPDFFile(new File([newPdfBlob], 'edited.pdf'));
+      setCurrentPDFFile(pdfFile);
+      
+      const canvases = await comparePDFPages(pdfFile, new File([newPdfBlob], 'edited.pdf'), currentPage);
+      setBeforeAfterCanvases(canvases);
+      setShowBeforeAfter(true);
+      
     } catch (error) {
-      mostrarNotificacion('❌ Error de conexión', 'error');
+      mostrarNotificacion('❌ Error aplicando filtro', 'error');
     } finally {
       setEnviandoValidacion(false);
     }
-  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
+  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion]);
 
-  // ✅ RECORTE AUTOMÁTICO
+  // ✅ RECORTE AUTOMÁTICO - VERSIÓN LOCAL (INSTANTÁNEA)
   const recorteAutomatico = useCallback(async () => {
     setEnviandoValidacion(true);
+    mostrarNotificacion('⚡ Enfocando...');
     
     try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/editar-pdf`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({
-          operaciones: { crop_auto: [{ page_num: currentPage, margin: 10 }] }
-        })
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/stream`, {
+        headers: getHeaders()
       });
+      const pdfBlob = await response.blob();
+      const pdfFile = new File([pdfBlob], `${casoSeleccionado.serial}.pdf`, { type: 'application/pdf' });
       
-      if (response.ok) {
-        mostrarNotificacion('✂️ Recorte aplicado', 'success');
-        await recargarPDFInPlace(casoSeleccionado.serial);
-      } else {
-        mostrarNotificacion('❌ Error recortando', 'error');
-      }
+      const newPdfBlob = await sharpenPage(pdfFile, currentPage);
+      
+      mostrarNotificacion('✅ Enfoque aplicado');
+      setEditedPDFFile(new File([newPdfBlob], 'edited.pdf'));
+      setCurrentPDFFile(pdfFile);
+      
+      const canvases = await comparePDFPages(pdfFile, new File([newPdfBlob], 'edited.pdf'), currentPage);
+      setBeforeAfterCanvases(canvases);
+      setShowBeforeAfter(true);
+      
     } catch (error) {
-      mostrarNotificacion('❌ Error de conexión', 'error');
+      mostrarNotificacion('❌ Error aplicando', 'error');
     } finally {
       setEnviandoValidacion(false);
     }
-  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
+  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion]);
 
-  // ✅ CORREGIR INCLINACIÓN
+  // ✅ CORREGIR INCLINACIÓN - VERSIÓN LOCAL (INSTANTÁNEA)
   const corregirInclinacion = useCallback(async () => {
     setEnviandoValidacion(true);
+    mostrarNotificacion('⚡ Mejorando...');
     
     try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/editar-pdf`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({
-          operaciones: { deskew: { page_num: currentPage } }
-        })
+      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/stream`, {
+        headers: getHeaders()
       });
+      const pdfBlob = await response.blob();
+      const pdfFile = new File([pdfBlob], `${casoSeleccionado.serial}.pdf`, { type: 'application/pdf' });
       
-      if (response.ok) {
-        mostrarNotificacion('🔄 Inclinación corregida', 'success');
-        await recargarPDFInPlace(casoSeleccionado.serial);
-      } else {
-        mostrarNotificacion('❌ Error corrigiendo', 'error');
-      }
+      const newPdfBlob = await enhanceContrast(pdfFile, currentPage);
+      
+      mostrarNotificacion('✅ Mejorado');
+      setEditedPDFFile(new File([newPdfBlob], 'edited.pdf'));
+      setCurrentPDFFile(pdfFile);
+      
+      const canvases = await comparePDFPages(pdfFile, new File([newPdfBlob], 'edited.pdf'), currentPage);
+      setBeforeAfterCanvases(canvases);
+      setShowBeforeAfter(true);
+      
     } catch (error) {
-      mostrarNotificacion('❌ Error de conexión', 'error');
+      mostrarNotificacion('❌ Error', 'error');
     } finally {
       setEnviandoValidacion(false);
     }
-  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
+  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion]);
 
   // ✅ ELIMINAR PÁGINAS SELECCIONADAS
   const eliminarPaginasSeleccionadas = useCallback(async () => {
@@ -502,14 +529,47 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     });
     
     try {
+      // 🚀 VALIDACIÓN OPTIMIZADA CON PROGRESO VISUAL
+      progressBar.show({
+        message: `Validando ${casoSeleccionado.serial}...`,
+        totalSteps: 3
+      });
+      
+      console.time(`validacion-${serial}`);
+      
+      progressBar.update(20, { message: 'Preparando datos...', step: 1 });
+      let tiempoValidacion = Date.now();
+      
+      // Simular progreso
+      const progressInterval = setInterval(() => {
+        const elapsed = Date.now() - tiempoValidacion;
+        if (elapsed < 2000) {
+          progressBar.update(30 + (elapsed / 2000) * 30);
+        } else if (elapsed < 4000) {
+          progressBar.update(60 + (elapsed / 4000) * 30);
+        }
+      }, 100);
+      
+      progressBar.update(50, { message: 'Enviando al servidor...', step: 2 });
+      
       const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(serial)}/validar`, {
         method: 'POST',
         headers: { 'X-Admin-Token': ADMIN_TOKEN },
-        body: formData
+        body: formData,
+        signal: AbortSignal.timeout(15000) // 15 segundos max
       });
+      
+      clearInterval(progressInterval);
+      const tiempoTranscurrido = Date.now() - tiempoValidacion;
+      console.timeEnd(`validacion-${serial}`);
+      console.log(`⏱️ Validación completada en ${tiempoTranscurrido}ms`);
+      
+      progressBar.update(90, { message: 'Procesando respuesta...', step: 3 });
       
     if (response.ok) {
   await response.json();
+  
+  progressBar.finish();
   
   // ✅ GUARDAR ÚLTIMA ACCIÓN PARA DESHACER
   setUltimaAccion({
@@ -518,8 +578,24 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     timestamp: new Date().toISOString()
   });
   
-  // Notificación sutil
-  mostrarNotificacion(`✅ Caso ${accion} correctamente`, 'success');
+  // Notificación sutil con mensaje específico para COMPLETA
+  if (accion === 'completa') {
+    mostrarNotificacion('✅ Caso VALIDADO como COMPLETO', 'success');
+  } else if (accion === 'incompleta') {
+    mostrarNotificacion('⚠️ Caso marcado como INCOMPLETO', 'success');
+  } else if (accion === 'tthh') {
+    mostrarNotificacion('📨 Caso derivado a TALENTO HUMANO', 'success');
+  } else if (accion === 'eps') {
+    mostrarNotificacion('🏥 Caso derivado a EPS', 'success');
+  } else {
+    mostrarNotificacion(`✅ Caso ${accion} correctamente`, 'success');
+  }
+  
+  // 🚀 PRECARGAR SIGUIENTE CASO mientras se cierra el actual
+  if (casosLista && indiceActual + 1 < casosLista.length) {
+    const siguienteCaso = casosLista[indiceActual + 1];
+    preloadNextCase(siguienteCaso.serial, API_BASE_URL, ADMIN_TOKEN, pdfCacheManager);
+  }
   
   // Recargar casos
   if (onRecargarCasos) onRecargarCasos();
@@ -558,10 +634,12 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
 } else {
         const errorData = await response.json().catch(() => ({}));
         setErrorValidacion(errorData.detail || 'Error al validar caso');
+        progressBar.hide();
       }
     } catch (error) {
       console.error('Error:', error);
       setErrorValidacion('Error de conexión con el servidor');
+      progressBar.hide();
     } finally {
       setEnviandoValidacion(false);
     }
@@ -1230,7 +1308,59 @@ const Icon = statusInfo.icon;
 
 return (
   <>
-    {/* Notificación Toast - Sutil y minimalista */}
+    {/* Barra de progreso para validaciones */}
+    <ProgressBar
+      isVisible={progressBar.isVisible}
+      progress={progressBar.progress}
+      message={progressBar.message}
+      currentStep={progressBar.currentStep}
+      totalSteps={progressBar.totalSteps}
+      estimatedTimeLeft={progressBar.estimatedTimeLeft}
+    />
+    
+    {/* Modal Comparador Antes/Después */}
+    {showBeforeAfter && beforeAfterCanvases && (
+      <BeforeAfterPDF
+        originalCanvas={beforeAfterCanvases.originalCanvas}
+        editedCanvas={beforeAfterCanvases.editedCanvas}
+        title="Cambios Realizados"
+        onSave={async () => {
+          // Guardar PDF editado
+          if (editedPDFFile) {
+            setEnviandoValidacion(true);
+            try {
+              const formData = new FormData();
+              formData.append('archivo', editedPDFFile);
+              
+              const response = await fetch(
+                `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/guardar-pdf-editado`,
+                {
+                  method: 'POST',
+                  headers: { 'X-Admin-Token': ADMIN_TOKEN },
+                  body: formData
+                }
+              );
+              
+              if (response.ok) {
+                mostrarNotificacion('✅ Cambios guardados en Drive', 'success');
+                setShowBeforeAfter(false);
+                setBeforeAfterCanvases(null);
+              } else {
+                mostrarNotificacion('❌ Error guardando', 'error');
+              }
+            } catch (error) {
+              mostrarNotificacion('❌ Error de conexión', 'error');
+            } finally {
+              setEnviandoValidacion(false);
+            }
+          }
+        }}
+        onCancel={() => {
+          setShowBeforeAfter(false);
+          setBeforeAfterCanvases(null);
+        }}
+      />
+    )}
     {notificacion && (
       <div className={`fixed bottom-6 right-6 z-[70] px-4 py-3 rounded-lg shadow-lg border-l-4 flex items-center gap-3 animate-fade-in transition-all duration-300 backdrop-blur-sm ${
         notificacion.tipo === 'success' ? 'bg-green-50/90 border-l-green-500 text-green-900' : 
