@@ -896,16 +896,11 @@ useEffect(() => {
   return () => document.removeEventListener('keydown', handleEscape);
 }, [showToolsMenu]);
 
-// ✅ ATAJOS PARA LIMPIAR SISTEMA (Ctrl+Shift+Delete o Ctrl+F11)
+// ✅ ATAJO CTRL+N PARA LIMPIAR SISTEMA
 useEffect(() => {
   const handleLimpiarHotkey = (e) => {
-    // Opción 1: Ctrl + Shift + Delete (funciona en portátiles)
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Delete') {
-      e.preventDefault();
-      setMostrarModalLimpiar(true);
-    }
-    // Opción 2: Ctrl + F11 (backup para teclados normales)
-    if ((e.ctrlKey || e.metaKey) && e.key === 'F11') {
+    // Ctrl + N para limpiar sistema
+    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
       e.preventDefault();
       setMostrarModalLimpiar(true);
     }
@@ -1301,6 +1296,15 @@ return (
             title="Eliminar incapacidad permanentemente"
           >
             🗑️
+          </button>
+
+          {/* 🧹 BOTÓN LIMPIAR SISTEMA */}
+          <button
+            onClick={() => setMostrarModalLimpiar(true)}
+            className="p-2 bg-orange-600/20 hover:bg-orange-600 rounded-xl text-orange-300 hover:text-white transition-all duration-300 border border-orange-600/30 hover:border-orange-500"
+            title="Limpiar todo el sistema (Ctrl+N)"
+          >
+            🧹
           </button>
 
           {/* Separador */}
@@ -2369,8 +2373,7 @@ return (
             </div>
 
             <p className="text-xs text-gray-500 mt-4 text-center">
-              Atajos: <kbd className="px-2 py-1 bg-gray-800 rounded text-gray-300 mr-2">Ctrl + Shift + Delete</kbd>
-              o <kbd className="px-2 py-1 bg-gray-800 rounded text-gray-300 ml-2">Ctrl + F11</kbd>
+              Atajo: <kbd className="px-2 py-1 bg-gray-800 rounded text-gray-300">Ctrl + N</kbd>
             </p>
           </div>
         </div>
