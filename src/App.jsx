@@ -2531,8 +2531,7 @@ export default function App() {
 
   useEffect(() => {
     cargarCasos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtros]);
+  }, [cargarCasos]);
 
   useEffect(() => {
     if (tabActual !== 'validacion') return;
@@ -2562,7 +2561,7 @@ export default function App() {
     }
   };
 
-  const cargarCasos = async ({ silent = false, keepSelection = true } = {}) => {
+  const cargarCasos = useCallback(async ({ silent = false, keepSelection = true } = {}) => {
     if (!silent) setLoading(true);
     try {
       const data = await api.getCasos(filtros);
@@ -2581,7 +2580,7 @@ export default function App() {
     } finally {
       if (!silent) setLoading(false);
     }
-  };
+  }, [filtros, casoSeleccionado?.serial]);
 
   const handleFiltroChange = (key, value) => {
     setFiltros(prev => ({ ...prev, [key]: value, page: 1 }));
