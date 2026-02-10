@@ -17,10 +17,10 @@ import {
   sharpenPage,
   comparePDFPages
 } from './utils/pdfUtils';
-import { pdfCacheManager } from './utils/pdfCache';
-import { 
-  preloadNextCase
-} from './utils/validationOptimizations';
+// Legacy cache imports (reemplazado por pdfSmartLoader)
+// import { pdfCacheManager } from './utils/pdfCache';
+// import { preloadNextCase } from './utils/validationOptimizations';
+import { loadPDFSmart, prefetchNextCases, invalidatePDFCache } from './utils/pdfSmartLoader';
 
 // ==================== CONFIGURACIÓN API ====================
 const API_BASE_URL = 'https://web-production-95ed.up.railway.app';
@@ -421,6 +421,8 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
       });
       
       if (response.ok) {
+        // 🗑️ Invalidar caché local porque el PDF en Drive cambió
+        await invalidatePDFCache(casoSeleccionado.serial);
         mostrarNotificacion('💾 Guardado en Drive', 'success');
         setMostradoGuardadoExitoso(true);
         setTimeout(() => setMostradoGuardadoExitoso(false), 3000);
@@ -581,10 +583,10 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     mostrarNotificacion(`✅ Caso ${accion} correctamente`, 'success');
   }
   
-  // 🚀 PRECARGAR SIGUIENTE CASO mientras se cierra el actual
+  // 🚀 INVALIDAR CACHÉ DEL CASO VALIDADO + PRECARGAR SIGUIENTE
+  await invalidatePDFCache(serial);
   if (casosLista && indiceActual + 1 < casosLista.length) {
-    const siguienteCaso = casosLista[indiceActual + 1];
-    preloadNextCase(siguienteCaso.serial, API_BASE_URL, ADMIN_TOKEN, pdfCacheManager);
+    prefetchNextCases(casosLista, indiceActual, 3);
   }
   
   // Recargar casos
@@ -1013,136 +1015,57 @@ useEffect(() => {
   verificarReenvios();
 }, [casoActualizado?.serial]);
 
-  // ✅ NUEVA FUNCIÓN: Cargar PDF INSTANTÁNEO desde stream
+  // ✅ CARGA PDF ULTRA-RÁPIDA con IndexedDB + /pdf/fast
   useEffect(() => {
-    const cargarPDFDirecto = async () => {
+    let abortController = new AbortController();
+    
+    const cargarPDFSmart = async () => {
       setLoadingPdf(true);
       
       try {
-        const pdfUrl = `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/stream`;
-        
-        // ✅ CORRECCIÓN 2: Timeout aumentado para Railway (25s → 35s)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 35000);
-        
-        const pdfjsLib = window.pdfjsLib;
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 
-          `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-        
-        const response = await fetch(pdfUrl, {
-          headers: getHeaders(),
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        const arrayBuffer = await response.arrayBuffer();
-        
-        const loadingTask = pdfjsLib.getDocument({
-          data: arrayBuffer,
-          disableAutoFetch: false
-        });
-        
-        const pdf = await loadingTask.promise;
-        const pagesArray = [];
-        
-        // ⚡ Renderizar SOLO primera página INMEDIATAMENTE
-        const page1 = await pdf.getPage(1);
-        const viewport1 = page1.getViewport({ scale: 1.8 });
-        const canvas1 = document.createElement('canvas');
-        canvas1.width = viewport1.width;
-        canvas1.height = viewport1.height;
-        
-        const ctx1 = canvas1.getContext('2d');
-        await page1.render({
-          canvasContext: ctx1,
-          viewport: viewport1
-        }).promise;
-        
-        pagesArray.push({
-          id: 0,
-          fullImage: canvas1.toDataURL('image/jpeg', 0.85)
-        });
-        
-        setPages([...pagesArray]);
-        setCurrentPage(0);
-        setLoadingPdf(false);
-        
-        // 📥 Cargar resto en background
-        for (let i = 2; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 1.8 });
-          const canvas = document.createElement('canvas');
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
+        await loadPDFSmart(casoSeleccionado.serial, {
+          signal: abortController.signal,
           
-          const context = canvas.getContext('2d');
-          await page.render({
-            canvasContext: context,
-            viewport: viewport
-          }).promise;
+          // ⚡ Primera página lista → mostrar de inmediato
+          onFirstPage: (firstPages, info) => {
+            setPages(firstPages);
+            setCurrentPage(0);
+            setLoadingPdf(false);
+            console.log(`⚡ Primera página en ${info.loadTimeMs.toFixed(0)}ms ${info.fromCache ? '(caché)' : '(red)'}`);
+          },
           
-          pagesArray.push({
-            id: i - 1,
-            fullImage: canvas.toDataURL('image/jpeg', 0.85)
-          });
+          // 📥 Todas las páginas listas
+          onAllPages: (allPages, info) => {
+            setPages([...allPages]);
+            console.log(`✅ ${info.totalPages} páginas en ${info.loadTimeMs.toFixed(0)}ms ${info.fromCache ? '(caché)' : '(red)'}`);
+          },
           
-          setPages([...pagesArray]);
-        }
-        
+          onError: (error) => {
+            console.error('❌ Error cargando PDF:', error);
+            setLoadingPdf(false);
+          }
+        });
       } catch (error) {
-        console.error('❌ Error cargando PDF:', error);
-        setLoadingPdf(false);
+        if (error?.name !== 'AbortError') {
+          console.error('❌ Error cargando PDF:', error);
+          setLoadingPdf(false);
+        }
       }
     };
     
     if (casoSeleccionado?.serial) {
-      cargarPDFDirecto();
+      cargarPDFSmart();
     }
+    
+    return () => {
+      abortController.abort();
+    };
   }, [casoSeleccionado?.serial]);
 
-  // ✅ PRECARGA AGRESIVA DEL SIGUIENTE + PRÓXIMO PDF (triple carga para velocidad)
+  // ✅ PRECARGA INTELIGENTE: Descarga próximos PDFs a IndexedDB en background
   useEffect(() => {
-    // Precarga el siguiente y el siguiente del siguiente
-    const precargaMultiple = async () => {
-      const pdfjsLib = window.pdfjsLib;
-      if (!pdfjsLib) return;
-      
-      // Precarga los próximos 3 casos en paralelo (no secuencial)
-      const indicesToPrefetch = [];
-      for (let i = 1; i <= 3; i++) {
-        if (indiceActual + i < casosLista.length) {
-          indicesToPrefetch.push(indiceActual + i);
-        }
-      }
-      
-      // Cargar todos en paralelo sin esperar (fire and forget)
-      indicesToPrefetch.forEach((idx) => {
-        const caso = casosLista[idx];
-        const delay = idx === indiceActual + 1 ? 500 : (idx === indiceActual + 2 ? 2000 : 5000);
-        
-        setTimeout(() => {
-          try {
-            const pdfUrl = `${API_BASE_URL}/validador/casos/${encodeURIComponent(caso.serial)}/pdf`;
-            const loadingTask = pdfjsLib.getDocument({
-              url: pdfUrl,
-              httpHeaders: getHeaders(),
-              disableAutoFetch: false // Asegurar que descarga todo
-            });
-            
-            // Trigger la descarga pero no esperar
-            loadingTask.promise
-              .then(() => console.log(`✅ Precargué: ${caso.serial}`))
-              .catch(() => console.log(`⚠️ Precarga falló: ${caso.serial}`));
-          } catch (error) {
-            console.log(`⚠️ Error en precarga de ${caso.serial}`);
-          }
-        }, delay);
-      });
-    };
-    
-    // Ejecutar precarga sin bloquear la renderización
     if (casosLista.length > 0) {
-      precargaMultiple();
+      prefetchNextCases(casosLista, indiceActual, 3);
     }
   }, [indiceActual, casosLista]);
 
