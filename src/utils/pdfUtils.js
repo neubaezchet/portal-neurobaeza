@@ -1,15 +1,23 @@
 /**
  * Utilidades PDF Locales - Procesamiento 100% en el navegador
  * Sin necesidad de servidor - INSTANTÁNEO
+ * 
+ * IMPORTANTE: Usa window.pdfjsLib (CDN v3.11.174) para evitar
+ * conflictos de versión con pdfjs-dist npm (v5.x).
+ * NO importar pdfjs-dist aquí.
  */
 
 import { PDFDocument } from 'pdf-lib';
-import * as pdfjsLib from 'pdfjs-dist';
 
-// Configurar worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Usar PDF.js global cargado desde CDN (v3.11.174)
+// NO importar pdfjs-dist (v5.x) - causa conflicto de worker y pantalla negra
+const getPdfjsLib = () => {
+  const lib = window.pdfjsLib;
+  if (!lib) throw new Error('PDF.js no disponible (window.pdfjsLib)');
+  return lib;
+};
 
-const getDocument = pdfjsLib.getDocument;
+const getDocument = (options) => getPdfjsLib().getDocument(options);
 
 /**
  * Rotar página(s) de un PDF
