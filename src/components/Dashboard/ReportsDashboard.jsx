@@ -383,6 +383,14 @@ export default function ReportsDashboard({ empresas = [] }) {
     { key: 'total_dias_portal', label: 'Días Portal', accessor: r => r.total_dias_portal, render: r => <span className="font-bold">{r.total_dias_portal}</span> },
     { key: 'total_dias_kactus', label: 'Días Kactus', accessor: r => r.total_dias_kactus, render: r => <span className="font-bold text-cyan-400">{r.total_dias_kactus || '—'}</span> },
     { key: 'prorrogas', label: 'Prórrogas', accessor: r => r.prorrogas, render: r => r.prorrogas > 0 ? <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[9px] font-bold">{r.prorrogas}</span> : <span className="text-gray-500">0</span> },
+    { key: 'dias_prorroga', label: 'Días Prórroga', accessor: r => r.dias_prorroga || 0, render: r => {
+      const d = r.dias_prorroga || 0;
+      if (d === 0) return <span className="text-gray-500">0</span>;
+      if (d >= 180) return <span className="px-1.5 py-0.5 bg-red-500/30 text-red-400 rounded text-[9px] font-black animate-pulse">{d}d ⛔</span>;
+      if (d >= 150) return <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[9px] font-bold">{d}d</span>;
+      if (d >= 90) return <span className="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded text-[9px] font-bold">{d}d</span>;
+      return <span className="font-bold text-emerald-400">{d}d</span>;
+    }},
     { key: 'max_cadena_dias', label: 'Máx Cadena', accessor: r => r.max_cadena_dias, render: r => {
       const d = r.max_cadena_dias || 0;
       if (d >= 180) return <span className="px-1.5 py-0.5 bg-red-500/30 text-red-400 rounded text-[9px] font-black animate-pulse">{d}d ⛔</span>;
@@ -394,6 +402,17 @@ export default function ReportsDashboard({ empresas = [] }) {
       if (r.supero_180) return <span className="px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full text-[9px] font-bold animate-pulse">⛔ SUPERÓ 180</span>;
       if (r.cerca_limite_180) return <span className="px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded-full text-[9px] font-bold">🔴 CERCA</span>;
       return <span className="text-gray-500 text-[9px]">OK</span>;
+    }},
+    { key: 'huecos', label: 'Huecos', accessor: r => r.huecos_detectados || 0, render: r => {
+      const h = r.huecos_detectados || 0;
+      if (h === 0) return <span className="text-gray-500 text-[9px]">—</span>;
+      return (
+        <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-[9px] font-bold" title={
+          (r.huecos_info || []).map(hi => `Hueco: ${hi.dias_hueco}d, potencial: ${hi.dias_potenciales}d`).join(' | ')
+        }>
+          ⚠️ {h} hueco{h > 1 ? 's' : ''}
+        </span>
+      );
     }},
     { key: 'diagnosticos', label: 'Diagnósticos', width: '220px', accessor: r => (r.diagnosticos || []).join(', '),
       render: r => {
@@ -428,9 +447,9 @@ export default function ReportsDashboard({ empresas = [] }) {
 
   // ═══ Columnas para Alertas 180 días ═══
   const COLS_ALERTAS_180 = useMemo(() => [
-    { key: 'tipo', label: 'Tipo Alerta', width: '140px', accessor: r => r.tipo, render: r => {
-      const colors = { LIMITE_180_SUPERADO: 'bg-red-500/30 text-red-300', ALERTA_CRITICA: 'bg-orange-500/20 text-orange-400', ALERTA_TEMPRANA: 'bg-yellow-500/20 text-yellow-400' };
-      const icons = { LIMITE_180_SUPERADO: '⛔', ALERTA_CRITICA: '🔴', ALERTA_TEMPRANA: '🟡' };
+    { key: 'tipo', label: 'Tipo Alerta', width: '160px', accessor: r => r.tipo, render: r => {
+      const colors = { LIMITE_180_SUPERADO: 'bg-red-500/30 text-red-300', ALERTA_CRITICA: 'bg-orange-500/20 text-orange-400', ALERTA_TEMPRANA: 'bg-yellow-500/20 text-yellow-400', PRORROGA_CORTADA: 'bg-purple-500/20 text-purple-400' };
+      const icons = { LIMITE_180_SUPERADO: '⛔', ALERTA_CRITICA: '🔴', ALERTA_TEMPRANA: '🟡', PRORROGA_CORTADA: '⚠️' };
       return <span className={`px-2 py-1 rounded text-[10px] font-bold ${colors[r.tipo] || 'bg-gray-700'}`}>{icons[r.tipo] || '⚪'} {(r.tipo || '').replace(/_/g, ' ')}</span>;
     }},
     { key: 'severidad', label: 'Severidad', accessor: r => r.severidad, render: r => {
@@ -438,7 +457,10 @@ export default function ReportsDashboard({ empresas = [] }) {
       return <span className={`font-bold uppercase text-[10px] ${c[r.severidad] || ''}`}>{r.severidad}</span>;
     }},
     { key: 'dias_acumulados', label: 'Días Acum.', accessor: r => r.dias_acumulados, render: r => <span className="font-black text-lg text-red-400">{r.dias_acumulados}</span> },
-    { key: 'dias_restantes', label: 'Restantes', accessor: r => r.dias_restantes, render: r => r.dias_restantes != null ? <span className="font-bold text-yellow-400">{r.dias_restantes}d</span> : <span className="text-red-400 font-bold">EXCEDIDO</span> },
+    { key: 'dias_restantes', label: 'Restantes', accessor: r => r.dias_restantes, render: r => {
+      if (r.tipo === 'PRORROGA_CORTADA') return <span className="font-bold text-purple-400">{r.dias_hueco || '?'}d hueco</span>;
+      return r.dias_restantes != null ? <span className="font-bold text-yellow-400">{r.dias_restantes}d</span> : <span className="text-red-400 font-bold">EXCEDIDO</span>;
+    }},
     { key: 'mensaje', label: 'Detalle', width: '350px', accessor: r => r.mensaje, render: r => <span className="text-gray-300 text-[10px] leading-tight block max-w-[350px]">{r.mensaje}</span> },
     { key: 'normativa', label: 'Normativa', width: '250px', accessor: r => r.normativa, render: r => r.normativa ? <span className="text-gray-500 text-[9px] italic block max-w-[250px]">{r.normativa}</span> : '—' },
     { key: 'codigos', label: 'CIE-10', accessor: r => (r.codigos_involucrados || []).join(', '), render: r => {
