@@ -12,10 +12,7 @@ import ReportsDashboard from './components/Dashboard/ReportsDashboard';
 import BeforeAfterPDF from './components/BeforeAfterPDF';
 import LivePDFEditor from './components/LivePDFEditor';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
-import {
-  rotatePDFPage,
-  rotateAllPages,
-} from './utils/pdfUtils';
+// pdfUtils imports removidos — rotación ahora usa CSS + pdf-lib dinámico en guardarPDFEnDrive
 // Legacy cache imports (reemplazado por pdfSmartLoader)
 // import { pdfCacheManager } from './utils/pdfCache';
 // import { preloadNextCase } from './utils/validationOptimizations';
@@ -119,6 +116,8 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   const [beforeAfterCanvases, setBeforeAfterCanvases] = useState(null);
   const [showLiveEditor, setShowLiveEditor] = useState(null); // null | { mode: string, pdfFile: File }
   const [currentPDFFile, setCurrentPDFFile] = useState(null); // File del PDF actual en cache
+  const [pageRotations, setPageRotations] = useState({}); // {pageIndex: angle} rotaciones CSS pendientes
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false); // indicador de cambios sin guardar
   
   // 🚀 OPTIMIZACIONES
   const progressBar = useProgress();
@@ -219,50 +218,28 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     return checksCalidad;
   };
  
-// ✅ ROTAR PÁGINA - LOCAL (instantáneo via pdf-lib)
-  const rotarPagina = useCallback(async (angle, aplicarATodas) => {
-    setEnviandoValidacion(true);
-    mostrarNotificacion('🔄 Rotando...');
-    
-    try {
-      // Obtener PDF actual
-      let pdfFile = currentPDFFile;
-      if (!pdfFile) {
-        const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/fast`, {
-          headers: getHeaders()
+// ✅ ROTAR PÁGINA - 100% INSTANTÁNEO (solo CSS transform, sin servidor)
+  const rotarPagina = useCallback((angle, aplicarATodas) => {
+    if (aplicarATodas) {
+      // Rotar todas las páginas
+      setPageRotations(prev => {
+        const updated = { ...prev };
+        pages.forEach((_, idx) => {
+          updated[idx] = ((updated[idx] || 0) + angle + 360) % 360;
         });
-        const pdfBlob = await response.blob();
-        pdfFile = new File([pdfBlob], `${casoSeleccionado.serial}.pdf`, { type: 'application/pdf' });
-      }
-      
-      // Rotar localmente (instantáneo - solo cambia metadata del PDF)
-      const rotatedBlob = aplicarATodas 
-        ? await rotateAllPages(pdfFile, angle)
-        : await rotatePDFPage(pdfFile, currentPage, angle);
-      
-      // Subir PDF rotado al servidor
-      const formData = new FormData();
-      formData.append('archivo', new File([rotatedBlob], 'rotated.pdf', { type: 'application/pdf' }));
-      
-      const saveResponse = await fetch(
-        `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/guardar-pdf-editado`,
-        { method: 'POST', headers: { 'X-Admin-Token': ADMIN_TOKEN }, body: formData }
-      );
-      
-      if (saveResponse.ok) {
-        mostrarNotificacion('✅ Rotado y guardado', 'success');
-        await invalidatePDFCache(casoSeleccionado.serial);
-        await recargarPDFInPlace(casoSeleccionado.serial);
-      } else {
-        mostrarNotificacion('❌ Error guardando rotación', 'error');
-      }
-    } catch (error) {
-      console.error('Error rotando:', error);
-      mostrarNotificacion('❌ Error rotando', 'error');
-    } finally {
-      setEnviandoValidacion(false);
+        return updated;
+      });
+      mostrarNotificacion('✅ Todas las páginas rotadas', 'success');
+    } else {
+      // Rotar solo la página actual
+      setPageRotations(prev => ({
+        ...prev,
+        [currentPage]: ((prev[currentPage] || 0) + angle + 360) % 360,
+      }));
+      mostrarNotificacion('✅ Página rotada', 'success');
     }
-  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace, currentPDFFile]);
+    setHasUnsavedChanges(true);
+  }, [currentPage, pages, mostrarNotificacion]);
 
 // ✅ ABRIR EDITOR EN VIVO (para cualquier herramienta)
   const abrirEditorEnVivo = useCallback(async (mode) => {
@@ -307,6 +284,8 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
         mostrarNotificacion('✅ Cambios guardados en Drive', 'success');
         setShowLiveEditor(null);
         setCurrentPDFFile(null);
+        setPageRotations({});
+        setHasUnsavedChanges(false);
         await invalidatePDFCache(casoSeleccionado.serial);
         await recargarPDFInPlace(casoSeleccionado.serial);
       } else {
@@ -381,31 +360,85 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     });
   }, []);
 
-  // ✅ GUARDAR PDF EN DRIVE
+  // ✅ GUARDAR PDF EN DRIVE (aplica rotaciones pendientes + sube)
   const guardarPDFEnDrive = useCallback(async () => {
     setGuardandoPDF(true);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/guardar-drive`, {
-        method: 'POST',
-        headers: getHeaders()
-      });
+      // Si hay rotaciones pendientes, aplicarlas al PDF antes de subir
+      const tieneRotaciones = Object.values(pageRotations).some(a => a !== 0);
       
-      if (response.ok) {
-        // 🗑️ Invalidar caché local porque el PDF en Drive cambió
-        await invalidatePDFCache(casoSeleccionado.serial);
-        mostrarNotificacion('💾 Guardado en Drive', 'success');
-        setMostradoGuardadoExitoso(true);
-        setTimeout(() => setMostradoGuardadoExitoso(false), 3000);
+      if (tieneRotaciones) {
+        mostrarNotificacion('💾 Aplicando cambios y guardando...');
+        
+        // Obtener PDF
+        let pdfFile = currentPDFFile;
+        if (!pdfFile) {
+          const resp = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/fast`, {
+            headers: getHeaders()
+          });
+          pdfFile = new File([await resp.blob()], `${casoSeleccionado.serial}.pdf`, { type: 'application/pdf' });
+        }
+        
+        // Aplicar todas las rotaciones con pdf-lib
+        const { PDFDocument } = await import('pdf-lib');
+        const pdfBytes = await pdfFile.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(pdfBytes);
+        
+        Object.entries(pageRotations).forEach(([pageIdx, angle]) => {
+          if (angle === 0) return;
+          const page = pdfDoc.getPage(parseInt(pageIdx));
+          const current = page.getRotation().angle || 0;
+          page.setRotation({ type: 0, angle: (current + angle + 360) % 360 });
+        });
+        
+        const newPdfBytes = await pdfDoc.save();
+        const editedBlob = new Blob([newPdfBytes], { type: 'application/pdf' });
+        
+        // Subir PDF modificado
+        const formData = new FormData();
+        formData.append('archivo', new File([editedBlob], 'edited.pdf', { type: 'application/pdf' }));
+        
+        const response = await fetch(
+          `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/guardar-pdf-editado`,
+          { method: 'POST', headers: { 'X-Admin-Token': ADMIN_TOKEN }, body: formData }
+        );
+        
+        if (response.ok) {
+          await invalidatePDFCache(casoSeleccionado.serial);
+          setPageRotations({});
+          setHasUnsavedChanges(false);
+          setCurrentPDFFile(null);
+          mostrarNotificacion('💾 Guardado en Drive', 'success');
+          setMostradoGuardadoExitoso(true);
+          setTimeout(() => setMostradoGuardadoExitoso(false), 3000);
+          await recargarPDFInPlace(casoSeleccionado.serial);
+        } else {
+          mostrarNotificacion('❌ Error guardando', 'error');
+        }
       } else {
-        mostrarNotificacion('❌ Error guardando', 'error');
+        // Sin rotaciones pendientes, guardar directamente
+        const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/guardar-drive`, {
+          method: 'POST',
+          headers: getHeaders()
+        });
+        
+        if (response.ok) {
+          await invalidatePDFCache(casoSeleccionado.serial);
+          setHasUnsavedChanges(false);
+          mostrarNotificacion('💾 Guardado en Drive', 'success');
+          setMostradoGuardadoExitoso(true);
+          setTimeout(() => setMostradoGuardadoExitoso(false), 3000);
+        } else {
+          mostrarNotificacion('❌ Error guardando', 'error');
+        }
       }
     } catch (error) {
       mostrarNotificacion('❌ Error de conexión', 'error');
     } finally {
       setGuardandoPDF(false);
     }
-  }, [casoSeleccionado.serial, mostrarNotificacion]);
+  }, [casoSeleccionado.serial, mostrarNotificacion, pageRotations, currentPDFFile, recargarPDFInPlace]);
 
   // ✅ Función validar con imagen SOAT automática
   const handleValidar = async (serial, accion) => {
@@ -1395,16 +1428,22 @@ return (
             <ZoomIn className="w-4 h-4" />
           </div>
 
-          {/* � Botón Guardar */}
+          {/* 💾 Botón Guardar */}
           {!mostradoGuardadoExitoso ? (
             <button
               onClick={guardarPDFEnDrive}
               disabled={guardandoPDF}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-xl text-white font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-              title="Guardar cambios en Drive"
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${
+                hasUnsavedChanges 
+                  ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 animate-pulse'
+                  : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500'
+              }`}
+              title={hasUnsavedChanges ? 'Hay cambios sin guardar - Click para guardar en Drive' : 'Guardar cambios en Drive'}
             >
               <Save className="w-4 h-4" />
-              <span className="hidden md:inline text-xs">{guardandoPDF ? 'Guardando...' : 'Guardar'}</span>
+              <span className="hidden md:inline text-xs">
+                {guardandoPDF ? 'Guardando...' : hasUnsavedChanges ? '⚠️ Guardar cambios' : 'Guardar'}
+              </span>
             </button>
           ) : (
             <div className="flex items-center gap-2 px-4 py-2 bg-green-600/20 border border-green-500/30 rounded-xl text-green-400 font-semibold animate-pulse">
@@ -1607,7 +1646,8 @@ return (
                 <img 
                   src={page.fullImage} 
                   alt={`Página ${idx + 1}`}
-                  className="w-full h-auto"
+                  className="w-full h-auto transition-transform duration-200"
+                  style={{ transform: pageRotations[idx] ? `rotate(${pageRotations[idx]}deg)` : undefined }}
                 />
                 <div className="text-center text-xs text-gray-400 bg-gray-800 p-1">
                   Pág {idx + 1}
@@ -1659,11 +1699,12 @@ return (
                     src={page.fullImage} 
                     alt={`Página ${idx + 1}`}
                     style={{ 
-                      transform: `scale(${zoom/100})`,
-                      transformOrigin: 'top center',
+                      transform: `scale(${zoom/100})${pageRotations[idx] ? ` rotate(${pageRotations[idx]}deg)` : ''}`,
+                      transformOrigin: 'center center',
                       width: '100%',
                       height: 'auto',
-                      display: 'block'
+                      display: 'block',
+                      transition: 'transform 0.2s ease',
                     }}
                     className="cursor-pointer"
                   />

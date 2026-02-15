@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { X, Scissors, Save, Undo2 } from 'lucide-react';
+import { X, Scissors, Save, Undo2, RotateCw, RotateCcw } from 'lucide-react';
 import {
   buildCSSFilter,
   createSharpenSVGMarkup,
@@ -37,6 +37,9 @@ export default function LivePDFEditor({
   
   // Estado de ajustes (se aplican en vivo via CSS)
   const [adjustments, setAdjustments] = useState({ ...DEFAULT_ADJUSTMENTS });
+  
+  // Estado de rotación (CSS transform, instantáneo GPU)
+  const [rotation, setRotation] = useState(0); // grados: 0, 90, 180, 270
   
   // Estado del modo crop
   const [cropMode, setCropMode] = useState(initialMode === 'crop');
@@ -109,8 +112,9 @@ export default function LivePDFEditor({
       || adjustments.contrast !== 1 
       || adjustments.grayscale 
       || adjustments.sharpness > 0
-      || cropRect !== null;
-  }, [adjustments, cropRect]);
+      || cropRect !== null
+      || rotation !== 0;
+  }, [adjustments, cropRect, rotation]);
 
   // ═══════════════════════════════════════════════════════════
   // HANDLERS de sliders
@@ -123,6 +127,7 @@ export default function LivePDFEditor({
     setAdjustments({ ...DEFAULT_ADJUSTMENTS });
     setCropRect(null);
     setCropMode(false);
+    setRotation(0);
   }, []);
 
   // ═══════════════════════════════════════════════════════════
@@ -308,6 +313,7 @@ export default function LivePDFEditor({
     try {
       const finalAdjustments = {
         ...adjustments,
+        rotation,
         cropRect: cropRect ? {
           x: cropRect.startX,
           y: cropRect.startY,
@@ -316,15 +322,30 @@ export default function LivePDFEditor({
         } : null,
       };
       
-      const editedBlob = await applyAllAdjustments(pdfFile, pageNum, finalAdjustments);
-      onSave(editedBlob);
+      // Si SOLO hay rotación (sin otros cambios), usar pdf-lib directo (mucho más rápido)
+      if (rotation !== 0 && adjustments.brightness === 1 && adjustments.contrast === 1 
+          && !adjustments.grayscale && adjustments.sharpness === 0 && !cropRect) {
+        const { PDFDocument } = await import('pdf-lib');
+        const pdfBytes = await pdfFile.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(pdfBytes);
+        const page = pdfDoc.getPage(pageNum);
+        const current = page.getRotation().angle || 0;
+        page.setRotation({ type: 0, angle: (current + rotation + 360) % 360 });
+        const newBytes = await pdfDoc.save();
+        const editedBlob = new Blob([newBytes], { type: 'application/pdf' });
+        onSave(editedBlob);
+      } else {
+        // Aplicar todos los ajustes (brillo, contraste, sharpen, crop, rotación)
+        const editedBlob = await applyAllAdjustments(pdfFile, pageNum, finalAdjustments);
+        onSave(editedBlob);
+      }
     } catch (err) {
       console.error('[LiveEditor] Error guardando:', err);
       alert('Error aplicando cambios');
     } finally {
       setSaving(false);
     }
-  }, [hasChanges, pdfFile, pageNum, adjustments, cropRect, onSave]);
+  }, [hasChanges, pdfFile, pageNum, adjustments, cropRect, rotation, onSave]);
 
   // ═══════════════════════════════════════════════════════════
   // RENDER
@@ -402,13 +423,17 @@ export default function LivePDFEditor({
             onMouseLeave={handleCropMouseUp}
             style={{ cursor: cropMode ? 'crosshair' : 'default' }}
           >
-            {/* Imagen con CSS filters aplicados en vivo */}
+            {/* Imagen con CSS filters + rotación aplicados en vivo */}
             <img
               ref={imageRef}
               src={baseImageURL}
               alt="PDF Preview"
               className="max-w-full max-h-[calc(100vh-140px)] object-contain select-none"
-              style={{ filter: cssFilter }}
+              style={{ 
+                filter: cssFilter,
+                transform: rotation !== 0 ? `rotate(${rotation}deg)` : undefined,
+                transition: 'transform 0.2s ease',
+              }}
               draggable={false}
             />
             
@@ -547,6 +572,45 @@ export default function LivePDFEditor({
                 </button>
                 <span>Máximo</span>
               </div>
+            </div>
+
+            <hr className="border-gray-700" />
+
+            {/* 🔄 ROTACIÓN */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-gray-300 text-xs font-semibold">🔄 Rotación</label>
+                <span className="text-blue-400 text-xs font-mono">
+                  {rotation === 0 ? '0°' : `${rotation}°`}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  onClick={() => setRotation(prev => (prev - 90 + 360) % 360)}
+                  className="px-2 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg flex items-center justify-center gap-1"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" /> -90°
+                </button>
+                <button
+                  onClick={() => setRotation(0)}
+                  disabled={rotation === 0}
+                  className="px-2 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg disabled:opacity-30"
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={() => setRotation(prev => (prev + 90) % 360)}
+                  className="px-2 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg flex items-center justify-center gap-1"
+                >
+                  <RotateCw className="w-3.5 h-3.5" /> +90°
+                </button>
+              </div>
+              <button
+                onClick={() => setRotation(prev => (prev + 180) % 360)}
+                className="w-full px-2 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-[10px] rounded-lg"
+              >
+                ↻ 180° (voltear)
+              </button>
             </div>
 
             <hr className="border-gray-700" />

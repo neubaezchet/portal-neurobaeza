@@ -314,11 +314,26 @@ export async function canvasToNewPDFPage(pdfFile, canvas, pageNum) {
  */
 export async function applyAllAdjustments(pdfFile, pageNum, adjustments) {
   const t0 = performance.now();
-  const { brightness = 1, contrast = 1, grayscale = false, sharpness = 0, cropRect = null } = adjustments;
+  const { brightness = 1, contrast = 1, grayscale = false, sharpness = 0, cropRect = null, rotation = 0 } = adjustments;
   
   let canvas = await renderPDFPageToCanvas(pdfFile, pageNum, 2.0);
   
-  // 1. Crop primero
+  // 1. Rotación visual (canvas rotate)
+  if (rotation !== 0) {
+    const is90or270 = (rotation % 180) !== 0;
+    const newW = is90or270 ? canvas.height : canvas.width;
+    const newH = is90or270 ? canvas.width : canvas.height;
+    const rotCanvas = document.createElement('canvas');
+    rotCanvas.width = newW;
+    rotCanvas.height = newH;
+    const rotCtx = rotCanvas.getContext('2d');
+    rotCtx.translate(newW / 2, newH / 2);
+    rotCtx.rotate((rotation * Math.PI) / 180);
+    rotCtx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+    canvas = rotCanvas;
+  }
+  
+  // 2. Crop
   if (cropRect) {
     canvas = cropCanvas(canvas, {
       x: Math.round(cropRect.x * canvas.width),
@@ -328,17 +343,17 @@ export async function applyAllAdjustments(pdfFile, pageNum, adjustments) {
     });
   }
   
-  // 2. Brightness/Contrast/Grayscale (GPU)
+  // 3. Brightness/Contrast/Grayscale (GPU)
   if (brightness !== 1 || contrast !== 1 || grayscale) {
     canvas = applyCanvasFilters(canvas, { brightness, contrast, grayscale });
   }
   
-  // 3. Sharpen (convolution kernel)
+  // 4. Sharpen (convolution kernel)
   if (sharpness > 0) {
     canvas = applySharpen(canvas, sharpness);
   }
   
-  // 4. Guardar en PDF
+  // 5. Guardar en PDF
   const result = await canvasToNewPDFPage(pdfFile, canvas, pageNum);
   console.log(`[PDF] Todos los ajustes en ${(performance.now() - t0).toFixed(0)}ms`);
   return result;
