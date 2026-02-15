@@ -27,6 +27,8 @@ const PERIODOS = [
   { value: 'quincena_2', label: 'Quincena 2 (16-Fin)' },
   { value: 'año_actual', label: 'Año Actual' },
   { value: 'ultimos_90', label: 'Últimos 90 días' },
+  { value: 'todo', label: 'Todo (Histórico)' },
+  { value: 'personalizado', label: '📅 Personalizado...' },
 ];
 
 const ESTADO_COLORS = {
@@ -288,6 +290,8 @@ export default function ReportsDashboard({ empresas = [] }) {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [showEmailConfig, setShowEmailConfig] = useState(false);
+  const [fechaDesde, setFechaDesde] = useState('');
+  const [fechaHasta, setFechaHasta] = useState('');
   const intervalRef = useRef(null);
 
   // Reset subtab al cambiar de tab principal
@@ -297,8 +301,12 @@ export default function ReportsDashboard({ empresas = [] }) {
     if (!silencioso) setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ empresa, periodo }).toString();
-      const resp = await fetch(`${API_CONFIG.BASE_URL}/validador/casos/dashboard-completo?${params}`, {
+      const params = new URLSearchParams({ empresa, periodo });
+      if (periodo === 'personalizado' && fechaDesde && fechaHasta) {
+        params.set('fecha_desde', fechaDesde);
+        params.set('fecha_hasta', fechaHasta);
+      }
+      const resp = await fetch(`${API_CONFIG.BASE_URL}/validador/casos/dashboard-completo?${params.toString()}`, {
         headers: { 'X-Admin-Token': API_CONFIG.ADMIN_TOKEN },
       });
       if (!resp.ok) throw new Error(`Error ${resp.status}`);
@@ -310,7 +318,7 @@ export default function ReportsDashboard({ empresas = [] }) {
     } finally {
       setLoading(false);
     }
-  }, [empresa, periodo]);
+  }, [empresa, periodo, fechaDesde, fechaHasta]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -595,6 +603,16 @@ export default function ReportsDashboard({ empresas = [] }) {
               className="px-3 py-1.5 bg-gray-800 border border-gray-600 rounded-lg text-xs text-white">
               {PERIODOS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
             </select>
+            
+            {periodo === 'personalizado' && (
+              <div className="flex items-center gap-1.5">
+                <input type="date" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)}
+                  className="px-2 py-1.5 bg-gray-800 border border-gray-600 rounded-lg text-xs text-white" />
+                <span className="text-gray-500 text-xs">a</span>
+                <input type="date" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)}
+                  className="px-2 py-1.5 bg-gray-800 border border-gray-600 rounded-lg text-xs text-white" />
+              </div>
+            )}
             
             <button onClick={() => setAutoRefresh(!autoRefresh)}
               className={`p-2 rounded-lg transition-colors ${autoRefresh ? 'bg-green-600/30 text-green-400' : 'bg-gray-700 text-gray-500'}`}
