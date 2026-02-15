@@ -606,8 +606,6 @@ export default function PowerBIDashboard({ empresas = [] }) {
   const searchRef = useRef(null);
   const debounceRef = useRef(null);
 
-  const headers = { 'X-Admin-Token': API_CONFIG.ADMIN_TOKEN };
-
   // Search employees
   const doSearch = useCallback(async (q) => {
     if (!q || q.length < 2) { setSearchResults(null); return; }
@@ -616,7 +614,7 @@ export default function PowerBIDashboard({ empresas = [] }) {
     try {
       const resp = await fetch(
         `${API_CONFIG.BASE_URL}/validador/casos/powerbi/buscar?q=${encodeURIComponent(q)}&empresa=${empresa}`,
-        { headers }
+        { headers: { 'X-Admin-Token': API_CONFIG.ADMIN_TOKEN } }
       );
       if (!resp.ok) throw new Error(`Error ${resp.status}`);
       const data = await resp.json();
@@ -626,7 +624,7 @@ export default function PowerBIDashboard({ empresas = [] }) {
     } finally {
       setSearchLoading(false);
     }
-  }, [empresa, headers]);
+  }, [empresa]);
 
   // Debounced search
   const handleSearchInput = (val) => {
@@ -644,7 +642,7 @@ export default function PowerBIDashboard({ empresas = [] }) {
     try {
       const resp = await fetch(
         `${API_CONFIG.BASE_URL}/validador/casos/powerbi/persona/${cedula}`,
-        { headers }
+        { headers: { 'X-Admin-Token': API_CONFIG.ADMIN_TOKEN } }
       );
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}));
