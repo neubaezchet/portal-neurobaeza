@@ -287,19 +287,30 @@ export default function ReportsDashboard({ empresas = [] }) {
     { key: 'cedula', label: 'Cédula (Llave)', width: '110px', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300">{r.cedula}</span> },
     { key: 'nombre', label: 'Nombre', width: '160px', accessor: r => r.nombre },
     { key: 'empresa', label: 'Empresa', accessor: r => r.empresa },
+    { key: 'cargo', label: 'Cargo', accessor: r => r.cargo },
+    { key: 'area', label: 'Área', accessor: r => r.area },
+    { key: 'centro_costo', label: 'Centro Costo', accessor: r => r.centro_costo },
+    { key: 'ciudad', label: 'Ciudad', accessor: r => r.ciudad },
+    { key: 'tipo_contrato', label: 'Contrato', accessor: r => r.tipo_contrato },
     { key: 'tipo', label: 'Tipo', accessor: r => r.tipo, render: r => <span className="text-gray-400">{(r.tipo || '').replace(/_/g, ' ')}</span> },
     { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
     { key: 'diagnostico', label: 'Diagnóstico', width: '200px', accessor: r => r.diagnostico, render: r => <span className="text-gray-400 max-w-[200px] truncate block" title={r.diagnostico}>{r.diagnostico || '—'}</span> },
-    { key: 'dias_incapacidad', label: 'Días Inc.', accessor: r => r.dias_incapacidad, render: r => <span className="font-bold">{r.dias_incapacidad ?? '—'}</span> },
+    { key: 'codigo_cie10', label: 'CIE-10', accessor: r => r.codigo_cie10, render: r => <span className="font-mono text-purple-300">{r.codigo_cie10 || '—'}</span> },
+    { key: 'dias_incapacidad', label: 'Días Portal', accessor: r => r.dias_incapacidad, render: r => <span className="font-bold">{r.dias_incapacidad ?? '—'}</span> },
+    { key: 'dias_kactus', label: 'Días Kactus', accessor: r => r.dias_kactus, render: r => <span className="font-bold text-cyan-400">{r.dias_kactus ?? '—'}</span> },
+    { key: 'es_prorroga', label: 'Prórroga', accessor: r => r.es_prorroga, render: r => r.es_prorroga ? <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[9px] font-bold">SÍ</span> : <span className="text-gray-500">No</span> },
+    { key: 'numero_incapacidad', label: 'Nº Incapacidad', accessor: r => r.numero_incapacidad },
+    { key: 'medico_tratante', label: 'Médico', width: '150px', accessor: r => r.medico_tratante },
+    { key: 'institucion_origen', label: 'Institución', width: '150px', accessor: r => r.institucion_origen },
     { key: 'fecha_inicio', label: 'F. Inicio', accessor: r => r.fecha_inicio, render: r => formatFechaCorta(r.fecha_inicio) },
     { key: 'fecha_fin', label: 'F. Fin', accessor: r => r.fecha_fin, render: r => formatFechaCorta(r.fecha_fin) },
+    { key: 'fecha_ingreso', label: 'F. Ingreso Emp.', accessor: r => r.fecha_ingreso, render: r => formatFechaCorta(r.fecha_ingreso) },
     { key: 'fecha_radicacion', label: 'Radicación', accessor: r => r.fecha_radicacion, render: r => formatFechaCorta(r.fecha_radicacion) },
-    { key: 'dias_en_portal', label: 'Días Portal', accessor: r => r.dias_en_portal, render: r => {
+    { key: 'dias_en_portal', label: 'Días en Portal', accessor: r => r.dias_en_portal, render: r => {
       const d = r.dias_en_portal || 0;
       return <span className={`font-bold ${d > 15 ? 'text-red-400' : d > 7 ? 'text-yellow-400' : 'text-green-400'}`}>{d}d</span>;
     }},
     { key: 'eps', label: 'EPS', accessor: r => r.eps },
-    { key: 'area', label: 'Área', accessor: r => r.area },
     { key: 'observacion', label: 'Observación', width: '200px', accessor: r => r.observacion, render: r => <span className="text-gray-400 max-w-[200px] truncate block" title={r.observacion}>{r.observacion || '—'}</span> },
   ], []);
 
@@ -308,8 +319,12 @@ export default function ReportsDashboard({ empresas = [] }) {
     { key: 'cedula', label: 'Cédula (Llave)', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300">{r.cedula}</span> },
     { key: 'nombre', label: 'Nombre', width: '150px', accessor: r => r.nombre },
     { key: 'empresa', label: 'Empresa', accessor: r => r.empresa },
+    { key: 'area', label: 'Área', accessor: r => r.area },
+    { key: 'cargo', label: 'Cargo', accessor: r => r.cargo },
     { key: 'tipo', label: 'Tipo', accessor: r => r.tipo, render: r => <span className="text-gray-400">{(r.tipo || '').replace(/_/g, ' ')}</span> },
     { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
+    { key: 'diagnostico', label: 'Diagnóstico', width: '150px', accessor: r => r.diagnostico, render: r => <span className="text-gray-400 max-w-[150px] truncate block" title={r.diagnostico}>{r.diagnostico || '—'}</span> },
+    { key: 'codigo_cie10', label: 'CIE-10', accessor: r => r.codigo_cie10 },
     { key: 'docs_faltantes', label: 'Documentos Faltantes', width: '220px', accessor: r => (r.docs_faltantes || []).join(', '),
       render: r => {
         const docs = r.docs_faltantes || [];
@@ -338,18 +353,30 @@ export default function ReportsDashboard({ empresas = [] }) {
     { key: 'cedula', label: 'Cédula (Llave)', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300">{r.cedula}</span> },
     { key: 'nombre', label: 'Nombre', width: '160px', accessor: r => r.nombre },
     { key: 'empresa', label: 'Empresa', accessor: r => r.empresa },
+    { key: 'area', label: 'Área', accessor: r => r.area },
+    { key: 'cargo', label: 'Cargo', accessor: r => r.cargo },
+    { key: 'ciudad', label: 'Ciudad', accessor: r => r.ciudad },
     { key: 'total_incapacidades', label: 'Total Inc.', accessor: r => r.total_incapacidades,
       render: r => {
         const t = r.total_incapacidades;
         return <span className={`font-black text-base ${t >= 5 ? 'text-red-400' : t >= 3 ? 'text-orange-400' : 'text-white'}`}>{t}</span>;
       }
     },
-    { key: 'total_dias_portal', label: 'Días Acum. Portal', accessor: r => r.total_dias_portal, render: r => <span className="font-bold">{r.total_dias_portal}</span> },
+    { key: 'total_dias_portal', label: 'Días Portal', accessor: r => r.total_dias_portal, render: r => <span className="font-bold">{r.total_dias_portal}</span> },
+    { key: 'total_dias_kactus', label: 'Días Kactus', accessor: r => r.total_dias_kactus, render: r => <span className="font-bold text-cyan-400">{r.total_dias_kactus || '—'}</span> },
+    { key: 'prorrogas', label: 'Prórrogas', accessor: r => r.prorrogas, render: r => r.prorrogas > 0 ? <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[9px] font-bold">{r.prorrogas}</span> : <span className="text-gray-500">0</span> },
     { key: 'diagnosticos', label: 'Diagnósticos', width: '220px', accessor: r => (r.diagnosticos || []).join(', '),
       render: r => {
         const diags = r.diagnosticos || [];
         if (diags.length === 0) return <span className="text-gray-500">—</span>;
         return <div className="flex flex-wrap gap-1">{diags.map((d,i) => <span key={i} className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 rounded text-[9px] max-w-[150px] truncate" title={d}>{d}</span>)}</div>;
+      }
+    },
+    { key: 'codigos_cie10', label: 'CIE-10', width: '120px', accessor: r => (r.codigos_cie10 || []).join(', '),
+      render: r => {
+        const codes = r.codigos_cie10 || [];
+        if (codes.length === 0) return <span className="text-gray-500">—</span>;
+        return <div className="flex flex-wrap gap-1">{codes.map((c,i) => <span key={i} className="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-300 rounded text-[9px] font-mono">{c}</span>)}</div>;
       }
     },
     { key: 'desglose', label: 'Desglose Mensual', width: '200px', accessor: r => JSON.stringify(r.desglose_mensual || {}),
