@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import ReportsDashboard from './components/Dashboard/ReportsDashboard';
 import ExportacionesPDF from './components/Dashboard/ExportacionesPDF';
+import PowerBIDashboard from './components/Dashboard/PowerBIDashboard';
 import BeforeAfterPDF from './components/BeforeAfterPDF';
 import LivePDFEditor from './components/LivePDFEditor';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
@@ -2589,6 +2590,16 @@ export default function App() {
             >
               📦 Exportaciones PDF
             </button>
+            <button
+              onClick={() => setTabActual('powerbi')}
+              className={`px-4 py-3 font-semibold transition-colors ${
+                tabActual === 'powerbi'
+                  ? 'border-b-2 border-yellow-500 text-yellow-400'
+                  : 'text-gray-400 hover:text-gray-300'
+              }`}
+            >
+              📈 Power BI
+            </button>
           </div>
 
           {/* ⭐ TAB 1: VALIDACIÓN (CÓDIGO EXISTENTE) */}
@@ -2756,6 +2767,11 @@ export default function App() {
           {/* ⭐ TAB 3: EXPORTACIONES MASIVAS PDF */}
           {tabActual === 'exportaciones' && (
             <ExportacionesPDF empresas={empresas} />
+          )}
+
+          {/* ⭐ TAB 4: POWER BI — ANÁLISIS INDIVIDUAL */}
+          {tabActual === 'powerbi' && (
+            <PowerBIDashboard empresas={empresas} />
           )}
         </div>
 
