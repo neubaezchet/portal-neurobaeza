@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   Search, User, Activity, AlertTriangle, Calendar, TrendingUp,
   Download, ChevronRight, FileText, Shield, Clock, BarChart3, 
-  Loader2, X, ArrowRight, Zap, Heart, AlertCircle, Eye
+  Loader2, X, Zap, Heart, AlertCircle, Eye
 } from 'lucide-react';
 import { API_CONFIG } from '../../constants/reportConfig';
 
@@ -54,6 +54,7 @@ function KPI({ icon: Icon, label, value, sub, color = 'blue', alert }) {
   );
 }
 
+// eslint-disable-next-line no-unused-vars
 function MiniBar({ data, maxVal, color }) {
   const pct = maxVal > 0 ? (data / maxVal) * 100 : 0;
   return (
@@ -625,7 +626,7 @@ export default function PowerBIDashboard({ empresas = [] }) {
     } finally {
       setSearchLoading(false);
     }
-  }, [empresa]);
+  }, [empresa, headers]);
 
   // Debounced search
   const handleSearchInput = (val) => {
