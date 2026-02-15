@@ -68,6 +68,8 @@ function MiniBar({ data, maxVal, color }) {
 // ═══════ TIMELINE VISUAL ═══════
 
 function TimelineGantt({ timeline, gaps, cadenas }) {
+  const [tooltip, setTooltip] = useState(null);
+
   if (!timeline.length) return null;
 
   // Calculate date range
@@ -115,8 +117,6 @@ function TimelineGantt({ timeline, gaps, cadenas }) {
     }
     cursor.setMonth(cursor.getMonth() + 1);
   }
-
-  const [tooltip, setTooltip] = useState(null);
 
   return (
     <div className="bg-gray-900/80 border border-gray-700/60 rounded-xl overflow-hidden">
