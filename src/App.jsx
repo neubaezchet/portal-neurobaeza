@@ -2468,7 +2468,9 @@ export default function App() {
   const cargarEmpresas = async () => {
     try {
       const data = await api.getEmpresas();
-      setEmpresas(data.empresas || []);
+      // API returns either {empresas: [...]} or [...] directly
+      const lista = Array.isArray(data) ? data : (data.empresas || []);
+      setEmpresas(lista);
     } catch (error) {
       console.error('Error cargando empresas:', error);
     }
