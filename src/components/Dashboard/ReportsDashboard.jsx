@@ -14,6 +14,7 @@ const TABS = [
   { id: 'tabla', label: 'Tabla Principal', icon: '📋' },
   { id: 'incompletas', label: 'Observación', icon: '⚠️' },
   { id: 'frecuencia', label: 'Frecuencia', icon: '🔄' },
+  { id: 'alertas180', label: 'Alertas 180d', icon: '⛔' },
   { id: 'indicadores', label: 'Indicadores', icon: '📈' },
 ];
 
@@ -295,10 +296,25 @@ export default function ReportsDashboard({ empresas = [] }) {
     { key: 'tipo', label: 'Tipo', accessor: r => r.tipo, render: r => <span className="text-gray-400">{(r.tipo || '').replace(/_/g, ' ')}</span> },
     { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
     { key: 'diagnostico', label: 'Diagnóstico', width: '200px', accessor: r => r.diagnostico, render: r => <span className="text-gray-400 max-w-[200px] truncate block" title={r.diagnostico}>{r.diagnostico || '—'}</span> },
-    { key: 'codigo_cie10', label: 'CIE-10', accessor: r => r.codigo_cie10, render: r => <span className="font-mono text-purple-300">{r.codigo_cie10 || '—'}</span> },
-    { key: 'dias_incapacidad', label: 'Días Portal', accessor: r => r.dias_incapacidad, render: r => <span className="font-bold">{r.dias_incapacidad ?? '—'}</span> },
+    { key: 'codigo_cie10', label: 'CIE-10', accessor: r => r.codigo_cie10, render: r => {
+      if (!r.codigo_cie10) return <span className="text-gray-500">—</span>;
+      return <div className="flex flex-col"><span className="font-mono text-purple-300">{r.codigo_cie10}</span>{r.cie10_descripcion && <span className="text-[8px] text-gray-500 truncate max-w-[120px]" title={r.cie10_descripcion}>{r.cie10_descripcion}</span>}</div>;
+    }},
+    { key: 'dias_incapacidad', label: 'Días Portal', accessor: r => r.dias_incapacidad, render: r => {
+      const v = r.dias_validacion;
+      if (v && !v.valido) return <span className="font-bold text-yellow-400" title={v.mensaje || 'Días atípicos para este diagnóstico'}>{r.dias_incapacidad} ⚠</span>;
+      return <span className="font-bold">{r.dias_incapacidad ?? '—'}</span>;
+    }},
     { key: 'dias_kactus', label: 'Días Kactus', accessor: r => r.dias_kactus, render: r => <span className="font-bold text-cyan-400">{r.dias_kactus ?? '—'}</span> },
-    { key: 'es_prorroga', label: 'Prórroga', accessor: r => r.es_prorroga, render: r => r.es_prorroga ? <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[9px] font-bold">SÍ</span> : <span className="text-gray-500">No</span> },
+    { key: 'es_prorroga', label: 'Prórroga', accessor: r => r.es_prorroga, render: r => {
+      if (!r.es_prorroga) return <span className="text-gray-500">No</span>;
+      const conf = r.prorroga_confianza;
+      const color = conf === 'alta' ? 'bg-red-500/20 text-red-400' : conf === 'media' ? 'bg-orange-500/20 text-orange-400' : 'bg-yellow-500/20 text-yellow-400';
+      return <div className="flex flex-col items-start gap-0.5">
+        <span className={`px-1.5 py-0.5 ${color} rounded text-[9px] font-bold`}>SÍ ({conf || 'bd'})</span>
+        {r.prorroga_caso_original && <span className="text-[8px] text-gray-500">← {r.prorroga_caso_original}</span>}
+      </div>;
+    }},
     { key: 'numero_incapacidad', label: 'Nº Incapacidad', accessor: r => r.numero_incapacidad },
     { key: 'medico_tratante', label: 'Médico', width: '150px', accessor: r => r.medico_tratante },
     { key: 'institucion_origen', label: 'Institución', width: '150px', accessor: r => r.institucion_origen },
@@ -365,6 +381,18 @@ export default function ReportsDashboard({ empresas = [] }) {
     { key: 'total_dias_portal', label: 'Días Portal', accessor: r => r.total_dias_portal, render: r => <span className="font-bold">{r.total_dias_portal}</span> },
     { key: 'total_dias_kactus', label: 'Días Kactus', accessor: r => r.total_dias_kactus, render: r => <span className="font-bold text-cyan-400">{r.total_dias_kactus || '—'}</span> },
     { key: 'prorrogas', label: 'Prórrogas', accessor: r => r.prorrogas, render: r => r.prorrogas > 0 ? <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[9px] font-bold">{r.prorrogas}</span> : <span className="text-gray-500">0</span> },
+    { key: 'max_cadena_dias', label: 'Máx Cadena', accessor: r => r.max_cadena_dias, render: r => {
+      const d = r.max_cadena_dias || 0;
+      if (d >= 180) return <span className="px-1.5 py-0.5 bg-red-500/30 text-red-400 rounded text-[9px] font-black animate-pulse">{d}d ⛔</span>;
+      if (d >= 150) return <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[9px] font-bold">{d}d 🔴</span>;
+      if (d >= 90) return <span className="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded text-[9px] font-bold">{d}d 🟡</span>;
+      return <span className="text-gray-400">{d}d</span>;
+    }},
+    { key: 'tiene_alerta_180', label: 'Alerta 180d', accessor: r => r.tiene_alerta_180, render: r => {
+      if (r.supero_180) return <span className="px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full text-[9px] font-bold animate-pulse">⛔ SUPERÓ 180</span>;
+      if (r.cerca_limite_180) return <span className="px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded-full text-[9px] font-bold">🔴 CERCA</span>;
+      return <span className="text-gray-500 text-[9px]">OK</span>;
+    }},
     { key: 'diagnosticos', label: 'Diagnósticos', width: '220px', accessor: r => (r.diagnosticos || []).join(', '),
       render: r => {
         const diags = r.diagnosticos || [];
@@ -394,6 +422,27 @@ export default function ReportsDashboard({ empresas = [] }) {
     },
     { key: 'primera_fecha', label: 'Primera', accessor: r => r.primera_fecha, render: r => formatFechaCorta(r.primera_fecha) },
     { key: 'ultima_fecha', label: 'Última', accessor: r => r.ultima_fecha, render: r => formatFechaCorta(r.ultima_fecha) },
+  ], []);
+
+  // ═══ Columnas para Alertas 180 días ═══
+  const COLS_ALERTAS_180 = useMemo(() => [
+    { key: 'tipo', label: 'Tipo Alerta', width: '140px', accessor: r => r.tipo, render: r => {
+      const colors = { LIMITE_180_SUPERADO: 'bg-red-500/30 text-red-300', ALERTA_CRITICA: 'bg-orange-500/20 text-orange-400', ALERTA_TEMPRANA: 'bg-yellow-500/20 text-yellow-400' };
+      const icons = { LIMITE_180_SUPERADO: '⛔', ALERTA_CRITICA: '🔴', ALERTA_TEMPRANA: '🟡' };
+      return <span className={`px-2 py-1 rounded text-[10px] font-bold ${colors[r.tipo] || 'bg-gray-700'}`}>{icons[r.tipo] || '⚪'} {(r.tipo || '').replace(/_/g, ' ')}</span>;
+    }},
+    { key: 'severidad', label: 'Severidad', accessor: r => r.severidad, render: r => {
+      const c = { critica: 'text-red-400', alta: 'text-orange-400', media: 'text-yellow-400' };
+      return <span className={`font-bold uppercase text-[10px] ${c[r.severidad] || ''}`}>{r.severidad}</span>;
+    }},
+    { key: 'dias_acumulados', label: 'Días Acum.', accessor: r => r.dias_acumulados, render: r => <span className="font-black text-lg text-red-400">{r.dias_acumulados}</span> },
+    { key: 'dias_restantes', label: 'Restantes', accessor: r => r.dias_restantes, render: r => r.dias_restantes != null ? <span className="font-bold text-yellow-400">{r.dias_restantes}d</span> : <span className="text-red-400 font-bold">EXCEDIDO</span> },
+    { key: 'mensaje', label: 'Detalle', width: '350px', accessor: r => r.mensaje, render: r => <span className="text-gray-300 text-[10px] leading-tight block max-w-[350px]">{r.mensaje}</span> },
+    { key: 'normativa', label: 'Normativa', width: '250px', accessor: r => r.normativa, render: r => r.normativa ? <span className="text-gray-500 text-[9px] italic block max-w-[250px]">{r.normativa}</span> : '—' },
+    { key: 'codigos', label: 'CIE-10', accessor: r => (r.codigos_involucrados || []).join(', '), render: r => {
+      const codes = r.codigos_involucrados || [];
+      return <div className="flex flex-wrap gap-0.5">{codes.map((c,i) => <span key={i} className="px-1 py-0.5 bg-purple-500/20 text-purple-300 rounded text-[8px] font-mono">{c}</span>)}</div>;
+    }},
   ], []);
 
   const COLS_INDICADORES = useMemo(() => [
@@ -496,6 +545,7 @@ export default function ReportsDashboard({ empresas = [] }) {
         <KPICard label="EPS Trans." value={kpis.eps_transcripcion || 0} icon="🟡" color="yellow" />
         <KPICard label="TTHH" value={kpis.derivado_tthh || 0} icon="🟣" color="purple" />
         <KPICard label="Prom. Días" value={kpis.promedio_dias || 0} icon="📅" color="orange" sub="por incapacidad" />
+        {(data?.alertas_180?.length || 0) > 0 && <KPICard label="Alertas 180" value={data.alertas_180.length} icon="⛔" color="red" sub="empleados en riesgo" />}
       </div>
 
       {/* ═══ TABS ═══ */}
@@ -516,6 +566,9 @@ export default function ReportsDashboard({ empresas = [] }) {
             )}
             {t.id === 'frecuencia' && (data?.frecuencia?.filter(f => f.es_reincidente).length || 0) > 0 && (
               <span className="ml-1 px-1.5 py-0.5 bg-orange-500 text-white rounded-full text-[9px]">{data.frecuencia.filter(f => f.es_reincidente).length}</span>
+            )}
+            {t.id === 'alertas180' && (data?.alertas_180?.length || 0) > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 bg-red-600 text-white rounded-full text-[9px] animate-pulse">{data.alertas_180.length}</span>
             )}
           </button>
         ))}
@@ -608,10 +661,39 @@ export default function ReportsDashboard({ empresas = [] }) {
         <SortableTable
           data={data.frecuencia || []}
           columns={COLS_FRECUENCIA}
-          title="🔄 Frecuencia por Empleado (Año) — Reincidencia, Diagnósticos, Días Acumulados"
+          title="🔄 Frecuencia por Empleado (Año) — Reincidencia, Diagnósticos, Días Acumulados, Cadenas de Prórroga"
           exportFilename="reporte_frecuencia_reincidencia"
           maxHeight="calc(100vh - 380px)"
         />
+      )}
+
+      {/* ═══ TAB: ALERTAS 180 DÍAS (Ley 776/2002) ═══ */}
+      {tab === 'alertas180' && data && (
+        <div className="space-y-4">
+          {/* Normativa banner */}
+          <div className="bg-red-900/20 border border-red-800/50 rounded-xl p-4">
+            <h3 className="text-red-400 font-bold text-sm mb-1">⛔ Alertas Ley 776/2002 — Control de 180 Días</h3>
+            <p className="text-gray-400 text-[10px] leading-relaxed">
+              La EPS cubre hasta 180 días de incapacidad. Del día 181 al 540, el Fondo de Pensiones asume al 50% del salario (con concepto favorable de rehabilitación).
+              El sistema detecta automáticamente cadenas de prórrogas por correlación CIE-10 y cuenta los días acumulados.
+            </p>
+          </div>
+          {(data.alertas_180 || []).length === 0 ? (
+            <div className="bg-green-900/20 border border-green-700/50 rounded-xl p-8 text-center">
+              <span className="text-green-400 text-4xl block mb-2">✅</span>
+              <span className="text-green-400 font-bold">Sin alertas de 180 días</span>
+              <p className="text-gray-500 text-xs mt-1">Ningún empleado se acerca al límite de incapacidad temporal de la EPS</p>
+            </div>
+          ) : (
+            <SortableTable
+              data={data.alertas_180 || []}
+              columns={COLS_ALERTAS_180}
+              title={`⛔ ${data.alertas_180.length} Alertas de Límite 180 Días — Ley 776/2002`}
+              exportFilename="alertas_180_dias_ley776"
+              maxHeight="calc(100vh - 440px)"
+            />
+          )}
+        </div>
       )}
 
       {/* ═══ TAB: INDICADORES ═══ */}
