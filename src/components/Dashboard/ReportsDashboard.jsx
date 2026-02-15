@@ -4,6 +4,7 @@ import {
   BarChart3, Pause, Play, ArrowUpDown, X
 } from 'lucide-react';
 import { API_CONFIG } from '../../constants/reportConfig';
+import { AlertaBadge180, EmailConfig180 } from './EmailConfig180';
 
 // ═══════════════════════════════════════════════════════════
 // DASHBOARD DE REPORTES 2026 - Completo, Instantáneo, Exportable
@@ -252,6 +253,7 @@ export default function ReportsDashboard({ empresas = [] }) {
   const [error, setError] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
+  const [showEmailConfig, setShowEmailConfig] = useState(false);
   const intervalRef = useRef(null);
 
   const fetchData = useCallback(async (silencioso = false) => {
@@ -529,6 +531,21 @@ export default function ReportsDashboard({ empresas = [] }) {
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
             
+            {/* ⛔ Badge alertas 180 días */}
+            <AlertaBadge180 
+              alertas={data?.alertas_180 || []} 
+              onClick={() => { setTab('alertas180'); }}
+            />
+            
+            {/* ⚙️ Config emails */}
+            <button
+              onClick={() => setShowEmailConfig(true)}
+              className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs text-gray-300 hover:text-white transition flex items-center gap-1.5"
+              title="Configurar correos de alertas 180 días"
+            >
+              📧 Config Alertas
+            </button>
+            
             {lastUpdate && (
               <span className="text-[10px] text-gray-500">{lastUpdate.toLocaleTimeString('es-CO')}</span>
             )}
@@ -715,6 +732,9 @@ export default function ReportsDashboard({ empresas = [] }) {
           {lastUpdate && ` — Última: ${lastUpdate.toLocaleTimeString('es-CO')}`}
         </span>
       </div>
+
+      {/* ═══ MODAL: Config Emails Alertas 180 ═══ */}
+      <EmailConfig180 isOpen={showEmailConfig} onClose={() => setShowEmailConfig(false)} />
     </div>
   );
 }
