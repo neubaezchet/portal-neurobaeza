@@ -9,6 +9,7 @@ import {
   Undo2, Image, Loader2, Check, ChevronDown, ChevronRight, Save
 } from 'lucide-react';
 import ReportsDashboard from './components/Dashboard/ReportsDashboard';
+import ExportacionesPDF from './components/Dashboard/ExportacionesPDF';
 import BeforeAfterPDF from './components/BeforeAfterPDF';
 import LivePDFEditor from './components/LivePDFEditor';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
@@ -2578,6 +2579,16 @@ export default function App() {
             >
               📊 Reportes y Tablas Vivas
             </button>
+            <button
+              onClick={() => setTabActual('exportaciones')}
+              className={`px-4 py-3 font-semibold transition-colors ${
+                tabActual === 'exportaciones'
+                  ? 'border-b-2 border-blue-500 text-blue-400'
+                  : 'text-gray-400 hover:text-gray-300'
+              }`}
+            >
+              📦 Exportaciones PDF
+            </button>
           </div>
 
           {/* ⭐ TAB 1: VALIDACIÓN (CÓDIGO EXISTENTE) */}
@@ -2740,6 +2751,11 @@ export default function App() {
           {/* ⭐ TAB 2: REPORTES (CÓDIGO NUEVO) */}
           {tabActual === 'reportes' && (
             <ReportsDashboard empresas={empresas} />
+          )}
+
+          {/* ⭐ TAB 3: EXPORTACIONES MASIVAS PDF */}
+          {tabActual === 'exportaciones' && (
+            <ExportacionesPDF empresas={empresas} />
           )}
         </div>
 
