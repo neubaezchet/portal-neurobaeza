@@ -1,21 +1,22 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   RefreshCw, Download, Search, TrendingUp,
-  BarChart3, Pause, Play, ArrowUpDown, X
+  BarChart3, Pause, Play, ArrowUpDown, X, ExternalLink
 } from 'lucide-react';
 import { API_CONFIG } from '../../constants/reportConfig';
 import { AlertaBadge180, EmailConfig180 } from './EmailConfig180';
 
 // ═══════════════════════════════════════════════════════════
-// DASHBOARD DE REPORTES 2026 - Completo, Instantáneo, Exportable
+// DASHBOARD DE REPORTES 2026 — Dividido por Departamento
+// Pestañas: Resumen | Talento Humano | SST | Nómina | Indicadores
+// Cada sección con sub-pestañas: Incapacidades + 180 Días
 // ═══════════════════════════════════════════════════════════
 
 const TABS = [
   { id: 'resumen', label: 'Resumen', icon: '📊' },
-  { id: 'tabla', label: 'Tabla Principal', icon: '📋' },
-  { id: 'incompletas', label: 'Observación', icon: '⚠️' },
-  { id: 'frecuencia', label: 'Frecuencia', icon: '🔄' },
-  { id: 'alertas180', label: 'Alertas 180d', icon: '⛔' },
+  { id: 'th', label: 'Talento Humano', icon: '👔' },
+  { id: 'sst', label: 'Seg. y Salud', icon: '🛡️' },
+  { id: 'nomina', label: 'Nómina', icon: '💰' },
   { id: 'indicadores', label: 'Indicadores', icon: '📈' },
 ];
 
@@ -96,7 +97,7 @@ function exportToExcel(data, columns, filename) {
 // ═══════════════════════════════════════════════════════════
 // SORTABLE TABLE COMPONENT
 // ═══════════════════════════════════════════════════════════
-function SortableTable({ data, columns, title, exportFilename, maxHeight = '500px' }) {
+function SortableTable({ data, columns, title, exportFilename, maxHeight = '500px', rowClassName }) {
   const [sortKey, setSortKey] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
   const [search, setSearch] = useState('');
@@ -201,7 +202,7 @@ function SortableTable({ data, columns, title, exportFilename, maxHeight = '500p
                 </td>
               </tr>
             ) : sortedData.map((row, idx) => (
-              <tr key={idx} className="hover:bg-gray-700/30 transition-colors">
+              <tr key={idx} className={`hover:bg-gray-700/30 transition-colors ${rowClassName ? rowClassName(row) : ''}`}>
                 {columns.map(col => (
                   <td key={col.key} className="px-3 py-2 text-gray-300 whitespace-nowrap">
                     {col.render ? col.render(row) : String(col.accessor(row) ?? '—')}
@@ -212,6 +213,38 @@ function SortableTable({ data, columns, title, exportFilename, maxHeight = '500p
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// SUB-TAB SELECTOR
+// ═══════════════════════════════════════════════════════════
+function SubTabs({ tabs, active, onChange, color = 'blue' }) {
+  const colors = {
+    blue: 'bg-blue-600 shadow-blue-500/20',
+    purple: 'bg-purple-600 shadow-purple-500/20',
+    emerald: 'bg-emerald-600 shadow-emerald-500/20',
+    amber: 'bg-amber-600 shadow-amber-500/20',
+  };
+  return (
+    <div className="flex items-center gap-1 bg-gray-900/60 p-1 rounded-lg border border-gray-700/50 w-fit">
+      {tabs.map(t => (
+        <button
+          key={t.id}
+          onClick={() => onChange(t.id)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all whitespace-nowrap ${
+            active === t.id
+              ? `${colors[color] || colors.blue} text-white shadow-lg`
+              : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+          }`}
+        >
+          {t.icon} {t.label}
+          {t.badge != null && t.badge > 0 && (
+            <span className={`ml-1 px-1.5 py-0.5 ${active === t.id ? 'bg-white/20' : 'bg-red-500'} text-white rounded-full text-[9px]`}>{t.badge}</span>
+          )}
+        </button>
+      ))}
     </div>
   );
 }
@@ -246,6 +279,7 @@ function KPICard({ label, value, icon, color = 'blue', sub }) {
 // ═══════════════════════════════════════════════════════════
 export default function ReportsDashboard({ empresas = [] }) {
   const [tab, setTab] = useState('resumen');
+  const [subTab, setSubTab] = useState('incapacidades');
   const [empresa, setEmpresa] = useState('all');
   const [periodo, setPeriodo] = useState('mes_actual');
   const [data, setData] = useState(null);
@@ -255,6 +289,9 @@ export default function ReportsDashboard({ empresas = [] }) {
   const [lastUpdate, setLastUpdate] = useState(null);
   const [showEmailConfig, setShowEmailConfig] = useState(false);
   const intervalRef = useRef(null);
+
+  // Reset subtab al cambiar de tab principal
+  useEffect(() => { setSubTab('incapacidades'); }, [tab]);
 
   const fetchData = useCallback(async (silencioso = false) => {
     if (!silencioso) setLoading(true);
@@ -284,169 +321,144 @@ export default function ReportsDashboard({ empresas = [] }) {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [autoRefresh, fetchData]);
 
-  // ═══ Column definitions ═══
-  const COLS_PRINCIPAL = useMemo(() => [
-    { key: 'serial', label: 'Serial', width: '100px', accessor: r => r.serial, render: r => <span className="font-mono text-yellow-400">{r.serial}</span> },
-    { key: 'cedula', label: 'Cédula (Llave)', width: '110px', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300">{r.cedula}</span> },
-    { key: 'nombre', label: 'Nombre', width: '160px', accessor: r => r.nombre },
+  // ═══════════════════════════════════════════════════════════
+  //  TALENTO HUMANO — Incapacidades en Vivo
+  //  Llave, cédula, nombre, fechas, días, estado, observación, Drive
+  //  Casos 180 resaltados en rojo
+  // ═══════════════════════════════════════════════════════════
+  const COLS_TH = useMemo(() => [
+    { key: 'serial', label: 'Llave', width: '100px', accessor: r => r.serial, render: r => (
+      <span className="font-mono text-yellow-400 font-bold">{r.serial}</span>
+    )},
+    { key: 'cedula', label: 'Cédula', width: '110px', accessor: r => r.cedula, render: r => (
+      <span className="font-mono text-blue-300">{r.cedula}</span>
+    )},
+    { key: 'nombre', label: 'Nombres y Apellidos', width: '180px', accessor: r => r.nombre },
     { key: 'empresa', label: 'Empresa', accessor: r => r.empresa },
-    { key: 'cargo', label: 'Cargo', accessor: r => r.cargo },
-    { key: 'area', label: 'Área', accessor: r => r.area },
-    { key: 'centro_costo', label: 'Centro Costo', accessor: r => r.centro_costo },
-    { key: 'ciudad', label: 'Ciudad', accessor: r => r.ciudad },
-    { key: 'tipo_contrato', label: 'Contrato', accessor: r => r.tipo_contrato },
-    { key: 'tipo', label: 'Tipo', accessor: r => r.tipo, render: r => <span className="text-gray-400">{(r.tipo || '').replace(/_/g, ' ')}</span> },
-    { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
-    { key: 'diagnostico', label: 'Diagnóstico', width: '200px', accessor: r => r.diagnostico, render: r => <span className="text-gray-400 max-w-[200px] truncate block" title={r.diagnostico}>{r.diagnostico || '—'}</span> },
-    { key: 'codigo_cie10', label: 'CIE-10', accessor: r => r.codigo_cie10, render: r => {
-      if (!r.codigo_cie10) return <span className="text-gray-500">—</span>;
-      return <div className="flex flex-col"><span className="font-mono text-purple-300">{r.codigo_cie10}</span>{r.cie10_descripcion && <span className="text-[8px] text-gray-500 truncate max-w-[120px]" title={r.cie10_descripcion}>{r.cie10_descripcion}</span>}</div>;
-    }},
-    { key: 'dias_incapacidad', label: 'Días Portal', accessor: r => r.dias_incapacidad, render: r => {
-      const v = r.dias_validacion;
-      if (v && !v.valido) return <span className="font-bold text-yellow-400" title={v.mensaje || 'Días atípicos para este diagnóstico'}>{r.dias_incapacidad} ⚠</span>;
-      return <span className="font-bold">{r.dias_incapacidad ?? '—'}</span>;
-    }},
-    { key: 'dias_kactus', label: 'Días Kactus', accessor: r => r.dias_kactus, render: r => <span className="font-bold text-cyan-400">{r.dias_kactus ?? '—'}</span> },
-    { key: 'es_prorroga', label: 'Prórroga', accessor: r => r.es_prorroga, render: r => {
-      if (!r.es_prorroga) return <span className="text-gray-500">No</span>;
-      const conf = r.prorroga_confianza;
-      const color = conf === 'alta' ? 'bg-red-500/20 text-red-400' : conf === 'media' ? 'bg-orange-500/20 text-orange-400' : 'bg-yellow-500/20 text-yellow-400';
-      return <div className="flex flex-col items-start gap-0.5">
-        <span className={`px-1.5 py-0.5 ${color} rounded text-[9px] font-bold`}>SÍ ({conf || 'bd'})</span>
-        {r.prorroga_caso_original && <span className="text-[8px] text-gray-500">← {r.prorroga_caso_original}</span>}
-      </div>;
-    }},
-    { key: 'numero_incapacidad', label: 'Nº Incapacidad', accessor: r => r.numero_incapacidad },
-    { key: 'medico_tratante', label: 'Médico', width: '150px', accessor: r => r.medico_tratante },
-    { key: 'institucion_origen', label: 'Institución', width: '150px', accessor: r => r.institucion_origen },
     { key: 'fecha_inicio', label: 'F. Inicio', accessor: r => r.fecha_inicio, render: r => formatFechaCorta(r.fecha_inicio) },
     { key: 'fecha_fin', label: 'F. Fin', accessor: r => r.fecha_fin, render: r => formatFechaCorta(r.fecha_fin) },
-    { key: 'fecha_ingreso', label: 'F. Ingreso Emp.', accessor: r => r.fecha_ingreso, render: r => formatFechaCorta(r.fecha_ingreso) },
-    { key: 'fecha_radicacion', label: 'Radicación', accessor: r => r.fecha_radicacion, render: r => formatFechaCorta(r.fecha_radicacion) },
-    { key: 'dias_en_portal', label: 'Días en Portal', accessor: r => r.dias_en_portal, render: r => {
-      const d = r.dias_en_portal || 0;
-      return <span className={`font-bold ${d > 15 ? 'text-red-400' : d > 7 ? 'text-yellow-400' : 'text-green-400'}`}>{d}d</span>;
-    }},
-    { key: 'eps', label: 'EPS', accessor: r => r.eps },
-    { key: 'observacion', label: 'Observación', width: '200px', accessor: r => r.observacion, render: r => <span className="text-gray-400 max-w-[200px] truncate block" title={r.observacion}>{r.observacion || '—'}</span> },
-  ], []);
-
-  const COLS_INCOMPLETAS = useMemo(() => [
-    { key: 'serial', label: 'Serial', accessor: r => r.serial, render: r => <span className="font-mono text-yellow-400">{r.serial}</span> },
-    { key: 'cedula', label: 'Cédula (Llave)', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300">{r.cedula}</span> },
-    { key: 'nombre', label: 'Nombre', width: '150px', accessor: r => r.nombre },
-    { key: 'empresa', label: 'Empresa', accessor: r => r.empresa },
-    { key: 'area', label: 'Área', accessor: r => r.area },
-    { key: 'cargo', label: 'Cargo', accessor: r => r.cargo },
-    { key: 'tipo', label: 'Tipo', accessor: r => r.tipo, render: r => <span className="text-gray-400">{(r.tipo || '').replace(/_/g, ' ')}</span> },
+    { key: 'dias_incapacidad', label: 'Días Inc.', accessor: r => r.dias_incapacidad, render: r => (
+      <span className="font-bold text-white">{r.dias_incapacidad ?? '—'}</span>
+    )},
     { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
-    { key: 'diagnostico', label: 'Diagnóstico', width: '150px', accessor: r => r.diagnostico, render: r => <span className="text-gray-400 max-w-[150px] truncate block" title={r.diagnostico}>{r.diagnostico || '—'}</span> },
-    { key: 'codigo_cie10', label: 'CIE-10', accessor: r => r.codigo_cie10 },
-    { key: 'docs_faltantes', label: 'Documentos Faltantes', width: '220px', accessor: r => (r.docs_faltantes || []).join(', '),
-      render: r => {
-        const docs = r.docs_faltantes || [];
-        if (docs.length === 0) return <span className="text-gray-500">—</span>;
-        return <div className="flex flex-wrap gap-1">{docs.map((d,i) => <span key={i} className="px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded text-[9px]">{d}</span>)}</div>;
-      }
-    },
-    { key: 'docs_ilegibles', label: 'Docs. Ilegibles', width: '180px', accessor: r => (r.docs_ilegibles || []).join(', '),
-      render: r => {
-        const docs = r.docs_ilegibles || [];
-        if (docs.length === 0) return <span className="text-gray-500">—</span>;
-        return <div className="flex flex-wrap gap-1">{docs.map((d,i) => <span key={i} className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[9px]">{d}</span>)}</div>;
-      }
-    },
-    { key: 'observacion', label: 'Motivo / Observación', width: '250px', accessor: r => r.observacion,
-      render: r => <span className="text-gray-300 max-w-[250px] block" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{r.observacion || '—'}</span>
-    },
-    { key: 'dias_en_portal', label: 'Días Portal', accessor: r => r.dias_en_portal, render: r => {
-      const d = r.dias_en_portal || 0;
-      return <span className={`font-bold ${d > 15 ? 'text-red-400' : d > 7 ? 'text-yellow-400' : 'text-green-400'}`}>{d}d</span>;
+    { key: 'observacion', label: 'Observación / Motivo', width: '250px', accessor: r => r.observacion, render: r => {
+      const obs = r.observacion;
+      const faltantes = r.docs_faltantes || [];
+      if (!obs && faltantes.length === 0) return <span className="text-gray-500">—</span>;
+      return (
+        <div className="max-w-[250px]">
+          {obs && <span className="text-gray-300 text-[10px] block" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{obs}</span>}
+          {faltantes.length > 0 && (
+            <div className="flex flex-wrap gap-0.5 mt-0.5">
+              {faltantes.map((d,i) => <span key={i} className="px-1 py-0.5 bg-red-500/20 text-red-400 rounded text-[8px]">{d}</span>)}
+            </div>
+          )}
+        </div>
+      );
     }},
-    { key: 'fecha_radicacion', label: 'Radicación', accessor: r => r.fecha_radicacion, render: r => formatFechaCorta(r.fecha_radicacion) },
+    { key: 'drive', label: 'Drive', width: '60px', accessor: r => r.drive_link || '', render: r => {
+      if (!r.drive_link) return <span className="text-gray-600">—</span>;
+      return (
+        <a href={r.drive_link} target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition">
+          <ExternalLink className="w-3.5 h-3.5" />
+        </a>
+      );
+    }},
   ], []);
 
-  const COLS_FRECUENCIA = useMemo(() => [
-    { key: 'cedula', label: 'Cédula (Llave)', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300">{r.cedula}</span> },
-    { key: 'nombre', label: 'Nombre', width: '160px', accessor: r => r.nombre },
+  // ═══════════════════════════════════════════════════════════
+  //  TALENTO HUMANO — 180 Días (solo alertas, todo en rojo)
+  // ═══════════════════════════════════════════════════════════
+  const COLS_TH_180 = useMemo(() => [
+    { key: 'cedula', label: 'Cédula', accessor: r => r.cedula, render: r => <span className="font-mono text-red-300">{r.cedula}</span> },
+    { key: 'nombre', label: 'Nombres y Apellidos', width: '180px', accessor: r => r.nombre, render: r => <span className="text-red-200 font-bold">{r.nombre}</span> },
     { key: 'empresa', label: 'Empresa', accessor: r => r.empresa },
-    { key: 'area', label: 'Área', accessor: r => r.area },
-    { key: 'cargo', label: 'Cargo', accessor: r => r.cargo },
-    { key: 'ciudad', label: 'Ciudad', accessor: r => r.ciudad },
-    { key: 'total_incapacidades', label: 'Total Inc.', accessor: r => r.total_incapacidades,
-      render: r => {
-        const t = r.total_incapacidades;
-        return <span className={`font-black text-base ${t >= 5 ? 'text-red-400' : t >= 3 ? 'text-orange-400' : 'text-white'}`}>{t}</span>;
-      }
-    },
-    { key: 'total_dias_portal', label: 'Días Portal', accessor: r => r.total_dias_portal, render: r => <span className="font-bold">{r.total_dias_portal}</span> },
-    { key: 'total_dias_kactus', label: 'Días Kactus', accessor: r => r.total_dias_kactus, render: r => <span className="font-bold text-cyan-400">{r.total_dias_kactus || '—'}</span> },
-    { key: 'prorrogas', label: 'Prórrogas', accessor: r => r.prorrogas, render: r => r.prorrogas > 0 ? <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[9px] font-bold">{r.prorrogas}</span> : <span className="text-gray-500">0</span> },
-    { key: 'dias_prorroga', label: 'Días Prórroga', accessor: r => r.dias_prorroga || 0, render: r => {
-      const d = r.dias_prorroga || 0;
-      if (d === 0) return <span className="text-gray-500">0</span>;
-      if (d >= 180) return <span className="px-1.5 py-0.5 bg-red-500/30 text-red-400 rounded text-[9px] font-black animate-pulse">{d}d ⛔</span>;
-      if (d >= 150) return <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[9px] font-bold">{d}d</span>;
-      if (d >= 90) return <span className="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded text-[9px] font-bold">{d}d</span>;
-      return <span className="font-bold text-emerald-400">{d}d</span>;
+    { key: 'dias_prorroga', label: 'Días Prórroga', accessor: r => r.dias_prorroga || r.max_cadena_dias || 0, render: r => {
+      const d = r.dias_prorroga || r.max_cadena_dias || 0;
+      return <span className="font-black text-lg text-red-400">{d}d</span>;
     }},
-    { key: 'max_cadena_dias', label: 'Máx Cadena', accessor: r => r.max_cadena_dias, render: r => {
-      const d = r.max_cadena_dias || 0;
-      if (d >= 180) return <span className="px-1.5 py-0.5 bg-red-500/30 text-red-400 rounded text-[9px] font-black animate-pulse">{d}d ⛔</span>;
-      if (d >= 150) return <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[9px] font-bold">{d}d 🔴</span>;
-      if (d >= 90) return <span className="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded text-[9px] font-bold">{d}d 🟡</span>;
-      return <span className="text-gray-400">{d}d</span>;
-    }},
-    { key: 'tiene_alerta_180', label: 'Alerta 180d', accessor: r => r.tiene_alerta_180, render: r => {
-      if (r.supero_180) return <span className="px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full text-[9px] font-bold animate-pulse">⛔ SUPERÓ 180</span>;
-      if (r.cerca_limite_180) return <span className="px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded-full text-[9px] font-bold">🔴 CERCA</span>;
-      return <span className="text-gray-500 text-[9px]">OK</span>;
+    { key: 'alerta', label: 'Alerta', accessor: r => {
+      if (r.supero_180) return 'SUPERÓ 180';
+      if (r.cerca_limite_180) return 'CERCA 180';
+      return 'EN RIESGO';
+    }, render: r => {
+      if (r.supero_180) return <span className="px-2 py-1 bg-red-500/30 text-red-300 rounded text-[10px] font-bold animate-pulse">⛔ SUPERÓ 180</span>;
+      if (r.cerca_limite_180) return <span className="px-2 py-1 bg-orange-500/20 text-orange-400 rounded text-[10px] font-bold">🔴 CERCA LÍMITE</span>;
+      return <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-[10px] font-bold">🟡 EN RIESGO</span>;
     }},
     { key: 'huecos', label: 'Huecos', accessor: r => r.huecos_detectados || 0, render: r => {
       const h = r.huecos_detectados || 0;
-      if (h === 0) return <span className="text-gray-500 text-[9px]">—</span>;
-      return (
-        <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-[9px] font-bold" title={
-          (r.huecos_info || []).map(hi => `Hueco: ${hi.dias_hueco}d, potencial: ${hi.dias_potenciales}d`).join(' | ')
-        }>
-          ⚠️ {h} hueco{h > 1 ? 's' : ''}
-        </span>
-      );
+      if (h === 0) return <span className="text-gray-600">—</span>;
+      return <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-[9px] font-bold" title={
+        (r.huecos_info || []).map(hi => `Hueco: ${hi.dias_hueco}d`).join(' | ')
+      }>⚠️ {h}</span>;
     }},
-    { key: 'diagnosticos', label: 'Diagnósticos', width: '220px', accessor: r => (r.diagnosticos || []).join(', '),
-      render: r => {
-        const diags = r.diagnosticos || [];
-        if (diags.length === 0) return <span className="text-gray-500">—</span>;
-        return <div className="flex flex-wrap gap-1">{diags.map((d,i) => <span key={i} className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 rounded text-[9px] max-w-[150px] truncate" title={d}>{d}</span>)}</div>;
-      }
-    },
-    { key: 'codigos_cie10', label: 'CIE-10', width: '120px', accessor: r => (r.codigos_cie10 || []).join(', '),
-      render: r => {
-        const codes = r.codigos_cie10 || [];
-        if (codes.length === 0) return <span className="text-gray-500">—</span>;
-        return <div className="flex flex-wrap gap-1">{codes.map((c,i) => <span key={i} className="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-300 rounded text-[9px] font-mono">{c}</span>)}</div>;
-      }
-    },
-    { key: 'desglose', label: 'Desglose Mensual', width: '200px', accessor: r => JSON.stringify(r.desglose_mensual || {}),
-      render: r => {
-        const d = r.desglose_mensual || {};
-        const entries = Object.entries(d).sort();
-        if (entries.length === 0) return '—';
-        return <div className="flex flex-wrap gap-1">{entries.map(([m,c]) => <span key={m} className="px-1.5 py-0.5 bg-gray-700 text-gray-300 rounded text-[9px]">{m}: <b>{c}</b></span>)}</div>;
-      }
-    },
-    { key: 'es_reincidente', label: 'Reincidente', accessor: r => r.es_reincidente,
-      render: r => r.es_reincidente
-        ? <span className="px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full text-[10px] font-bold">⚠ SÍ</span>
-        : <span className="text-gray-500">No</span>
-    },
-    { key: 'primera_fecha', label: 'Primera', accessor: r => r.primera_fecha, render: r => formatFechaCorta(r.primera_fecha) },
-    { key: 'ultima_fecha', label: 'Última', accessor: r => r.ultima_fecha, render: r => formatFechaCorta(r.ultima_fecha) },
+    { key: 'observacion', label: 'Observación', width: '300px', accessor: r => {
+      const alertas = r.alertas_180 || [];
+      if (alertas.length > 0) return alertas[0].mensaje || '';
+      return '';
+    }, render: r => {
+      const alertas = r.alertas_180 || [];
+      if (alertas.length === 0) return <span className="text-gray-500">—</span>;
+      return <span className="text-red-300 text-[10px] leading-tight block max-w-[300px]">{alertas[0].mensaje}</span>;
+    }},
   ], []);
 
-  // ═══ Columnas para Alertas 180 días ═══
-  const COLS_ALERTAS_180 = useMemo(() => [
+  // ═══════════════════════════════════════════════════════════
+  //  SEGURIDAD Y SALUD — Incapacidades
+  //  Cédula, nombre, tipo, prórroga sí/no, días inc., días prórroga,
+  //  estado, diagnóstico principal, CIE-10
+  // ═══════════════════════════════════════════════════════════
+  const COLS_SST = useMemo(() => [
+    { key: 'serial', label: 'Llave', width: '100px', accessor: r => r.serial, render: r => <span className="font-mono text-yellow-400">{r.serial}</span> },
+    { key: 'cedula', label: 'Cédula', width: '110px', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300">{r.cedula}</span> },
+    { key: 'nombre', label: 'Nombres y Apellidos', width: '180px', accessor: r => r.nombre },
+    { key: 'empresa', label: 'Empresa', accessor: r => r.empresa },
+    { key: 'tipo', label: 'Tipo Incapacidad', accessor: r => r.tipo, render: r => (
+      <span className="px-1.5 py-0.5 bg-gray-700 text-gray-300 rounded text-[10px]">{(r.tipo || '').replace(/_/g, ' ')}</span>
+    )},
+    { key: 'es_prorroga', label: 'Prórroga', accessor: r => r.es_prorroga ? 'SÍ' : 'NO', render: r => {
+      if (!r.es_prorroga) return <span className="text-gray-500 font-bold">NO</span>;
+      const conf = r.prorroga_confianza;
+      const color = conf === 'alta' ? 'bg-red-500/20 text-red-400' : conf === 'media' ? 'bg-orange-500/20 text-orange-400' : 'bg-yellow-500/20 text-yellow-400';
+      return (
+        <div className="flex flex-col items-start gap-0.5">
+          <span className={`px-1.5 py-0.5 ${color} rounded text-[10px] font-black`}>SÍ</span>
+          {r.prorroga_caso_original && <span className="text-[8px] text-gray-500">← {r.prorroga_caso_original}</span>}
+        </div>
+      );
+    }},
+    { key: 'dias_incapacidad', label: 'Días Inc.', accessor: r => r.dias_incapacidad, render: r => {
+      const v = r.dias_validacion;
+      if (v && !v.valido) return <span className="font-bold text-yellow-400" title={v.mensaje || 'Días atípicos'}>{r.dias_incapacidad} ⚠</span>;
+      return <span className="font-bold">{r.dias_incapacidad ?? '—'}</span>;
+    }},
+    { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
+    { key: 'diagnostico', label: 'Diagnóstico / Motivo Prórroga', width: '220px', accessor: r => r.diagnostico, render: r => (
+      <div className="max-w-[220px]">
+        <span className="text-gray-300 text-[10px] block truncate" title={r.diagnostico}>{r.diagnostico || '—'}</span>
+        {r.prorroga_explicacion && <span className="text-[8px] text-purple-400 block truncate" title={r.prorroga_explicacion}>↳ {r.prorroga_explicacion}</span>}
+      </div>
+    )},
+    { key: 'codigo_cie10', label: 'CIE-10', accessor: r => r.codigo_cie10, render: r => {
+      if (!r.codigo_cie10) return <span className="text-gray-500">—</span>;
+      return (
+        <div className="flex flex-col">
+          <span className="font-mono text-purple-300 text-[10px]">{r.codigo_cie10}</span>
+          {r.cie10_descripcion && <span className="text-[8px] text-gray-500 truncate max-w-[120px]" title={r.cie10_descripcion}>{r.cie10_descripcion}</span>}
+        </div>
+      );
+    }},
+    { key: 'fecha_inicio', label: 'F. Inicio', accessor: r => r.fecha_inicio, render: r => formatFechaCorta(r.fecha_inicio) },
+    { key: 'fecha_fin', label: 'F. Fin', accessor: r => r.fecha_fin, render: r => formatFechaCorta(r.fecha_fin) },
+  ], []);
+
+  // ═══════════════════════════════════════════════════════════
+  //  SEGURIDAD Y SALUD — 180 Días
+  //  Alertas completas: tipo, severidad, días, huecos, CIE-10, normativa
+  // ═══════════════════════════════════════════════════════════
+  const COLS_SST_180 = useMemo(() => [
     { key: 'tipo', label: 'Tipo Alerta', width: '160px', accessor: r => r.tipo, render: r => {
       const colors = { LIMITE_180_SUPERADO: 'bg-red-500/30 text-red-300', ALERTA_CRITICA: 'bg-orange-500/20 text-orange-400', ALERTA_TEMPRANA: 'bg-yellow-500/20 text-yellow-400', PRORROGA_CORTADA: 'bg-purple-500/20 text-purple-400' };
       const icons = { LIMITE_180_SUPERADO: '⛔', ALERTA_CRITICA: '🔴', ALERTA_TEMPRANA: '🟡', PRORROGA_CORTADA: '⚠️' };
@@ -465,10 +477,41 @@ export default function ReportsDashboard({ empresas = [] }) {
     { key: 'normativa', label: 'Normativa', width: '250px', accessor: r => r.normativa, render: r => r.normativa ? <span className="text-gray-500 text-[9px] italic block max-w-[250px]">{r.normativa}</span> : '—' },
     { key: 'codigos', label: 'CIE-10', accessor: r => (r.codigos_involucrados || []).join(', '), render: r => {
       const codes = r.codigos_involucrados || [];
+      if (codes.length === 0) return <span className="text-gray-500">—</span>;
       return <div className="flex flex-wrap gap-0.5">{codes.map((c,i) => <span key={i} className="px-1 py-0.5 bg-purple-500/20 text-purple-300 rounded text-[8px] font-mono">{c}</span>)}</div>;
     }},
   ], []);
 
+  // ═══════════════════════════════════════════════════════════
+  //  NÓMINA — Datos para liquidación de incapacidades
+  //  Cédula, nombre, empresa, EPS, tipo, fechas, días portal,
+  //  días Kactus, estado, prórroga, nº incapacidad
+  // ═══════════════════════════════════════════════════════════
+  const COLS_NOMINA = useMemo(() => [
+    { key: 'serial', label: 'Llave', width: '100px', accessor: r => r.serial, render: r => <span className="font-mono text-yellow-400">{r.serial}</span> },
+    { key: 'cedula', label: 'Cédula', width: '110px', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300">{r.cedula}</span> },
+    { key: 'nombre', label: 'Nombres y Apellidos', width: '180px', accessor: r => r.nombre },
+    { key: 'empresa', label: 'Empresa', accessor: r => r.empresa },
+    { key: 'eps', label: 'EPS', accessor: r => r.eps },
+    { key: 'tipo', label: 'Tipo', accessor: r => r.tipo, render: r => <span className="text-gray-400">{(r.tipo || '').replace(/_/g, ' ')}</span> },
+    { key: 'numero_incapacidad', label: 'Nº Incapacidad', accessor: r => r.numero_incapacidad },
+    { key: 'fecha_inicio', label: 'F. Inicio', accessor: r => r.fecha_inicio, render: r => formatFechaCorta(r.fecha_inicio) },
+    { key: 'fecha_fin', label: 'F. Fin', accessor: r => r.fecha_fin, render: r => formatFechaCorta(r.fecha_fin) },
+    { key: 'dias_incapacidad', label: 'Días Portal', accessor: r => r.dias_incapacidad, render: r => <span className="font-bold text-white">{r.dias_incapacidad ?? '—'}</span> },
+    { key: 'dias_kactus', label: 'Días Kactus', accessor: r => r.dias_kactus, render: r => <span className="font-bold text-cyan-400">{r.dias_kactus ?? '—'}</span> },
+    { key: 'dias_kactus_empleado', label: 'Kactus Emp.', accessor: r => r.dias_kactus_empleado, render: r => <span className="text-cyan-300">{r.dias_kactus_empleado ?? '—'}</span> },
+    { key: 'es_prorroga', label: 'Prórroga', accessor: r => r.es_prorroga ? 'SÍ' : 'NO', render: r => r.es_prorroga
+      ? <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[10px] font-bold">SÍ</span>
+      : <span className="text-gray-500">NO</span>
+    },
+    { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
+    { key: 'centro_costo', label: 'Centro Costo', accessor: r => r.centro_costo },
+    { key: 'area', label: 'Área', accessor: r => r.area },
+  ], []);
+
+  // ═══════════════════════════════════════════════════════════
+  //  INDICADORES
+  // ═══════════════════════════════════════════════════════════
   const COLS_INDICADORES = useMemo(() => [
     { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
     { key: 'cantidad', label: 'Cantidad', accessor: r => r.cantidad, render: r => <span className="font-black text-white text-base">{r.cantidad}</span> },
@@ -490,6 +533,16 @@ export default function ReportsDashboard({ empresas = [] }) {
       }
     },
   ], []);
+
+  // ═══════════════════════════════════════════════════════════
+  //  DATOS DERIVADOS
+  // ═══════════════════════════════════════════════════════════
+
+  // Frecuencia filtrada para tabla TH 180 (solo con alertas o cerca del límite)
+  const frecuencia180 = useMemo(() => {
+    if (!data?.frecuencia) return [];
+    return data.frecuencia.filter(f => f.tiene_alerta_180 || f.supero_180 || f.cerca_limite_180 || (f.max_cadena_dias || 0) >= 120);
+  }, [data]);
 
   // ═══ RENDER ═══
   if (loading && !data) {
@@ -553,13 +606,11 @@ export default function ReportsDashboard({ empresas = [] }) {
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
             
-            {/* ⛔ Badge alertas 180 días */}
             <AlertaBadge180 
               alertas={data?.alertas_180 || []} 
-              onClick={() => { setTab('alertas180'); }}
+              onClick={() => { setTab('sst'); setTimeout(() => setSubTab('180'), 50); }}
             />
             
-            {/* ⚙️ Config emails */}
             <button
               onClick={() => setShowEmailConfig(true)}
               className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs text-gray-300 hover:text-white transition flex items-center gap-1.5"
@@ -587,33 +638,32 @@ export default function ReportsDashboard({ empresas = [] }) {
         {(data?.alertas_180?.length || 0) > 0 && <KPICard label="Alertas 180" value={data.alertas_180.length} icon="⛔" color="red" sub="empleados en riesgo" />}
       </div>
 
-      {/* ═══ TABS ═══ */}
+      {/* ═══ MAIN TABS ═══ */}
       <div className="flex items-center gap-1 bg-gray-800/60 p-1 rounded-xl border border-gray-700 overflow-x-auto">
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
               tab === t.id
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
                 : 'text-gray-400 hover:text-white hover:bg-gray-700'
             }`}
           >
             {t.icon} {t.label}
-            {t.id === 'incompletas' && (data?.incompletas?.length || 0) > 0 && (
+            {t.id === 'th' && (data?.incompletas?.length || 0) > 0 && (
               <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white rounded-full text-[9px]">{data.incompletas.length}</span>
             )}
-            {t.id === 'frecuencia' && (data?.frecuencia?.filter(f => f.es_reincidente).length || 0) > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 bg-orange-500 text-white rounded-full text-[9px]">{data.frecuencia.filter(f => f.es_reincidente).length}</span>
-            )}
-            {t.id === 'alertas180' && (data?.alertas_180?.length || 0) > 0 && (
+            {t.id === 'sst' && (data?.alertas_180?.length || 0) > 0 && (
               <span className="ml-1 px-1.5 py-0.5 bg-red-600 text-white rounded-full text-[9px] animate-pulse">{data.alertas_180.length}</span>
             )}
           </button>
         ))}
       </div>
 
-      {/* ═══ TAB: RESUMEN ═══ */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* TAB: RESUMEN                                              */}
+      {/* ═══════════════════════════════════════════════════════════ */}
       {tab === 'resumen' && data && (
         <div className="space-y-4">
           <div className="bg-gray-800/60 backdrop-blur rounded-xl p-5 border border-gray-700">
@@ -642,7 +692,7 @@ export default function ReportsDashboard({ empresas = [] }) {
             <SortableTable
               data={(data.tabla_principal || []).slice(0, 15)}
               columns={[
-                { key: 'serial', label: 'Serial', accessor: r => r.serial, render: r => <span className="font-mono text-yellow-400">{r.serial}</span> },
+                { key: 'serial', label: 'Llave', accessor: r => r.serial, render: r => <span className="font-mono text-yellow-400">{r.serial}</span> },
                 { key: 'nombre', label: 'Nombre', accessor: r => r.nombre },
                 { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
                 { key: 'dias_incapacidad', label: 'Días', accessor: r => r.dias_incapacidad },
@@ -673,75 +723,151 @@ export default function ReportsDashboard({ empresas = [] }) {
         </div>
       )}
 
-      {/* ═══ TAB: TABLA PRINCIPAL ═══ */}
-      {tab === 'tabla' && data && (
-        <SortableTable
-          data={data.tabla_principal || []}
-          columns={COLS_PRINCIPAL}
-          title="📋 Tabla Principal — Todos los Campos"
-          exportFilename="reporte_principal_incapacidades"
-          maxHeight="calc(100vh - 380px)"
-        />
-      )}
-
-      {/* ═══ TAB: OBSERVACIÓN / INCOMPLETAS ═══ */}
-      {tab === 'incompletas' && data && (
-        <SortableTable
-          data={data.incompletas || []}
-          columns={COLS_INCOMPLETAS}
-          title="⚠️ Casos en Observación — Soportes Faltantes y Motivos"
-          exportFilename="reporte_incompletas_observacion"
-          maxHeight="calc(100vh - 380px)"
-        />
-      )}
-
-      {/* ═══ TAB: FRECUENCIA / REINCIDENCIA ═══ */}
-      {tab === 'frecuencia' && data && (
-        <SortableTable
-          data={data.frecuencia || []}
-          columns={COLS_FRECUENCIA}
-          title="🔄 Frecuencia por Empleado (Año) — Reincidencia, Diagnósticos, Días Acumulados, Cadenas de Prórroga"
-          exportFilename="reporte_frecuencia_reincidencia"
-          maxHeight="calc(100vh - 380px)"
-        />
-      )}
-
-      {/* ═══ TAB: ALERTAS 180 DÍAS (Ley 776/2002) ═══ */}
-      {tab === 'alertas180' && data && (
-        <div className="space-y-4">
-          {/* Normativa banner */}
-          <div className="bg-red-900/20 border border-red-800/50 rounded-xl p-4">
-            <h3 className="text-red-400 font-bold text-sm mb-1">⛔ Alertas Ley 776/2002 — Control de 180 Días</h3>
-            <p className="text-gray-400 text-[10px] leading-relaxed">
-              La EPS cubre hasta 180 días de incapacidad. Del día 181 al 540, el Fondo de Pensiones asume al 50% del salario (con concepto favorable de rehabilitación).
-              El sistema detecta automáticamente cadenas de prórrogas por correlación CIE-10 y cuenta los días acumulados.
-            </p>
-          </div>
-          {(data.alertas_180 || []).length === 0 ? (
-            <div className="bg-green-900/20 border border-green-700/50 rounded-xl p-8 text-center">
-              <span className="text-green-400 text-4xl block mb-2">✅</span>
-              <span className="text-green-400 font-bold">Sin alertas de 180 días</span>
-              <p className="text-gray-500 text-xs mt-1">Ningún empleado se acerca al límite de incapacidad temporal de la EPS</p>
-            </div>
-          ) : (
-            <SortableTable
-              data={data.alertas_180 || []}
-              columns={COLS_ALERTAS_180}
-              title={`⛔ ${data.alertas_180.length} Alertas de Límite 180 Días — Ley 776/2002`}
-              exportFilename="alertas_180_dias_ley776"
-              maxHeight="calc(100vh - 440px)"
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* TAB: TALENTO HUMANO                                       */}
+      {/* Sub: Incapacidades en Vivo | 180 Días                     */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {tab === 'th' && data && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <SubTabs
+              tabs={[
+                { id: 'incapacidades', label: 'Incapacidades en Vivo', icon: '📋', badge: (data.tabla_principal || []).length },
+                { id: '180', label: '180 Días', icon: '⛔', badge: frecuencia180.length },
+              ]}
+              active={subTab}
+              onChange={setSubTab}
+              color="blue"
             />
+            <span className="text-[10px] text-gray-500 italic">
+              👔 Vista para Talento Humano — Links redireccionan al Drive
+            </span>
+          </div>
+
+          {subTab === 'incapacidades' && (
+            <SortableTable
+              data={data.tabla_principal || []}
+              columns={COLS_TH}
+              title="👔 Talento Humano — Incapacidades en Vivo (Quincena)"
+              exportFilename="TH_incapacidades_vivo"
+              maxHeight="calc(100vh - 420px)"
+              rowClassName={r => {
+                if (r.es_prorroga) return 'bg-orange-500/5';
+                return '';
+              }}
+            />
+          )}
+
+          {subTab === '180' && (
+            <div className="space-y-3">
+              <div className="bg-red-900/20 border border-red-800/50 rounded-xl p-4">
+                <h3 className="text-red-400 font-bold text-sm mb-1">⛔ Empleados cerca o por encima de 180 días</h3>
+                <p className="text-gray-400 text-[10px]">
+                  Solo se muestran empleados con cadenas de prórroga ≥120 días o con alertas activas. Todos resaltados en rojo.
+                </p>
+              </div>
+              {frecuencia180.length === 0 ? (
+                <div className="bg-green-900/20 border border-green-700/50 rounded-xl p-8 text-center">
+                  <span className="text-green-400 text-4xl block mb-2">✅</span>
+                  <span className="text-green-400 font-bold">Sin empleados cerca de 180 días</span>
+                </div>
+              ) : (
+                <SortableTable
+                  data={frecuencia180}
+                  columns={COLS_TH_180}
+                  title={`⛔ ${frecuencia180.length} Empleados en Alerta 180 Días`}
+                  exportFilename="TH_180_dias"
+                  maxHeight="calc(100vh - 480px)"
+                  rowClassName={() => 'bg-red-500/5'}
+                />
+              )}
+            </div>
           )}
         </div>
       )}
 
-      {/* ═══ TAB: INDICADORES ═══ */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* TAB: SEGURIDAD Y SALUD EN EL TRABAJO                     */}
+      {/* Sub: Incapacidades | 180 Días                             */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {tab === 'sst' && data && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <SubTabs
+              tabs={[
+                { id: 'incapacidades', label: 'Incapacidades', icon: '📋', badge: (data.tabla_principal || []).length },
+                { id: '180', label: '180 Días / Prórrogas', icon: '⛔', badge: (data.alertas_180 || []).length },
+              ]}
+              active={subTab}
+              onChange={setSubTab}
+              color="emerald"
+            />
+            <span className="text-[10px] text-gray-500 italic">
+              🛡️ Vista para Seguridad y Salud — Diagnósticos, prórrogas, CIE-10
+            </span>
+          </div>
+
+          {subTab === 'incapacidades' && (
+            <SortableTable
+              data={data.tabla_principal || []}
+              columns={COLS_SST}
+              title="🛡️ Seguridad y Salud — Incapacidades con Diagnósticos y Prórrogas"
+              exportFilename="SST_incapacidades"
+              maxHeight="calc(100vh - 420px)"
+            />
+          )}
+
+          {subTab === '180' && (
+            <div className="space-y-3">
+              <div className="bg-red-900/20 border border-red-800/50 rounded-xl p-4">
+                <h3 className="text-red-400 font-bold text-sm mb-1">⛔ Alertas Ley 776/2002 — Control de 180 Días</h3>
+                <p className="text-gray-400 text-[10px] leading-relaxed">
+                  La EPS cubre hasta 180 días. Del día 181 al 540, el Fondo de Pensiones asume al 50% (con concepto favorable).
+                  Detección automática por correlación CIE-10. Las cadenas se cortan si pasan 30+ días sin incapacidad.
+                </p>
+              </div>
+              {(data.alertas_180 || []).length === 0 ? (
+                <div className="bg-green-900/20 border border-green-700/50 rounded-xl p-8 text-center">
+                  <span className="text-green-400 text-4xl block mb-2">✅</span>
+                  <span className="text-green-400 font-bold">Sin alertas de 180 días</span>
+                  <p className="text-gray-500 text-xs mt-1">Ningún empleado se acerca al límite de incapacidad temporal de la EPS</p>
+                </div>
+              ) : (
+                <SortableTable
+                  data={data.alertas_180 || []}
+                  columns={COLS_SST_180}
+                  title={`⛔ ${data.alertas_180.length} Alertas 180 Días — Ley 776/2002`}
+                  exportFilename="SST_alertas_180_dias"
+                  maxHeight="calc(100vh - 480px)"
+                />
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* TAB: NÓMINA                                               */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {tab === 'nomina' && data && (
+        <SortableTable
+          data={data.tabla_principal || []}
+          columns={COLS_NOMINA}
+          title="💰 Nómina — Liquidación de Incapacidades"
+          exportFilename="NOMINA_incapacidades"
+          maxHeight="calc(100vh - 380px)"
+        />
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* TAB: INDICADORES                                          */}
+      {/* ═══════════════════════════════════════════════════════════ */}
       {tab === 'indicadores' && data && (
         <SortableTable
           data={data.indicadores || []}
           columns={COLS_INDICADORES}
           title="📈 Indicadores por Estado — Distribución y Promedios"
-          exportFilename="reporte_indicadores_estado"
+          exportFilename="indicadores_estado"
           maxHeight="calc(100vh - 380px)"
         />
       )}
@@ -750,7 +876,7 @@ export default function ReportsDashboard({ empresas = [] }) {
       <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-3 text-center">
         <span className="text-gray-500 text-[10px]">
           Dashboard 2026 — Auto-refresh {autoRefresh ? '✅ activo (30s)' : '⏸ pausado'}
-          {' '} — Todas las tablas exportables a Excel
+          {' '} — Exportar cada sección como Excel
           {lastUpdate && ` — Última: ${lastUpdate.toLocaleTimeString('es-CO')}`}
         </span>
       </div>
