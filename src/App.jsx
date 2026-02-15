@@ -10,12 +10,11 @@ import {
 } from 'lucide-react';
 import ReportsDashboard from './components/Dashboard/ReportsDashboard';
 import BeforeAfterPDF from './components/BeforeAfterPDF';
+import LivePDFEditor from './components/LivePDFEditor';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import {
-  convertPageToGrayscale,
-  enhanceContrast,
-  sharpenPage,
-  comparePDFPages
+  rotatePDFPage,
+  rotateAllPages,
 } from './utils/pdfUtils';
 // Legacy cache imports (reemplazado por pdfSmartLoader)
 // import { pdfCacheManager } from './utils/pdfCache';
@@ -114,9 +113,12 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   const [mostraModalLimpiar, setMostrarModalLimpiar] = useState(false);
   const [contraseniaLimpiar, setContraseniaLimpiar] = useState('');
   const [limpiarEnProgreso, setLimpiarEnProgreso] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [editedPDFFile, setEditedPDFFile] = useState(null);
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
   const [beforeAfterCanvases, setBeforeAfterCanvases] = useState(null);
+  const [showLiveEditor, setShowLiveEditor] = useState(null); // null | { mode: string, pdfFile: File }
+  const [currentPDFFile, setCurrentPDFFile] = useState(null); // File del PDF actual en cache
   
   // 🚀 OPTIMIZACIONES
   const progressBar = useProgress();
@@ -217,148 +219,117 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     return checksCalidad;
   };
  
-// ✅ ROTAR PÁGINA
+// ✅ ROTAR PÁGINA - LOCAL (instantáneo via pdf-lib)
   const rotarPagina = useCallback(async (angle, aplicarATodas) => {
-    const pageNum = currentPage; // Usar página actual
     setEnviandoValidacion(true);
+    mostrarNotificacion('🔄 Rotando...');
     
     try {
-      const operaciones = aplicarATodas 
-        ? { rotate: pages.map((_, i) => ({ page_num: i, angle })) }
-        : { rotate: [{ page_num: pageNum, angle }] };
+      // Obtener PDF actual
+      let pdfFile = currentPDFFile;
+      if (!pdfFile) {
+        const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/fast`, {
+          headers: getHeaders()
+        });
+        const pdfBlob = await response.blob();
+        pdfFile = new File([pdfBlob], `${casoSeleccionado.serial}.pdf`, { type: 'application/pdf' });
+      }
       
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/editar-pdf`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ operaciones })
-      });
+      // Rotar localmente (instantáneo - solo cambia metadata del PDF)
+      const rotatedBlob = aplicarATodas 
+        ? await rotateAllPages(pdfFile, angle)
+        : await rotatePDFPage(pdfFile, currentPage, angle);
       
-     if (response.ok) {
-        mostrarNotificacion('✅ Página(s) rotada(s)', 'success');
+      // Subir PDF rotado al servidor
+      const formData = new FormData();
+      formData.append('archivo', new File([rotatedBlob], 'rotated.pdf', { type: 'application/pdf' }));
+      
+      const saveResponse = await fetch(
+        `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/guardar-pdf-editado`,
+        { method: 'POST', headers: { 'X-Admin-Token': ADMIN_TOKEN }, body: formData }
+      );
+      
+      if (saveResponse.ok) {
+        mostrarNotificacion('✅ Rotado y guardado', 'success');
+        await invalidatePDFCache(casoSeleccionado.serial);
         await recargarPDFInPlace(casoSeleccionado.serial);
       } else {
-        mostrarNotificacion('❌ Error rotando página', 'error');
+        mostrarNotificacion('❌ Error guardando rotación', 'error');
+      }
+    } catch (error) {
+      console.error('Error rotando:', error);
+      mostrarNotificacion('❌ Error rotando', 'error');
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace, currentPDFFile]);
+
+// ✅ ABRIR EDITOR EN VIVO (para cualquier herramienta)
+  const abrirEditorEnVivo = useCallback(async (mode) => {
+    setEnviandoValidacion(true);
+    mostrarNotificacion('⚡ Cargando editor...');
+    
+    try {
+      let pdfFile = currentPDFFile;
+      if (!pdfFile) {
+        const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/fast`, {
+          headers: getHeaders()
+        });
+        const pdfBlob = await response.blob();
+        pdfFile = new File([pdfBlob], `${casoSeleccionado.serial}.pdf`, { type: 'application/pdf' });
+        setCurrentPDFFile(pdfFile);
+      }
+      
+      setShowLiveEditor({ mode, pdfFile });
+    } catch (error) {
+      mostrarNotificacion('❌ Error cargando PDF', 'error');
+      console.error(error);
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  }, [casoSeleccionado.serial, mostrarNotificacion, currentPDFFile]);
+
+  // ✅ GUARDAR DESDE EDITOR EN VIVO
+  const guardarDesdeEditorVivo = useCallback(async (editedBlob) => {
+    setEnviandoValidacion(true);
+    mostrarNotificacion('💾 Guardando cambios...');
+    
+    try {
+      const formData = new FormData();
+      formData.append('archivo', new File([editedBlob], 'edited.pdf', { type: 'application/pdf' }));
+      
+      const response = await fetch(
+        `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/guardar-pdf-editado`,
+        { method: 'POST', headers: { 'X-Admin-Token': ADMIN_TOKEN }, body: formData }
+      );
+      
+      if (response.ok) {
+        mostrarNotificacion('✅ Cambios guardados en Drive', 'success');
+        setShowLiveEditor(null);
+        setCurrentPDFFile(null);
+        await invalidatePDFCache(casoSeleccionado.serial);
+        await recargarPDFInPlace(casoSeleccionado.serial);
+      } else {
+        mostrarNotificacion('❌ Error guardando', 'error');
       }
     } catch (error) {
       mostrarNotificacion('❌ Error de conexión', 'error');
     } finally {
       setEnviandoValidacion(false);
     }
-  }, [currentPage, pages, casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
+  }, [casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
 
-// ✅ MEJORAR CALIDAD HD - VERSIÓN LOCAL (INSTANTÁNEA)
-  const mejorarCalidadHD = useCallback(async (nivel = 'estandar') => {
-    setEnviandoValidacion(true);
-    mostrarNotificacion('⚡ Mejorando contraste...');
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/stream`, {
-        headers: getHeaders()
-      });
-      const pdfBlob = await response.blob();
-      const pdfFile = new File([pdfBlob], `${casoSeleccionado.serial}.pdf`, { type: 'application/pdf' });
-      
-      // Procesar localmente
-      const newPdfBlob = await enhanceContrast(pdfFile, currentPage);
-      
-      mostrarNotificacion('✅ Contraste mejorado');
-      setEditedPDFFile(new File([newPdfBlob], 'edited.pdf'));
-      
-      const canvases = await comparePDFPages(pdfFile, new File([newPdfBlob], 'edited.pdf'), currentPage);
-      setBeforeAfterCanvases(canvases);
-      setShowBeforeAfter(true);
-      
-    } catch (error) {
-      mostrarNotificacion('❌ Error mejorando', 'error');
-      console.error(error);
-    } finally {
-      setEnviandoValidacion(false);
-    }
-  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion]);
-
-  // ✅ APLICAR FILTRO DE IMAGEN - VERSIÓN LOCAL (INSTANTÁNEA)
-  const aplicarFiltro = useCallback(async (tipo) => {
-    setEnviandoValidacion(true);
-    mostrarNotificacion('⚡ Aplicando blanco y negro...');
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/stream`, {
-        headers: getHeaders()
-      });
-      const pdfBlob = await response.blob();
-      const pdfFile = new File([pdfBlob], `${casoSeleccionado.serial}.pdf`, { type: 'application/pdf' });
-      
-      const newPdfBlob = await convertPageToGrayscale(pdfFile, currentPage);
-      
-      mostrarNotificacion('✅ Filtro aplicado');
-      setEditedPDFFile(new File([newPdfBlob], 'edited.pdf'));
-      
-      const canvases = await comparePDFPages(pdfFile, new File([newPdfBlob], 'edited.pdf'), currentPage);
-      setBeforeAfterCanvases(canvases);
-      setShowBeforeAfter(true);
-      
-    } catch (error) {
-      mostrarNotificacion('❌ Error aplicando filtro', 'error');
-    } finally {
-      setEnviandoValidacion(false);
-    }
-  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion]);
-
-  // ✅ RECORTE AUTOMÁTICO - VERSIÓN LOCAL (INSTANTÁNEA)
-  const recorteAutomatico = useCallback(async () => {
-    setEnviandoValidacion(true);
-    mostrarNotificacion('⚡ Enfocando...');
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/stream`, {
-        headers: getHeaders()
-      });
-      const pdfBlob = await response.blob();
-      const pdfFile = new File([pdfBlob], `${casoSeleccionado.serial}.pdf`, { type: 'application/pdf' });
-      
-      const newPdfBlob = await sharpenPage(pdfFile, currentPage);
-      
-      mostrarNotificacion('✅ Enfoque aplicado');
-      setEditedPDFFile(new File([newPdfBlob], 'edited.pdf'));
-      
-      const canvases = await comparePDFPages(pdfFile, new File([newPdfBlob], 'edited.pdf'), currentPage);
-      setBeforeAfterCanvases(canvases);
-      setShowBeforeAfter(true);
-      
-    } catch (error) {
-      mostrarNotificacion('❌ Error aplicando', 'error');
-    } finally {
-      setEnviandoValidacion(false);
-    }
-  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion]);
-
-  // ✅ CORREGIR INCLINACIÓN - VERSIÓN LOCAL (INSTANTÁNEA)
-  const corregirInclinacion = useCallback(async () => {
-    setEnviandoValidacion(true);
-    mostrarNotificacion('⚡ Mejorando...');
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/stream`, {
-        headers: getHeaders()
-      });
-      const pdfBlob = await response.blob();
-      const pdfFile = new File([pdfBlob], `${casoSeleccionado.serial}.pdf`, { type: 'application/pdf' });
-      
-      const newPdfBlob = await enhanceContrast(pdfFile, currentPage);
-      
-      mostrarNotificacion('✅ Mejorado');
-      setEditedPDFFile(new File([newPdfBlob], 'edited.pdf'));
-      
-      const canvases = await comparePDFPages(pdfFile, new File([newPdfBlob], 'edited.pdf'), currentPage);
-      setBeforeAfterCanvases(canvases);
-      setShowBeforeAfter(true);
-      
-    } catch (error) {
-      mostrarNotificacion('❌ Error', 'error');
-    } finally {
-      setEnviandoValidacion(false);
-    }
-  }, [currentPage, casoSeleccionado.serial, mostrarNotificacion]);
+  // Legacy wrappers para compatibilidad con atajos de teclado
+  const mejorarCalidadHD = useCallback(() => abrirEditorEnVivo('sharpen'), [abrirEditorEnVivo]);
+  const aplicarFiltro = useCallback((tipo) => {
+    if (tipo === 'grayscale') abrirEditorEnVivo('grayscale');
+    else if (tipo === 'contrast') abrirEditorEnVivo('contrast');
+    else if (tipo === 'brightness') abrirEditorEnVivo('brightness');
+    else if (tipo === 'sharpen') abrirEditorEnVivo('sharpen');
+    else abrirEditorEnVivo('filters');
+  }, [abrirEditorEnVivo]);
+  const recorteAutomatico = useCallback(() => abrirEditorEnVivo('crop'), [abrirEditorEnVivo]);
+  const corregirInclinacion = useCallback(() => abrirEditorEnVivo('contrast'), [abrirEditorEnVivo]);
 
   // ✅ ELIMINAR PÁGINAS SELECCIONADAS
   const eliminarPaginasSeleccionadas = useCallback(async () => {
@@ -1272,6 +1243,19 @@ return (
         }}
       />
     )}
+
+    {/* ✅ EDITOR EN VIVO (brillo/contraste/crop/sharpen) */}
+    {showLiveEditor && (
+      <LivePDFEditor
+        pdfFile={showLiveEditor.pdfFile}
+        pageNum={currentPage}
+        serial={casoSeleccionado.serial}
+        initialMode={showLiveEditor.mode}
+        onSave={guardarDesdeEditorVivo}
+        onClose={() => setShowLiveEditor(null)}
+      />
+    )}
+
     {notificacion && (
       <div className={`fixed bottom-6 right-6 z-[70] px-4 py-3 rounded-lg shadow-lg border-l-4 flex items-center gap-3 animate-fade-in transition-all duration-300 backdrop-blur-sm ${
         notificacion.tipo === 'success' ? 'bg-green-50/90 border-l-green-500 text-green-900' : 
@@ -1799,42 +1783,30 @@ return (
             </div>
           </div>
 
-          {/* CALIDAD */}
+          {/* ✨ EDITOR EN VIVO (abre panel con sliders) */}
           <div className="border border-gray-700 rounded-lg overflow-hidden">
-            <button className="w-full px-4 py-2 bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 flex items-center justify-between">
-              <span>✨ Mejorar Calidad</span>
-              <span>▼</span>
+            <button className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold text-sm hover:from-purple-700 hover:to-blue-700 flex items-center justify-between">
+              <span>✨ Editor en Vivo</span>
+              <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded">NUEVO</span>
             </button>
             <div className="bg-gray-800/50 p-2 space-y-1">
-              <button onClick={() => {mejorarCalidadHD('rapido'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">⚡ Rápido (1.8x)</button>
-              <button onClick={() => {mejorarCalidadHD('estandar'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">⚡ Estándar (2.5x)</button>
-              <button onClick={() => {mejorarCalidadHD('premium'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">⚡ Premium (3.5x)</button>
+              <button onClick={() => {abrirEditorEnVivo('filters'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-purple-600 text-white text-xs rounded disabled:opacity-50 flex items-center gap-2">🎛️ Abrir Editor Completo</button>
+              <button onClick={() => {abrirEditorEnVivo('brightness'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">☀️ Brillo (en vivo)</button>
+              <button onClick={() => {abrirEditorEnVivo('contrast'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">◈ Contraste (en vivo)</button>
+              <button onClick={() => {abrirEditorEnVivo('sharpen'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">🎯 Enfoque HD (en vivo)</button>
+              <button onClick={() => {abrirEditorEnVivo('grayscale'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">⚪ Blanco y Negro</button>
             </div>
           </div>
 
-          {/* FILTROS */}
-          <div className="border border-gray-700 rounded-lg overflow-hidden">
-            <button className="w-full px-4 py-2 bg-green-600 text-white font-semibold text-sm hover:bg-green-700 flex items-center justify-between">
-              <span>🎨 Filtros</span>
-              <span>▼</span>
-            </button>
-            <div className="bg-gray-800/50 p-2 space-y-1">
-              <button onClick={() => {aplicarFiltro('grayscale'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">⚪ B&N</button>
-              <button onClick={() => {aplicarFiltro('contrast'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">◈ Contraste</button>
-              <button onClick={() => {aplicarFiltro('brightness'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">☀️ Brillo</button>
-              <button onClick={() => {aplicarFiltro('sharpen'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">🎯 Enfoque</button>
-            </div>
-          </div>
-
-          {/* GEOMETRÍA */}
+          {/* ✂️ RECORTE */}
           <div className="border border-gray-700 rounded-lg overflow-hidden">
             <button className="w-full px-4 py-2 bg-orange-600 text-white font-semibold text-sm hover:bg-orange-700 flex items-center justify-between">
-              <span>📐 Geometría</span>
+              <span>✂️ Recorte</span>
               <span>▼</span>
             </button>
             <div className="bg-gray-800/50 p-2 space-y-1">
-              <button onClick={() => {recorteAutomatico(); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">✂️ Recorte</button>
-              <button onClick={() => {corregirInclinacion(); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">📐 Ángulo</button>
+              <button onClick={() => {abrirEditorEnVivo('crop'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-orange-600 text-white text-xs rounded disabled:opacity-50">✂️ Recorte manual (dibujar)</button>
+              <button onClick={() => {abrirEditorEnVivo('crop'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-orange-600 text-white text-xs rounded disabled:opacity-50">📐 Auto-recorte (quitar bordes)</button>
             </div>
           </div>
 
