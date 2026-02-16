@@ -733,11 +733,17 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     
     if (!window.confirm(
       '🧹 ¿LIMPIAR TODO EL SISTEMA?\n\n' +
-      '⚠️ ADVERTENCIA:\n' +
-      '• Se eliminarán TODOS los casos\n' +
-      '• Se eliminarán de la base de datos\n' +
-      '• Se eliminarán de Google Drive\n' +
-      '• Esta acción NO se puede deshacer\n\n' +
+      '⚠️ ADVERTENCIA — SE ELIMINARÁ:\n' +
+      '• Todas las incapacidades (casos)\n' +
+      '• Documentos, eventos, notas\n' +
+      '• Correos de notificación\n' +
+      '• Alertas y logs de 180 días\n' +
+      '• Historial de búsquedas\n' +
+      '• Archivos de Google Drive\n\n' +
+      '✅ SE CONSERVA:\n' +
+      '• Empleados (Hoja 1 del Excel)\n' +
+      '• Empresas (Hoja 2 del Excel)\n\n' +
+      '⚠️ Esta acción NO se puede deshacer.\n' +
       '¿Estás 100% seguro?'
     )) {
       return;
@@ -756,6 +762,13 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
       
       if (response.ok) {
         const data = await response.json();
+        // Mostrar detalle de lo eliminado
+        let detalle = data.mensaje;
+        if (data.detalle) {
+          const d = data.detalle;
+          detalle += `\n\nDetalle:\n• ${d.casos || 0} casos\n• ${d.documentos || 0} documentos\n• ${d.eventos || 0} eventos\n• ${d.notas || 0} notas\n• ${d.correos_notificacion || 0} correos\n• ${d.alertas_email || 0} alertas\n• ${data.archivos_drive_eliminados || 0} archivos Drive`;
+        }
+        alert(detalle);
         mostrarNotificacion(`🧹 ${data.mensaje}`, 'success');
         setMostrarModalLimpiar(false);
         setContraseniaLimpiar('');
