@@ -1491,7 +1491,8 @@ return (
                   🔄 REENVÍO DETECTADO - Comparar Versiones
                 </h3>
                 <p className="text-sm text-orange-100">
-                  El empleado ha reenviado documentos. Total de intentos: {casoActualizado.metadata_reenvio.total_reenvios}
+                  El empleado ha reenviado documentos.
+                  <span className="font-bold text-white ml-2">Intentos incompletos: {casoActualizado.metadata_reenvio.total_reenvios}</span>
                 </p>
               </div>
             </div>
@@ -1769,37 +1770,31 @@ return (
               <div className="bg-gray-800/30 p-3 space-y-2 rounded-b-lg">
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Nombre</div>
-                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.nombre || 'N/A'}</div>
+                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.nombre ? casoActualizado.nombre : 'En proceso'}</div>
                 </div>
-                
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Cédula</div>
-                  <div className="text-xs text-yellow-300 font-semibold bg-black/30 px-2 py-1.5 rounded">{casoActualizado.cedula || 'N/A'}</div>
+                  <div className="text-xs text-yellow-300 font-semibold bg-black/30 px-2 py-1.5 rounded">{casoActualizado.cedula ? casoActualizado.cedula : 'En proceso'}</div>
                 </div>
-                
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Teléfono</div>
-                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.telefono || 'N/A'}</div>
+                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.telefono ? casoActualizado.telefono : 'En proceso'}</div>
                 </div>
-                
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Email</div>
-                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded break-all">{casoActualizado.email || 'N/A'}</div>
+                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded break-all">{casoActualizado.email ? casoActualizado.email : 'En proceso'}</div>
                 </div>
-                
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Empresa</div>
-                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.empresa || 'N/A'}</div>
+                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.empresa ? casoActualizado.empresa : 'En proceso'}</div>
                 </div>
-                
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Estado</div>
                   <div className="flex items-center gap-2 bg-red-600/20 px-2 py-1.5 rounded border border-red-500/30">
                     <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                    <span className="text-xs text-red-300 font-semibold">{casoActualizado.estado}</span>
+                    <span className="text-xs text-red-300 font-semibold">{casoActualizado.estado ? casoActualizado.estado : 'En proceso'}</span>
                   </div>
                 </div>
-                
                 {casoActualizado.metadata_reenvio?.tiene_reenvios && (
                   <div>
                     <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Reenvíos</div>
@@ -1808,18 +1803,16 @@ return (
                     </div>
                   </div>
                 )}
-                
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Días</div>
                   <div className="text-xs text-yellow-300 font-semibold bg-black/30 px-2 py-1.5 rounded">
-                    {casoActualizado.dias || 'N/A'} días
+                    {casoActualizado.dias !== undefined && casoActualizado.dias !== null && casoActualizado.dias !== '' ? casoActualizado.dias : 'En proceso'} días
                   </div>
                 </div>
-                
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Tipo</div>
                   <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded capitalize">
-                    {casoActualizado.tipo?.replace('_', ' ') || 'N/A'}
+                    {casoActualizado.tipo ? casoActualizado.tipo.replace('_', ' ') : 'En proceso'}
                   </div>
                 </div>
               </div>
