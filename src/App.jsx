@@ -1778,11 +1778,11 @@ return (
                 </div>
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Teléfono</div>
-                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.telefono ? casoActualizado.telefono : 'En proceso'}</div>
+                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.telefono_form ? casoActualizado.telefono_form : 'En proceso'}</div>
                 </div>
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Email</div>
-                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded break-all">{casoActualizado.email ? casoActualizado.email : 'En proceso'}</div>
+                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded break-all">{casoActualizado.email_form ? casoActualizado.email_form : 'En proceso'}</div>
                 </div>
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Empresa</div>
@@ -1806,7 +1806,7 @@ return (
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Días</div>
                   <div className="text-xs text-yellow-300 font-semibold bg-black/30 px-2 py-1.5 rounded">
-                    {casoActualizado.dias !== undefined && casoActualizado.dias !== null && casoActualizado.dias !== '' ? casoActualizado.dias : 'En proceso'} días
+                    {casoActualizado.dias_incapacidad !== undefined && casoActualizado.dias_incapacidad !== null && casoActualizado.dias_incapacidad !== '' ? casoActualizado.dias_incapacidad : 'En proceso'} días
                   </div>
                 </div>
                 <div>
