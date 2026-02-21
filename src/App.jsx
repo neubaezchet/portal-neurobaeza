@@ -83,7 +83,7 @@ const STATUS_MAP = {
   'ILEGIBLE': { label: 'ILEGIBLE', color: '#f59e0b', borderColor: 'border-orange-500', icon: AlertCircle },
   'INCOMPLETA_ILEGIBLE': { label: 'INCOMPLETA/ILEGIBLE', color: '#ef4444', borderColor: 'border-red-600', icon: XCircle },
   'EPS_TRANSCRIPCION': { label: 'EPS', color: '#ca8a04', borderColor: 'border-yellow-500', icon: FileText },
-  'DERIVADO_TTHH': { label: 'TTHH', color: '#2563eb', borderColor: 'border-blue-500', icon: Send },
+  'DERIVADO_TTHH': { label: 'P. FRAUDE', color: '#dc2626', borderColor: 'border-red-600', icon: Send },
   'CAUSA_EXTRA': { label: 'EXTRA', color: '#6b7280', borderColor: 'border-gray-500', icon: Edit3 },
   'COMPLETA': { label: 'VALIDADA', color: '#16a34a', borderColor: 'border-green-500', icon: CheckCircle },
 };
@@ -582,7 +582,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   } else if (accion === 'incompleta') {
     mostrarNotificacion('⚠️ Caso marcado como INCOMPLETO', 'success');
   } else if (accion === 'tthh') {
-    mostrarNotificacion('📨 Caso derivado a TALENTO HUMANO', 'success');
+    mostrarNotificacion('� Caso marcado como PRESUNTO FRAUDE', 'success');
   } else if (accion === 'eps') {
     mostrarNotificacion('🏥 Caso derivado a EPS', 'success');
   } else {
@@ -1959,9 +1959,9 @@ return (
             onClick={() => setAccionSeleccionada('tthh')}
             disabled={enviandoValidacion}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
-            style={{backgroundColor: '#2563eb'}}>
+            style={{backgroundColor: '#dc2626'}}>
             <Send className="w-4 h-4" />
-            🚨 TTHH
+            🚨 Presunto Fraude
           </button>
           
           <button 
@@ -2200,20 +2200,20 @@ return (
       {accionSeleccionada === 'tthh' && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl">
-            <div className="sticky top-0 bg-blue-600 text-white p-4 rounded-t-xl flex items-center justify-between">
+            <div className="sticky top-0 bg-red-600 text-white p-4 rounded-t-xl flex items-center justify-between">
               <h3 className="text-xl font-bold flex items-center gap-2">
                 <Send className="w-6 h-6" />
-                🚨 Derivar a Talento Humano
+                🚨 Presunto Fraude
               </h3>
-              <button onClick={() => setAccionSeleccionada(null)} className="p-1 hover:bg-blue-700 rounded">
+              <button onClick={() => setAccionSeleccionada(null)} className="p-1 hover:bg-red-700 rounded">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
-                <p className="text-sm text-yellow-800">
-                  <strong>⚠️ Caso con inconsistencias detectadas.</strong> Se enviará alerta confidencial a Talento Humano y confirmación neutra a la empleada.
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                <p className="text-sm text-red-800">
+                  <strong>⚠️ Caso con inconsistencias detectadas.</strong> Se enviará alerta confidencial al encargado de presunto fraude y al correo de la empresa. A la empleada se le envía confirmación neutra.
                 </p>
               </div>
 
@@ -2257,7 +2257,7 @@ return (
                 <button
                   onClick={() => handleValidar(casoSeleccionado.serial, 'tthh')}
                   disabled={enviandoValidacion}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                 >
                   {enviandoValidacion ? (
                     <>
@@ -2267,7 +2267,7 @@ return (
                   ) : (
                     <>
                       <Send className="w-5 h-5" />
-                      🚨 Confirmar Derivación
+                      🚨 Confirmar Presunto Fraude
                     </>
                   )}
                 </button>

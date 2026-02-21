@@ -38,7 +38,7 @@ const ESTADO_COLORS = {
   ILEGIBLE:           { bg: 'bg-orange-500/20', text: 'text-orange-400', dot: 'bg-orange-500' },
   INCOMPLETA_ILEGIBLE:{ bg: 'bg-red-600/20', text: 'text-red-500', dot: 'bg-red-600' },
   EPS_TRANSCRIPCION:  { bg: 'bg-yellow-500/20', text: 'text-yellow-400', dot: 'bg-yellow-500' },
-  DERIVADO_TTHH:      { bg: 'bg-purple-500/20', text: 'text-purple-400', dot: 'bg-purple-500' },
+  DERIVADO_TTHH:      { bg: 'bg-red-600/20', text: 'text-red-400', dot: 'bg-red-600' },
   CAUSA_EXTRA:        { bg: 'bg-pink-500/20', text: 'text-pink-400', dot: 'bg-pink-500' },
   COMPLETA:           { bg: 'bg-green-500/20', text: 'text-green-400', dot: 'bg-green-500' },
   EN_RADICACION:      { bg: 'bg-teal-500/20', text: 'text-teal-400', dot: 'bg-teal-500' },
@@ -47,7 +47,7 @@ const ESTADO_COLORS = {
 const ESTADO_LABELS = {
   NUEVO: 'Nuevo', EN_REVISION: 'En Revisión', INCOMPLETA: 'Incompleta',
   ILEGIBLE: 'Ilegible', INCOMPLETA_ILEGIBLE: 'Incompleta+Ilegible',
-  EPS_TRANSCRIPCION: 'EPS Transcripción', DERIVADO_TTHH: 'Derivado TTHH',
+  EPS_TRANSCRIPCION: 'EPS Transcripción', DERIVADO_TTHH: 'P. Fraude',
   CAUSA_EXTRA: 'Causa Extra', COMPLETA: 'Completa', EN_RADICACION: 'En Radicación',
 };
 
