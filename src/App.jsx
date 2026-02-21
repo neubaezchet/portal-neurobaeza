@@ -1789,6 +1789,10 @@ return (
                   <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.empresa ? casoActualizado.empresa : 'En proceso'}</div>
                 </div>
                 <div>
+                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">EPS</div>
+                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.eps ? casoActualizado.eps : 'No registrada'}</div>
+                </div>
+                <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Estado</div>
                   <div className="flex items-center gap-2 bg-red-600/20 px-2 py-1.5 rounded border border-red-500/30">
                     <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
