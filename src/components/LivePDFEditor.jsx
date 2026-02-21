@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { X, Scissors, Save, Undo2, RotateCw, RotateCcw } from 'lucide-react';
+import { X, Scissors, Save, Undo2, RotateCw, RotateCcw, Copy, Paperclip } from 'lucide-react';
 import {
   buildCSSFilter,
   createSharpenSVGMarkup,
@@ -28,6 +28,7 @@ export default function LivePDFEditor({
   onSave,         // (editedBlob) => void
   onClose,        // () => void
   initialMode,    // 'filters' | 'crop' | 'brightness' | 'contrast' | 'sharpen' | 'grayscale'
+  onAttachToEmail, // (File) => void — adjuntar recorte al correo
 }) {
   // Estado de la imagen base
   const [baseCanvas, setBaseCanvas] = useState(null);
@@ -47,6 +48,7 @@ export default function LivePDFEditor({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(null);
   const [cropHandle, setCropHandle] = useState(null); // null | 'move' | 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w'
+  const [copyMsg, setCopyMsg] = useState(null); // Mensaje temporal de copia/adjunto
   
   // SVG filter para sharpen
   const [sharpenSVG, setSharpenSVG] = useState('');
@@ -247,6 +249,57 @@ export default function LivePDFEditor({
     if (insideX && insideY) return 'move';
     return null;
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // CROP → Copiar / Adjuntar al correo
+  // ═══════════════════════════════════════════════════════════
+  const getCroppedImageBlob = useCallback(async () => {
+    if (!cropRect || !imageRef.current) return null;
+    const img = imageRef.current;
+    const canvas = document.createElement('canvas');
+    const natW = img.naturalWidth;
+    const natH = img.naturalHeight;
+    const sx = Math.round(cropRect.startX * natW);
+    const sy = Math.round(cropRect.startY * natH);
+    const sw = Math.round((cropRect.endX - cropRect.startX) * natW);
+    const sh = Math.round((cropRect.endY - cropRect.startY) * natH);
+    canvas.width = sw;
+    canvas.height = sh;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  }, [cropRect]);
+
+  const handleCopyCrop = useCallback(async () => {
+    try {
+      const blob = await getCroppedImageBlob();
+      if (!blob) return;
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': blob })
+      ]);
+      setCopyMsg('\u2705 Imagen copiada');
+      setTimeout(() => setCopyMsg(null), 2000);
+    } catch (err) {
+      console.error('[Crop] Error copiando:', err);
+      setCopyMsg('\u274c Error al copiar');
+      setTimeout(() => setCopyMsg(null), 2000);
+    }
+  }, [getCroppedImageBlob]);
+
+  const handleAttachCrop = useCallback(async () => {
+    try {
+      const blob = await getCroppedImageBlob();
+      if (!blob) return;
+      const file = new File([blob], `recorte_${serial}_p${pageNum + 1}.png`, { type: 'image/png' });
+      if (onAttachToEmail) {
+        onAttachToEmail(file);
+        setCopyMsg('\ud83d\udcce Adjuntado al correo');
+        setTimeout(() => setCopyMsg(null), 2000);
+      }
+    } catch (err) {
+      console.error('[Crop] Error adjuntando:', err);
+    }
+  }, [getCroppedImageBlob, serial, pageNum, onAttachToEmail]);
 
   // Auto-crop
   const handleAutoCrop = useCallback(async () => {
@@ -656,12 +709,33 @@ export default function LivePDFEditor({
               </button>
 
               {cropRect && (
-                <button
-                  onClick={() => { setCropRect(null); setCropMode(false); }}
-                  className="w-full px-3 py-1.5 rounded-lg text-xs text-red-400 hover:bg-red-900/30 flex items-center justify-center gap-1"
-                >
-                  <X className="w-3 h-3" /> Quitar recorte
-                </button>
+                <>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      onClick={handleCopyCrop}
+                      className="px-3 py-2 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-1"
+                    >
+                      <Copy className="w-3 h-3" /> Copiar
+                    </button>
+                    {onAttachToEmail && (
+                      <button
+                        onClick={handleAttachCrop}
+                        className="px-3 py-2 rounded-lg text-xs font-semibold bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-1"
+                      >
+                        <Paperclip className="w-3 h-3" /> Al correo
+                      </button>
+                    )}
+                  </div>
+                  {copyMsg && (
+                    <div className="text-center text-xs text-green-400 animate-pulse">{copyMsg}</div>
+                  )}
+                  <button
+                    onClick={() => { setCropRect(null); setCropMode(false); }}
+                    className="w-full px-3 py-1.5 rounded-lg text-xs text-red-400 hover:bg-red-900/30 flex items-center justify-center gap-1"
+                  >
+                    <X className="w-3 h-3" /> Quitar recorte
+                  </button>
+                </>
               )}
             </div>
 

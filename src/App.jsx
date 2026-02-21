@@ -1301,6 +1301,10 @@ return (
         initialMode={showLiveEditor.mode}
         onSave={guardarDesdeEditorVivo}
         onClose={() => setShowLiveEditor(null)}
+        onAttachToEmail={(file) => {
+          setAdjuntos(prev => [...prev, file]);
+          mostrarNotificacion('📎 Recorte adjuntado al correo', 'success');
+        }}
       />
     )}
 
@@ -2652,7 +2656,7 @@ export default function App() {
 
             <input
               type="text"
-              placeholder="Buscar por serial, cédula o nombre..."
+              placeholder="Buscar serial, cédula, nombre o +5 (≥5 días)..."
               value={filtros.q}
               onChange={(e) => handleFiltroChange('q', e.target.value)}
               className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
