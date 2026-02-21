@@ -352,14 +352,20 @@ export default function ReportsDashboard({ empresas = [] }) {
     { key: 'observacion', label: 'Observación / Motivo', width: '280px', accessor: r => r.observacion, render: r => {
       const obs = r.observacion_detalle || r.observacion;
       const faltantes = r.docs_faltantes || [];
+      const ilegibles = r.docs_ilegibles || [];
       const sinKactus = r.subido_kactus === false;
-      if (!obs && faltantes.length === 0 && !sinKactus) return <span className="text-gray-500">—</span>;
+      if (!obs && faltantes.length === 0 && ilegibles.length === 0 && !sinKactus) return <span className="text-gray-500">—</span>;
       return (
         <div className="max-w-[280px]">
           {obs && <span className="text-gray-300 text-[10px] block" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{obs}</span>}
           {faltantes.length > 0 && (
             <div className="flex flex-wrap gap-0.5 mt-0.5">
-              {faltantes.map((d,i) => <span key={i} className="px-1 py-0.5 bg-red-500/20 text-red-400 rounded text-[8px]">{d}</span>)}
+              {faltantes.map((d,i) => <span key={i} className="px-1 py-0.5 bg-red-500/20 text-red-400 rounded text-[8px]">📄 {d}</span>)}
+            </div>
+          )}
+          {ilegibles.length > 0 && (
+            <div className="flex flex-wrap gap-0.5 mt-0.5">
+              {ilegibles.map((d,i) => <span key={i} className="px-1 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[8px]">⚠️ {d} ilegible</span>)}
             </div>
           )}
           {sinKactus && <span className="px-1 py-0.5 bg-pink-500/15 text-pink-400 rounded text-[8px] mt-0.5 inline-block">Sin subir en Kactus</span>}
@@ -397,12 +403,23 @@ export default function ReportsDashboard({ empresas = [] }) {
       if (r.cerca_limite_180) return <span className="px-2 py-1 bg-orange-500/20 text-orange-400 rounded text-[10px] font-bold">🔴 CERCA LÍMITE</span>;
       return <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-[10px] font-bold">🟡 EN RIESGO</span>;
     }},
-    { key: 'huecos', label: 'Huecos', accessor: r => r.huecos_detectados || 0, render: r => {
+    { key: 'huecos', label: 'Huecos', width: '200px', accessor: r => r.huecos_detectados || 0, render: r => {
       const h = r.huecos_detectados || 0;
       if (h === 0) return <span className="text-gray-600">—</span>;
-      return <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-[9px] font-bold" title={
-        (r.huecos_info || []).map(hi => `Hueco: ${hi.dias_hueco}d`).join(' | ')
-      }>⚠️ {h}</span>;
+      const infos = r.huecos_info || [];
+      return (
+        <div className="flex flex-col gap-0.5">
+          <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-[9px] font-bold w-fit">⚠️ {h} hueco{h > 1 ? 's' : ''}</span>
+          {infos.map((hi, i) => (
+            <div key={i} className="text-[8px] text-purple-300/80 leading-tight">
+              <span className="text-pink-400 font-mono">{hi.fecha_desde || '?'}</span>
+              <span className="text-gray-500"> → </span>
+              <span className="text-pink-400 font-mono">{hi.fecha_hasta || '?'}</span>
+              <span className="text-gray-500 ml-1">({hi.dias_hueco}d)</span>
+            </div>
+          ))}
+        </div>
+      );
     }},
     { key: 'observacion', label: 'Observación', width: '300px', accessor: r => {
       const alertas = r.alertas_180 || [];
