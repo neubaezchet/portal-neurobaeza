@@ -349,18 +349,20 @@ export default function ReportsDashboard({ empresas = [] }) {
       <span className="font-bold text-white">{r.dias_incapacidad ?? '—'}</span>
     )},
     { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
-    { key: 'observacion', label: 'Observación / Motivo', width: '250px', accessor: r => r.observacion, render: r => {
-      const obs = r.observacion;
+    { key: 'observacion', label: 'Observación / Motivo', width: '280px', accessor: r => r.observacion, render: r => {
+      const obs = r.observacion_detalle || r.observacion;
       const faltantes = r.docs_faltantes || [];
-      if (!obs && faltantes.length === 0) return <span className="text-gray-500">—</span>;
+      const sinKactus = r.subido_kactus === false;
+      if (!obs && faltantes.length === 0 && !sinKactus) return <span className="text-gray-500">—</span>;
       return (
-        <div className="max-w-[250px]">
+        <div className="max-w-[280px]">
           {obs && <span className="text-gray-300 text-[10px] block" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{obs}</span>}
           {faltantes.length > 0 && (
             <div className="flex flex-wrap gap-0.5 mt-0.5">
               {faltantes.map((d,i) => <span key={i} className="px-1 py-0.5 bg-red-500/20 text-red-400 rounded text-[8px]">{d}</span>)}
             </div>
           )}
+          {sinKactus && <span className="px-1 py-0.5 bg-pink-500/15 text-pink-400 rounded text-[8px] mt-0.5 inline-block">Sin subir en Kactus</span>}
         </div>
       );
     }},
@@ -445,16 +447,20 @@ export default function ReportsDashboard({ empresas = [] }) {
     { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
     { key: 'diagnostico', label: 'Diagnóstico / Motivo Prórroga', width: '220px', accessor: r => r.diagnostico, render: r => (
       <div className="max-w-[220px]">
-        <span className="text-gray-300 text-[10px] block truncate" title={r.diagnostico}>{r.diagnostico || '—'}</span>
+        {r.diagnostico === 'En Proceso'
+          ? <span className="text-pink-400 text-[10px] italic">En Proceso</span>
+          : <span className="text-gray-300 text-[10px] block truncate" title={r.diagnostico}>{r.diagnostico || '—'}</span>
+        }
         {r.prorroga_explicacion && <span className="text-[8px] text-purple-400 block truncate" title={r.prorroga_explicacion}>↳ {r.prorroga_explicacion}</span>}
       </div>
     )},
     { key: 'codigo_cie10', label: 'CIE-10', accessor: r => r.codigo_cie10, render: r => {
+      if (r.codigo_cie10 === 'En Proceso') return <span className="text-pink-400 text-[10px] italic">En Proceso</span>;
       if (!r.codigo_cie10) return <span className="text-gray-500">—</span>;
       return (
         <div className="flex flex-col">
           <span className="font-mono text-purple-300 text-[10px]">{r.codigo_cie10}</span>
-          {r.cie10_descripcion && <span className="text-[8px] text-gray-500 truncate max-w-[120px]" title={r.cie10_descripcion}>{r.cie10_descripcion}</span>}
+          {r.cie10_descripcion && r.cie10_descripcion !== 'En Proceso' && <span className="text-[8px] text-gray-500 truncate max-w-[120px]" title={r.cie10_descripcion}>{r.cie10_descripcion}</span>}
         </div>
       );
     }},
