@@ -6,13 +6,15 @@ import {
   User, CheckCircle, XCircle, FileText, Send, Edit3, Clock, 
   ChevronLeft, X, Download, RefreshCw, 
   AlertCircle, ZoomIn, ZoomOut, Sliders,
-  Undo2, Image, Loader2, Check, ChevronDown, ChevronRight, Save
+  Undo2, Image, Loader2, Check, ChevronDown, ChevronRight, Save,
+  LogOut
 } from 'lucide-react';
 import ReportsDashboard from './components/Dashboard/ReportsDashboard';
 import ExportacionesPDF from './components/Dashboard/ExportacionesPDF';
 import PowerBIDashboard from './components/Dashboard/PowerBIDashboard';
 import BeforeAfterPDF from './components/BeforeAfterPDF';
 import LivePDFEditor from './components/LivePDFEditor';
+import LoginPage from './components/LoginPage';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 // pdfUtils imports removidos — rotación ahora usa CSS + pdf-lib dinámico en guardarPDFEnDrive
 // Legacy cache imports (reemplazado por pdfSmartLoader)
@@ -2465,6 +2467,36 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  // ==================== AUTH ====================
+  const [authToken, setAuthToken] = useState(() => localStorage.getItem('portal_token'));
+  const [authUser, setAuthUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('portal_user')); } catch { return null; }
+  });
+
+  const handleLogin = (token, user) => {
+    localStorage.setItem('portal_token', token);
+    localStorage.setItem('portal_user', JSON.stringify(user));
+    setAuthToken(token);
+    setAuthUser(user);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('portal_token');
+    localStorage.removeItem('portal_user');
+    setAuthToken(null);
+    setAuthUser(null);
+  };
+
+  // Show login page if not authenticated
+  if (!authToken || !authUser) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  // ==================== APP STATE ====================
+  return <AppContent authUser={authUser} onLogout={handleLogout} />;
+}     
+
+function AppContent({ authUser, onLogout }) {
   const [empresas, setEmpresas] = useState([]);
   const [casos, setCasos] = useState([]);
   const [stats, setStats] = useState({});
@@ -2565,11 +2597,28 @@ export default function App() {
         <div className="max-w-7xl mx-auto p-4 space-y-6">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 shadow-2xl">
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              <User className="w-8 h-8" />
-              Portal de Validadores - IncaBaeza
-            </h1>
-            <p className="text-blue-100 mt-2">Sistema de gestión de incapacidades médicas</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold flex items-center gap-3">
+                  <User className="w-8 h-8" />
+                  Portal de Validadores - IncaBaeza
+                </h1>
+                <p className="text-blue-100 mt-2">Sistema de gestión de incapacidades médicas</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-blue-100 bg-white/10 px-3 py-1.5 rounded-lg">
+                  {authUser?.nombre || authUser?.username}
+                </span>
+                <button
+                  onClick={onLogout}
+                  className="flex items-center gap-1.5 text-sm text-blue-100 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition"
+                  title="Cerrar sesión"
+                >
+                  <LogOut size={16} />
+                  Salir
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* ⭐ TABS SELECTOR */}
