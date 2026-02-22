@@ -4,7 +4,7 @@ import { API_CONFIG } from '../../constants/reportConfig';
 import JSZip from 'jszip';
 
 // ═══════════════════════════════════════════════════════════
-// EXPORTACIONES MASIVAS DE PDFs EN ZIP — CON LOTES + HISTÓRICO
+// EXPORTACIONES MASIVAS DE PDFs — LOTES + HISTÓRICO DRIVE
 // ═══════════════════════════════════════════════════════════
 
 const TIPOS_INCAPACIDAD = [
@@ -19,8 +19,8 @@ const TIPOS_INCAPACIDAD = [
 ];
 
 const MODOS_EXPORTACION = [
-  { value: 'filtros', label: '📦 Exportar por Filtros', desc: 'Descarga PDFs de un rango de fechas. Si pasa de 500, se descarga en lotes automáticos y se unen en un solo ZIP.' },
-  { value: 'historico', label: '📁 Histórico Anual', desc: 'Accede a la carpeta de Google Drive con todas las incapacidades de un año. Descarga directo desde Drive.' },
+  { value: 'filtros', label: '📦 Exportar por Filtros (ZIP)', desc: 'Rango máximo 1 mes. Descarga PDFs en lotes de 500 y se unen en un solo ZIP.' },
+  { value: 'historico', label: '📁 Histórico por Año (Drive)', desc: 'Elige año y mes. Accede directo a las carpetas de Google Drive para descargar desde ahí.' },
 ];
 
 const FILTROS_FECHA = [
@@ -28,11 +28,26 @@ const FILTROS_FECHA = [
   { value: 'incapacidad', label: '🏥 Fecha de Incapacidad', desc: 'Filtra por la fecha de inicio médica' },
 ];
 
+const MESES = [
+  { value: 0, label: 'Todo el año' },
+  { value: 1, label: 'Enero' }, { value: 2, label: 'Febrero' }, { value: 3, label: 'Marzo' },
+  { value: 4, label: 'Abril' }, { value: 5, label: 'Mayo' }, { value: 6, label: 'Junio' },
+  { value: 7, label: 'Julio' }, { value: 8, label: 'Agosto' }, { value: 9, label: 'Septiembre' },
+  { value: 10, label: 'Octubre' }, { value: 11, label: 'Noviembre' }, { value: 12, label: 'Diciembre' },
+];
+
+// Validar rango máximo de días
+const daysBetween = (d1, d2) => {
+  if (!d1 || !d2) return 0;
+  const a = new Date(d1), b = new Date(d2);
+  return Math.ceil(Math.abs(b - a) / (1000 * 60 * 60 * 24));
+};
+
 export default function ExportacionesPDF({ empresas = [] }) {
   // Modo
   const [modo, setModo] = useState('filtros');
   
-  // Filtros normales
+  // Filtros (ZIP)
   const [filtroFecha, setFiltroFecha] = useState('subida');
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
@@ -40,8 +55,9 @@ export default function ExportacionesPDF({ empresas = [] }) {
   const [tipo, setTipo] = useState('all');
   const [cedulas, setCedulas] = useState('');
   
-  // Histórico
+  // Histórico (Drive)
   const [yearHistorico, setYearHistorico] = useState(new Date().getFullYear());
+  const [monthHistorico, setMonthHistorico] = useState(0); // 0 = todo el año
   const [empresaHistorico, setEmpresaHistorico] = useState('all');
   
   // Estado
@@ -53,6 +69,8 @@ export default function ExportacionesPDF({ empresas = [] }) {
   const [historicoData, setHistoricoData] = useState(null);
   const [loadingHistorico, setLoadingHistorico] = useState(false);
 
+  const MAX_DAYS_FILTROS = 31; // Máximo 1 mes para descarga ZIP
+
   const buildBody = () => ({
     filtro_fecha: filtroFecha,
     fecha_desde: fechaDesde || undefined,
@@ -62,12 +80,27 @@ export default function ExportacionesPDF({ empresas = [] }) {
     cedulas: cedulas.trim(),
   });
 
-  // ═══ PREVIEW ═══
-  const handlePreview = async () => {
+  // Validar rango de fechas
+  const validarRangoFechas = () => {
     if (!fechaDesde || !fechaHasta) {
       setError('Debes seleccionar un rango de fechas (Desde y Hasta)');
-      return;
+      return false;
     }
+    if (new Date(fechaHasta) < new Date(fechaDesde)) {
+      setError('La fecha "Hasta" debe ser posterior a "Desde"');
+      return false;
+    }
+    const dias = daysBetween(fechaDesde, fechaHasta);
+    if (dias > MAX_DAYS_FILTROS) {
+      setError(`El rango máximo para descarga ZIP es de ${MAX_DAYS_FILTROS} días (1 mes). Seleccionaste ${dias} días. Para rangos mayores usa "Histórico por Año" que enlaza directo a Google Drive.`);
+      return false;
+    }
+    return true;
+  };
+
+  // ═══ PREVIEW ═══
+  const handlePreview = async () => {
+    if (!validarRangoFechas()) return;
     setPreviewing(true);
     setError(null);
     setPreview(null);
@@ -95,10 +128,7 @@ export default function ExportacionesPDF({ empresas = [] }) {
 
   // ═══ DESCARGA POR LOTES CON MERGE ═══
   const handleDescargar = async () => {
-    if (!fechaDesde || !fechaHasta) {
-      setError('Debes seleccionar un rango de fechas');
-      return;
-    }
+    if (!validarRangoFechas()) return;
     
     setLoading(true);
     setError(null);
@@ -107,7 +137,6 @@ export default function ExportacionesPDF({ empresas = [] }) {
     
     try {
       if (totalLotes === 1) {
-        // ═══ UN SOLO LOTE: descarga directa ═══
         setProgreso('Descargando PDFs, esto puede tomar unos minutos...');
         const resp = await fetch(`${API_CONFIG.BASE_URL}/validador/exportar/zip`, {
           method: 'POST',
@@ -128,7 +157,6 @@ export default function ExportacionesPDF({ empresas = [] }) {
         triggerDownload(blob, `incapacidades_${fechaDesde}_${fechaHasta}.zip`);
         
       } else {
-        // ═══ MÚLTIPLES LOTES: descargar cada uno y unir con JSZip ═══
         const finalZip = new JSZip();
         let totalDescargados = 0;
         let totalErrores = 0;
@@ -153,12 +181,10 @@ export default function ExportacionesPDF({ empresas = [] }) {
           totalDescargados += parseInt(resp.headers.get('X-Descargados') || '0', 10);
           totalErrores += parseInt(resp.headers.get('X-Errores') || '0', 10);
           
-          // Leer el ZIP del lote y extraer archivos al ZIP final
           setProgreso(`📦 Procesando lote ${lote} de ${totalLotes}...`);
           const loteBlob = await resp.blob();
           const loteZip = await JSZip.loadAsync(loteBlob);
           
-          // Copiar cada archivo del lote al ZIP final
           const fileNames = Object.keys(loteZip.files);
           for (const fname of fileNames) {
             const file = loteZip.files[fname];
@@ -195,7 +221,11 @@ export default function ExportacionesPDF({ empresas = [] }) {
           'Content-Type': 'application/json',
           'X-Admin-Token': API_CONFIG.ADMIN_TOKEN,
         },
-        body: JSON.stringify({ year: yearHistorico, empresa: empresaHistorico }),
+        body: JSON.stringify({
+          year: yearHistorico,
+          month: monthHistorico || null,
+          empresa: empresaHistorico,
+        }),
       });
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}));
@@ -221,10 +251,14 @@ export default function ExportacionesPDF({ empresas = [] }) {
     window.URL.revokeObjectURL(url);
   };
 
-  // Generar años disponibles (2024 al actual)
+  // Años disponibles (2024 al actual)
   const currentYear = new Date().getFullYear();
   const years = [];
   for (let y = currentYear; y >= 2024; y--) years.push(y);
+
+  // Calcular días del rango actual para mostrar advertencia
+  const rangoActual = (fechaDesde && fechaHasta) ? daysBetween(fechaDesde, fechaHasta) : 0;
+  const rangoExcedido = rangoActual > MAX_DAYS_FILTROS;
 
   return (
     <div className="space-y-4">
@@ -234,7 +268,7 @@ export default function ExportacionesPDF({ empresas = [] }) {
           <Package className="w-6 h-6 text-indigo-400" /> Exportación Masiva de PDFs
         </h2>
         <p className="text-gray-400 text-xs mt-1">
-          Descarga PDFs de incapacidades en ZIP o accede directamente a las carpetas de Google Drive.
+          Descarga PDFs en ZIP (máx. 1 mes) o accede a carpetas de Google Drive para períodos más largos.
         </p>
       </div>
 
@@ -246,7 +280,9 @@ export default function ExportacionesPDF({ empresas = [] }) {
             onClick={() => { setModo(m.value); setPreview(null); setHistoricoData(null); setError(null); setProgreso(''); }}
             className={`p-4 rounded-xl border text-left transition-all ${
               modo === m.value
-                ? 'border-indigo-500 bg-indigo-500/20 ring-1 ring-indigo-500/50'
+                ? m.value === 'filtros'
+                  ? 'border-indigo-500 bg-indigo-500/20 ring-1 ring-indigo-500/50'
+                  : 'border-amber-500 bg-amber-500/20 ring-1 ring-amber-500/50'
                 : 'border-gray-700 bg-gray-800/60 hover:bg-gray-700/50'
             }`}
           >
@@ -256,11 +292,12 @@ export default function ExportacionesPDF({ empresas = [] }) {
         ))}
       </div>
 
-      {/* ═══════ MODO FILTROS ═══════ */}
+      {/* ═══════ MODO FILTROS (ZIP, máx 31 días) ═══════ */}
       {modo === 'filtros' && (
         <div className="bg-gray-800/60 backdrop-blur rounded-xl border border-gray-700 p-5 space-y-4">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <Search className="w-4 h-4 text-blue-400" /> Filtros de Exportación
+            <Search className="w-4 h-4 text-blue-400" /> Exportar por Filtros
+            <span className="text-[10px] font-normal text-gray-500 ml-auto">Máximo 1 mes por descarga</span>
           </h3>
 
           {/* Tipo de filtro de fecha */}
@@ -286,26 +323,40 @@ export default function ExportacionesPDF({ empresas = [] }) {
             </div>
           </div>
 
-          {/* Rango de fechas - OBLIGATORIO */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">Desde *</label>
-              <input
-                type="date"
-                value={fechaDesde}
-                onChange={e => setFechaDesde(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-              />
+          {/* Rango de fechas */}
+          <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">Desde *</label>
+                <input
+                  type="date"
+                  value={fechaDesde}
+                  onChange={e => setFechaDesde(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">Hasta *</label>
+                <input
+                  type="date"
+                  value={fechaHasta}
+                  onChange={e => setFechaHasta(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
             </div>
-            <div>
-              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">Hasta *</label>
-              <input
-                type="date"
-                value={fechaHasta}
-                onChange={e => setFechaHasta(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
+            {/* Indicador de rango */}
+            {fechaDesde && fechaHasta && (
+              <div className={`mt-2 text-[10px] font-bold flex items-center gap-1 ${rangoExcedido ? 'text-red-400' : 'text-gray-500'}`}>
+                <Calendar className="w-3 h-3" />
+                {rangoActual} días seleccionados
+                {rangoExcedido && (
+                  <span className="text-red-400 ml-1">
+                    — ⚠️ Excede el límite de {MAX_DAYS_FILTROS} días. Usa "Histórico por Año" para rangos mayores.
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Empresa y Tipo */}
@@ -361,7 +412,7 @@ export default function ExportacionesPDF({ empresas = [] }) {
           <div className="flex items-center gap-3 pt-2 border-t border-gray-700">
             <button
               onClick={handlePreview}
-              disabled={previewing || loading}
+              disabled={previewing || loading || rangoExcedido}
               className="flex items-center gap-2 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {previewing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
@@ -369,7 +420,7 @@ export default function ExportacionesPDF({ empresas = [] }) {
             </button>
             <button
               onClick={handleDescargar}
-              disabled={loading || previewing || !preview || preview.con_pdf === 0}
+              disabled={loading || previewing || !preview || preview.con_pdf === 0 || rangoExcedido}
               className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg transition-colors shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
@@ -383,26 +434,36 @@ export default function ExportacionesPDF({ empresas = [] }) {
         </div>
       )}
 
-      {/* ═══════ MODO HISTÓRICO ═══════ */}
+      {/* ═══════ MODO HISTÓRICO (Drive, por año/mes) ═══════ */}
       {modo === 'historico' && (
         <div className="bg-gray-800/60 backdrop-blur rounded-xl border border-gray-700 p-5 space-y-4">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <FolderOpen className="w-4 h-4 text-amber-400" /> Histórico Anual — Google Drive
+            <FolderOpen className="w-4 h-4 text-amber-400" /> Histórico — Google Drive
           </h3>
           <p className="text-[10px] text-gray-400">
-            Accede directamente a las carpetas de Google Drive donde se almacenan todos los PDFs del año.
-            Desde Drive puedes seleccionar todo y descargar (Drive genera el ZIP automáticamente).
+            Selecciona el año y opcionalmente un mes. Te mostrará los enlaces directos a las carpetas de Google Drive.
+            Desde ahí puedes seleccionar todo y descargar (Drive genera el ZIP automáticamente).
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">Año</label>
+              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">Año *</label>
               <select
                 value={yearHistorico}
                 onChange={e => setYearHistorico(parseInt(e.target.value))}
                 className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:ring-1 focus:ring-amber-500"
               >
                 {years.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">Mes (opcional)</label>
+              <select
+                value={monthHistorico}
+                onChange={e => setMonthHistorico(parseInt(e.target.value))}
+                className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:ring-1 focus:ring-amber-500"
+              >
+                {MESES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
               </select>
             </div>
             <div>
@@ -431,7 +492,7 @@ export default function ExportacionesPDF({ empresas = [] }) {
           {historicoData && (
             <div className="space-y-3 mt-2">
               {/* KPIs */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-center">
                   <div className="text-2xl font-black text-white">{historicoData.total_casos_bd}</div>
                   <div className="text-[10px] text-gray-400 uppercase">Casos en BD</div>
@@ -444,6 +505,16 @@ export default function ExportacionesPDF({ empresas = [] }) {
                   <div className="text-2xl font-black text-amber-400">{historicoData.total_carpetas}</div>
                   <div className="text-[10px] text-gray-400 uppercase">Carpetas</div>
                 </div>
+                <div className="bg-purple-900/30 border border-purple-700/50 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-black text-purple-400">{historicoData.total_items_drive}</div>
+                  <div className="text-[10px] text-gray-400 uppercase">Items en Drive</div>
+                </div>
+              </div>
+
+              {/* Período mostrado */}
+              <div className="text-[10px] text-gray-500 font-bold">
+                📅 {historicoData.year} — {historicoData.month_label || 'Todo el año'}
+                {historicoData.empresa !== 'all' && ` — ${historicoData.empresa}`}
               </div>
 
               {/* Lista de carpetas */}
@@ -451,9 +522,9 @@ export default function ExportacionesPDF({ empresas = [] }) {
                 {historicoData.carpetas.map((c, i) => (
                   <div key={i} className="bg-gray-900/60 border border-gray-700 rounded-lg p-4 flex items-center justify-between hover:border-amber-500/50 transition-colors">
                     <div>
-                      <div className="text-sm font-bold text-white">{c.empresa}</div>
+                      <div className="text-sm font-bold text-white">{c.label || c.empresa}</div>
                       <div className="text-[10px] text-gray-400">
-                        {c.year} — {c.items} elementos en carpeta
+                        {c.items} elementos en carpeta
                       </div>
                     </div>
                     <a
@@ -473,7 +544,7 @@ export default function ExportacionesPDF({ empresas = [] }) {
               <div className="bg-amber-900/20 border border-amber-600/30 rounded-lg p-3">
                 <p className="text-amber-400 text-xs font-bold mb-1">📋 Cómo descargar desde Drive:</p>
                 <ol className="text-[10px] text-amber-300/80 space-y-0.5 list-decimal pl-4">
-                  <li>Haz clic en "Abrir en Drive" para la empresa deseada</li>
+                  <li>Haz clic en "Abrir en Drive" para la carpeta deseada</li>
                   <li>Selecciona todos los archivos (Ctrl+A)</li>
                   <li>Click derecho → Descargar</li>
                   <li>Google Drive generará un ZIP automáticamente</li>
@@ -591,8 +662,8 @@ export default function ExportacionesPDF({ empresas = [] }) {
       <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-4">
         <h4 className="text-xs font-bold text-gray-300 mb-2">ℹ️ Información</h4>
         <ul className="text-[10px] text-gray-500 space-y-1 list-disc pl-4">
-          <li><span className="text-gray-400 font-bold">Exportar por Filtros:</span> Descarga PDFs de un rango de fechas. Si hay más de 500, se descargan en lotes automáticos y se unen en un solo ZIP.</li>
-          <li><span className="text-gray-400 font-bold">Histórico Anual:</span> Abre directamente Google Drive con todas las incapacidades del año seleccionado. Ideal para volúmenes grandes.</li>
+          <li><span className="text-gray-400 font-bold">Exportar por Filtros (ZIP):</span> Rango máximo <span className="text-white font-bold">1 mes (31 días)</span>. Si hay más de 500 PDFs, se descargan en lotes automáticos y se unen en un solo ZIP.</li>
+          <li><span className="text-gray-400 font-bold">Histórico por Año (Drive):</span> Selecciona año y opcionalmente mes. Abre directamente Google Drive donde puedes descargar todo. Ideal para volúmenes grandes.</li>
           <li>El ZIP organiza los archivos en carpetas por empresa.</li>
           <li>Nombre de cada archivo: <span className="font-mono text-gray-400">cédula_nombre_fecha.pdf</span></li>
           <li>Para cédulas específicas, sepáralas con coma: <span className="font-mono text-gray-400">1085043374, 39017565</span></li>
