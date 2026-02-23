@@ -2505,7 +2505,19 @@ function AppContent({ authUser, onLogout }) {
   const [casoSeleccionado, setCasoSeleccionado] = useState(null);
   const [totalPages, setTotalPages] = useState(1);
   const [indiceActual, setIndiceActual] = useState(0); // ✅ Índice en la lista filtrada
-  const [tabActual, setTabActual] = useState('validacion'); // 'validacion' o 'reportes'
+  // ✅ PERMISOS: determinar pestañas permitidas para este usuario
+  const userPermisos = authUser?.permisos || {};
+  const isSuperOrAdmin = ['superadmin', 'admin'].includes(authUser?.rol);
+
+  const TAB_CONFIG = [
+    { id: 'validacion',    permKey: 'validador',     label: '✅ Validación de Casos',      borderColor: 'border-blue-500',   textColor: 'text-blue-400' },
+    { id: 'reportes',      permKey: 'reportes',      label: '📊 Reportes y Tablas Vivas',  borderColor: 'border-blue-500',   textColor: 'text-blue-400' },
+    { id: 'exportaciones', permKey: 'exportaciones',  label: '📦 Exportaciones PDF',        borderColor: 'border-blue-500',   textColor: 'text-blue-400' },
+    { id: 'powerbi',       permKey: 'powerbi',       label: '📈 Power BI',                 borderColor: 'border-yellow-500', textColor: 'text-yellow-400' },
+  ];
+
+  const tabsPermitidas = TAB_CONFIG.filter(t => isSuperOrAdmin || userPermisos[t.permKey]);
+  const [tabActual, setTabActual] = useState(() => tabsPermitidas[0]?.id || 'validacion');
 
   useEffect(() => {
     cargarEmpresas();
@@ -2606,9 +2618,18 @@ function AppContent({ authUser, onLogout }) {
                 <p className="text-blue-100 mt-2">Sistema de gestión de incapacidades médicas</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-sm text-blue-100 bg-white/10 px-3 py-1.5 rounded-lg">
-                  {authUser?.nombre || authUser?.username}
-                </span>
+                <div className="text-right">
+                  <span className="text-sm text-blue-100 bg-white/10 px-3 py-1.5 rounded-lg block">
+                    {authUser?.nombre || authUser?.username}
+                  </span>
+                  <span className="text-[10px] text-blue-200/60 mt-0.5 block">
+                    {authUser?.rol === 'superadmin' ? '🔑 Super Admin' :
+                     authUser?.rol === 'admin' ? '🛡️ Administrador' :
+                     authUser?.rol === 'th' ? '👥 Talento Humano' :
+                     authUser?.rol === 'sst' ? '🦺 SST' :
+                     authUser?.rol === 'nomina' ? '💰 Nómina' : '👁️ Visualizador'}
+                  </span>
+                </div>
                 <button
                   onClick={onLogout}
                   className="flex items-center gap-1.5 text-sm text-blue-100 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition"
@@ -2621,48 +2642,24 @@ function AppContent({ authUser, onLogout }) {
             </div>
           </div>
 
-          {/* ⭐ TABS SELECTOR */}
+          {/* ⭐ TABS SELECTOR — filtrado por permisos del usuario */}
           <div className="flex gap-2 border-b-2 border-gray-700">
-            <button
-              onClick={() => setTabActual('validacion')}
-              className={`px-4 py-3 font-semibold transition-colors ${
-                tabActual === 'validacion'
-                  ? 'border-b-2 border-blue-500 text-blue-400'
-                  : 'text-gray-400 hover:text-gray-300'
-              }`}
-            >
-              ✅ Validación de Casos
-            </button>
-            <button
-              onClick={() => setTabActual('reportes')}
-              className={`px-4 py-3 font-semibold transition-colors ${
-                tabActual === 'reportes'
-                  ? 'border-b-2 border-blue-500 text-blue-400'
-                  : 'text-gray-400 hover:text-gray-300'
-              }`}
-            >
-              📊 Reportes y Tablas Vivas
-            </button>
-            <button
-              onClick={() => setTabActual('exportaciones')}
-              className={`px-4 py-3 font-semibold transition-colors ${
-                tabActual === 'exportaciones'
-                  ? 'border-b-2 border-blue-500 text-blue-400'
-                  : 'text-gray-400 hover:text-gray-300'
-              }`}
-            >
-              📦 Exportaciones PDF
-            </button>
-            <button
-              onClick={() => setTabActual('powerbi')}
-              className={`px-4 py-3 font-semibold transition-colors ${
-                tabActual === 'powerbi'
-                  ? 'border-b-2 border-yellow-500 text-yellow-400'
-                  : 'text-gray-400 hover:text-gray-300'
-              }`}
-            >
-              📈 Power BI
-            </button>
+            {tabsPermitidas.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setTabActual(tab.id)}
+                className={`px-4 py-3 font-semibold transition-colors ${
+                  tabActual === tab.id
+                    ? `border-b-2 ${tab.borderColor} ${tab.textColor}`
+                    : 'text-gray-400 hover:text-gray-300'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+            {tabsPermitidas.length === 0 && (
+              <span className="px-4 py-3 text-gray-500 text-sm">Sin permisos asignados — contacte al administrador</span>
+            )}
           </div>
 
           {/* ⭐ TAB 1: VALIDACIÓN (CÓDIGO EXISTENTE) */}
@@ -2744,15 +2741,21 @@ function AppContent({ authUser, onLogout }) {
                   {casos.map(caso => {
                     const statusInfo = STATUS_MAP[caso.estado];
                     const Icon = statusInfo.icon;
+                    const tieneReenvios = caso.total_reenvios > 0;
                     return (
-                      <tr key={caso.id} className="border-t border-gray-700 hover:bg-gray-700/50 transition-colors">
+                      <tr key={caso.id} className={`border-t border-gray-700 hover:bg-gray-700/50 transition-colors ${
+                        tieneReenvios ? 'bg-rose-950/20' : ''
+                      }`}>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <span className="font-mono text-sm text-yellow-300">{caso.serial}</span>
-                            {/* ✅ BADGE DE REENVÍO */}
-                            {caso.metadata_form?.reenvios && caso.metadata_form.reenvios.length > 0 && (
-                              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-orange-500 text-white animate-pulse">
-                                🔄 {caso.metadata_form.reenvios.length}
+                            {/* Badge de reenvíos: muestra cuántas veces se ha enviado como incompleta */}
+                            {tieneReenvios && (
+                              <span 
+                                className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold bg-rose-500/80 text-white"
+                                title={`Reenviado ${caso.total_reenvios} vez${caso.total_reenvios > 1 ? 'es' : ''}`}
+                              >
+                                {caso.total_reenvios}
                               </span>
                             )}
                             {caso.bloquea_nueva && (
