@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Lock, Mail, Eye, EyeOff, ArrowLeft, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 const API_BASE_URL = 'https://web-production-95ed.up.railway.app';
@@ -15,6 +15,29 @@ export default function LoginPage({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const vantaRef = useRef(null);
+  const vantaEffect = useRef(null);
+
+  // Vanta.js FOG effect
+  useEffect(() => {
+    if (!vantaEffect.current && window.VANTA) {
+      vantaEffect.current = window.VANTA.FOG({
+        el: vantaRef.current,
+        THREE: window.THREE,
+        highlightColor: 0x3d82a7,
+        midtoneColor: 0xffffff,
+        lowlightColor: 0xffffff,
+        baseColor: 0xe3aeae,
+        blurFactor: 0.90,
+        speed: 2.50,
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+      });
+    }
+    return () => { if (vantaEffect.current) vantaEffect.current.destroy(); };
+  }, []);
 
   // Check URL for reset_token
   useEffect(() => {
@@ -99,14 +122,9 @@ export default function LoginPage({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 px-4">
-      {/* Decorative elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative w-full max-w-md">
+    <div ref={vantaRef} className="min-h-screen flex items-center justify-center px-4" style={{ position: 'relative' }}>
+      {/* Content above Vanta */}
+      <div className="relative w-full max-w-md" style={{ zIndex: 1 }}>
         {/* Logo / Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600/20 rounded-2xl mb-4 border border-blue-500/30">
