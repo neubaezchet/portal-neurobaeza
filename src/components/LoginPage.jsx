@@ -25,15 +25,17 @@ export default function LoginPage({ onLogin }) {
       vantaEffect.current = window.VANTA.FOG({
         el: vantaRef.current,
         THREE: window.THREE,
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.00,
+        minWidth: 200.00,
         highlightColor: 0x3d82a7,
         midtoneColor: 0xffffff,
         lowlightColor: 0xffffff,
         baseColor: 0xe3aeae,
         blurFactor: 0.90,
         speed: 2.50,
-        mouseControls: true,
-        touchControls: true,
-        gyroControls: false,
       });
     }
     return () => { if (vantaEffect.current) vantaEffect.current.destroy(); };
