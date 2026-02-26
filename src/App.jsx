@@ -1914,6 +1914,27 @@ return (
                     {casoActualizado.tipo ? casoActualizado.tipo.replace('_', ' ') : 'En proceso'}
                   </div>
                 </div>
+                {casoActualizado.intentos_incompletos > 0 && (
+                  <div className="border-t border-gray-700 pt-3 mt-3">
+                    <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">📤 Historial de Intentos</div>
+                    <div className="space-y-1">
+                      <div className="text-xs text-orange-300 bg-orange-600/10 px-2 py-1.5 rounded border border-orange-500/20">
+                        Enviada como incompleta {casoActualizado.intentos_incompletos} {casoActualizado.intentos_incompletos === 1 ? 'vez' : 'veces'}
+                      </div>
+                      {casoActualizado.fecha_ultimo_incompleto && (
+                        <div className="text-xs text-gray-300 bg-black/30 px-2 py-1.5 rounded">
+                          Última: {new Date(casoActualizado.fecha_ultimo_incompleto).toLocaleDateString('es-CO', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
