@@ -566,77 +566,76 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
       
       progressBar.update(90, { message: 'Procesando respuesta...', step: 3 });
       
-    if (response.ok) {
-  await response.json();
-  
-  progressBar.finish();
-  
-  // ✅ GUARDAR ÚLTIMA ACCIÓN PARA DESHACER
-  setUltimaAccion({
-    serial: serial,
-    accion: accion,
-    timestamp: new Date().toISOString()
-  });
-  
-  // Notificación sutil con mensaje específico para COMPLETA
-  if (accion === 'completa') {
-    mostrarNotificacion('✅ Caso VALIDADO como COMPLETO - Avanzando...', 'success');
-  } else if (accion === 'incompleta') {
-    mostrarNotificacion('⚠️ Caso marcado como INCOMPLETO', 'success');
-  } else if (accion === 'tthh') {
-    mostrarNotificacion('👮 Caso marcado como PRESUNTO FRAUDE', 'success');
-  } else if (accion === 'eps') {
-    mostrarNotificacion('🏥 Caso derivado a EPS', 'success');
-  } else {
-    mostrarNotificacion(`✅ Caso ${accion} correctamente`, 'success');
-  }
-  
-  // 🚀 INVALIDAR CACHÉ DEL CASO VALIDADO + PRECARGAR SIGUIENTE
-  await invalidatePDFCache(serial);
-  if (casosLista && indiceActual + 1 < casosLista.length) {
-    prefetchNextCases(casosLista, indiceActual, 3);
-  }
-  
-  // Recargar casos
-  if (onRecargarCasos) onRecargarCasos();
-  
-  // Limpiar estado
-  setAccionSeleccionada(null);
-  setChecksSeleccionados([]);
-  setAdjuntos([]);
-  
-  // ✅ AUTO-AVANCE PARA TODOS LOS ESTADOS
-  try {
-    // Usar el siguiente caso de la lista actual (respetando filtro)
-    if (casosLista && casosLista.length > 0) {
-      const siguienteCasoEnLista = casosLista[indiceActual + 1];
-      
-      if (siguienteCasoEnLista) {
-        // Hay más casos en la lista actual
-        const detalle = await api.getCasoDetalle(siguienteCasoEnLista.serial);
-        setCasoActualizado(detalle);
-        if (onCambiarCaso) {
-          onCambiarCaso(indiceActual + 1);
+      if (response.ok) {
+        await response.json();
+        
+        progressBar.finish();
+        
+        // ✅ GUARDAR ÚLTIMA ACCIÓN PARA DESHACER
+        setUltimaAccion({
+          serial: serial,
+          accion: accion,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Notificación sutil con mensaje específico para COMPLETA
+        if (accion === 'completa') {
+          mostrarNotificacion('✅ Caso VALIDADO como COMPLETO - Avanzando...', 'success');
+        } else if (accion === 'incompleta') {
+          mostrarNotificacion('⚠️ Caso marcado como INCOMPLETO', 'success');
+        } else if (accion === 'tthh') {
+          mostrarNotificacion('👮 Caso marcado como PRESUNTO FRAUDE', 'success');
+        } else if (accion === 'eps') {
+          mostrarNotificacion('🏥 Caso derivado a EPS', 'success');
         } else {
-          // Fallback: usar irAlSiguiente si onCambiarCaso no existe
-          irAlSiguiente();
+          mostrarNotificacion(`✅ Caso ${accion} correctamente`, 'success');
         }
-        mostrarNotificacion(`📄 Siguiente: ${siguienteCasoEnLista.serial}`, 'info');
+        
+        // 🚀 INVALIDAR CACHÉ DEL CASO VALIDADO + PRECARGAR SIGUIENTE
+        await invalidatePDFCache(serial);
+        if (casosLista && indiceActual + 1 < casosLista.length) {
+          prefetchNextCases(casosLista, indiceActual, 3);
+        }
+        
+        // Recargar casos
+        if (onRecargarCasos) onRecargarCasos();
+        
+        // Limpiar estado
+        setAccionSeleccionada(null);
+        setChecksSeleccionados([]);
+        setAdjuntos([]);
+        
+        // ✅ AUTO-AVANCE PARA TODOS LOS ESTADOS
+        try {
+          // Usar el siguiente caso de la lista actual (respetando filtro)
+          if (casosLista && casosLista.length > 0) {
+            const siguienteCasoEnLista = casosLista[indiceActual + 1];
+            
+            if (siguienteCasoEnLista) {
+              // Hay más casos en la lista actual
+              const detalle = await api.getCasoDetalle(siguienteCasoEnLista.serial);
+              setCasoActualizado(detalle);
+              if (onCambiarCaso) {
+                onCambiarCaso(indiceActual + 1);
+              } else {
+                // Fallback: usar irAlSiguiente si onCambiarCaso no existe
+                irAlSiguiente();
+              }
+              mostrarNotificacion(`📄 Siguiente: ${siguienteCasoEnLista.serial}`, 'info');
+            } else {
+              // No hay más casos en esta página/filtro
+              mostrarNotificacion('✅ Completado - No hay más casos en este filtro', 'success');
+              if (onClose) onClose();
+            }
+          } else {
+            // Sin lista (fallback)
+            irAlSiguiente();
+          }
+        } catch (errorAvance) {
+          console.error('Error al cargar siguiente caso:', errorAvance);
+          // Continuar aunque falle el siguiente
+        }
       } else {
-        // No hay más casos en esta página/filtro
-        mostrarNotificacion('✅ Completado - No hay más casos en este filtro', 'success');
-        if (onClose) onClose();
-      }
-    } else {
-      // Sin lista (fallback)
-      irAlSiguiente();
-    }
-  } catch (error) {
-    console.error('Error al cargar siguiente caso:', error);
-    // Continuar aunque falle el siguiente
-  }
-  }
-} else {
         const errorData = await response.json().catch(() => ({}));
         setErrorValidacion(errorData.detail || 'Error al validar caso');
         progressBar.hide();
