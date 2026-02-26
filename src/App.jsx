@@ -449,6 +449,89 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     // ✅ DETECTAR SI ES UN REENVÍO
     const esReenvio = casoSeleccionado.metadata_reenvio?.tiene_reenvios;
     
+    // ✅ PARA COMPLETA: USAR EL NUEVO ENDPOINT /estado (con directorio + WhatsApp)
+    if (accion === 'completa' && !esReenvio) {
+      setEnviandoValidacion(true);
+      setErrorValidacion('');
+      
+      try {
+        progressBar.show({
+          message: `Validando ${serial} como COMPLETA...`,
+          totalSteps: 2
+        });
+        
+        progressBar.update(50, { message: 'Enviando al servidor...', step: 1 });
+        
+        const response = await fetch(`${API_BASE_URL}/validador/casos/${encodeURIComponent(serial)}/estado`, {
+          method: 'POST',
+          headers: {
+            'X-Admin-Token': ADMIN_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            estado: 'COMPLETA',
+            motivo: 'Validado correctamente por el validador'
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          progressBar.finish();
+          
+          mostrarNotificacion('✅ Caso VALIDADO como COMPLETO - Enviando notificaciones...', 'success');
+          
+          if (data.emails_directorio) {
+            mostrarNotificacion(`📧 Email enviado a: ${data.emails_directorio.join(', ')}`, 'success');
+          }
+          
+          // Recargar casos
+          if (onRecargarCasos) onRecargarCasos();
+          
+          // Limpiar estado
+          setAccionSeleccionada(null);
+          setChecksSeleccionados([]);
+          setAdjuntos([]);
+          
+          // ✅ AUTO-AVANCE
+          try {
+            if (casosLista && casosLista.length > 0) {
+              const siguienteCasoEnLista = casosLista[indiceActual + 1];
+              
+              if (siguienteCasoEnLista) {
+                const detalle = await api.getCasoDetalle(siguienteCasoEnLista.serial);
+                setCasoActualizado(detalle);
+                if (onCambiarCaso) {
+                  onCambiarCaso(indiceActual + 1);
+                } else {
+                  irAlSiguiente();
+                }
+                mostrarNotificacion(`📄 Siguiente: ${siguienteCasoEnLista.serial}`, 'info');
+              } else {
+                mostrarNotificacion('✅ No hay más casos en este filtro', 'success');
+                if (onClose) onClose();
+              }
+            } else {
+              irAlSiguiente();
+            }
+          } catch (errorAvance) {
+            console.error('Error al avanzar:', errorAvance);
+          }
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          setErrorValidacion(errorData.detail || 'Error al validar');
+          progressBar.hide();
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        setErrorValidacion('Error de conexión');
+        progressBar.hide();
+      } finally {
+        setEnviandoValidacion(false);
+      }
+      
+      return; // ← IMPORTANTE: Salir aquí
+    }
+    
     if (esReenvio) {
       // Si es reenvío, usar endpoint especial
       if (accion === 'completa') {
