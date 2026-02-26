@@ -580,11 +580,11 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   
   // Notificación sutil con mensaje específico para COMPLETA
   if (accion === 'completa') {
-    mostrarNotificacion('✅ Caso VALIDADO como COMPLETO', 'success');
+    mostrarNotificacion('✅ Caso VALIDADO como COMPLETO - Avanzando...', 'success');
   } else if (accion === 'incompleta') {
     mostrarNotificacion('⚠️ Caso marcado como INCOMPLETO', 'success');
   } else if (accion === 'tthh') {
-    mostrarNotificacion('� Caso marcado como PRESUNTO FRAUDE', 'success');
+    mostrarNotificacion('👮 Caso marcado como PRESUNTO FRAUDE', 'success');
   } else if (accion === 'eps') {
     mostrarNotificacion('🏥 Caso derivado a EPS', 'success');
   } else {
@@ -605,29 +605,36 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   setChecksSeleccionados([]);
   setAdjuntos([]);
   
-  // ✅ Buscar siguiente caso del MISMO FILTRO automáticamente
+  // ✅ AUTO-AVANCE PARA TODOS LOS ESTADOS
   try {
     // Usar el siguiente caso de la lista actual (respetando filtro)
-    if (onCambiarCaso && casosLista) {
+    if (casosLista && casosLista.length > 0) {
       const siguienteCasoEnLista = casosLista[indiceActual + 1];
       
       if (siguienteCasoEnLista) {
         // Hay más casos en la lista actual
         const detalle = await api.getCasoDetalle(siguienteCasoEnLista.serial);
         setCasoActualizado(detalle);
-        onCambiarCaso(indiceActual + 1);
-        mostrarNotificacion('📄 Siguiente caso cargado', 'success');
+        if (onCambiarCaso) {
+          onCambiarCaso(indiceActual + 1);
+        } else {
+          // Fallback: usar irAlSiguiente si onCambiarCaso no existe
+          irAlSiguiente();
+        }
+        mostrarNotificacion(`📄 Siguiente: ${siguienteCasoEnLista.serial}`, 'info');
       } else {
         // No hay más casos en esta página/filtro
-        onClose();
-        mostrarNotificacion('✅ No hay más casos en este filtro', 'success');
+        mostrarNotificacion('✅ Completado - No hay más casos en este filtro', 'success');
+        if (onClose) onClose();
       }
     } else {
-      onClose();
+      // Sin lista (fallback)
+      irAlSiguiente();
     }
   } catch (error) {
     console.error('Error al cargar siguiente caso:', error);
-    onClose();
+    // Continuar aunque falle el siguiente
+  }
   }
 } else {
         const errorData = await response.json().catch(() => ({}));
