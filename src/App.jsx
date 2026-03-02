@@ -478,10 +478,23 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
           const data = await response.json();
           progressBar.finish();
           
-          mostrarNotificacion('✅ Caso VALIDADO como COMPLETO - Enviando notificaciones...', 'success');
-          
-          if (data.emails_directorio) {
-            mostrarNotificacion(`📧 Email enviado a: ${data.emails_directorio.join(', ')}`, 'success');
+          // ✅ Feedback detallado de notificaciones
+          if (data.notificacion_enviada) {
+            mostrarNotificacion('✅ Caso VALIDADO como COMPLETO - Notificaciones enviadas', 'success');
+            if (data.email_destino) {
+              mostrarNotificacion(`📧 Email enviado a: ${data.email_destino}`, 'success');
+            }
+            if (data.whatsapp_destino) {
+              mostrarNotificacion(`📱 WhatsApp enviado a: ${data.whatsapp_destino}`, 'success');
+            }
+            if (data.emails_directorio && data.emails_directorio.length > 0) {
+              mostrarNotificacion(`📧 Copia a directorio: ${data.emails_directorio.join(', ')}`, 'success');
+            }
+          } else {
+            mostrarNotificacion('✅ Caso VALIDADO como COMPLETO', 'success');
+            if (!data.email_destino) {
+              mostrarNotificacion('⚠️ Sin email registrado - No se envió notificación', 'warning');
+            }
           }
           
           // Recargar casos
