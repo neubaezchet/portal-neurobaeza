@@ -657,7 +657,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
         method: 'POST',
         headers: { 'X-Admin-Token': ADMIN_TOKEN },
         body: formData,
-        signal: AbortSignal.timeout(15000) // 15 segundos max
+        signal: AbortSignal.timeout(45000) // 45 segundos max (IA + n8n pueden tardar)
       });
       
       clearInterval(progressInterval);
