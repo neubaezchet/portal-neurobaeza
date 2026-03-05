@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   RefreshCw, Download, Search, TrendingUp,
-  BarChart3, Pause, Play, ArrowUpDown, X, ExternalLink
+  BarChart3, Pause, Play, ArrowUpDown, X, ExternalLink, CheckCircle
 } from 'lucide-react';
 import { API_CONFIG } from '../../constants/reportConfig';
 import { AlertaBadge180, EmailConfig180 } from './EmailConfig180';
+import reporteService from '../../services/reporteService';
 
 // ═══════════════════════════════════════════════════════════
 // DASHBOARD DE REPORTES 2026 — Dividido por Departamento
@@ -292,6 +293,7 @@ export default function ReportsDashboard({ empresas = [] }) {
   const [showEmailConfig, setShowEmailConfig] = useState(false);
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
+  const [procesando, setProcesando] = useState({});  // {serial: true} while API call in progress
   const intervalRef = useRef(null);
 
   // Reset subtab al cambiar de tab principal

@@ -84,6 +84,42 @@ class ReporteService {
       throw error;
     }
   }
+
+  async marcarProcesado(serial, usuario = null) {
+    try {
+      const params = new URLSearchParams();
+      if (usuario) params.set('usuario', usuario);
+      const response = await fetch(
+        `${this.baseURL}/validador/casos/${serial}/marcar-procesado?${params.toString()}`,
+        {
+          method: 'POST',
+          headers: this.getHeaders(),
+        }
+      );
+      if (!response.ok) throw new Error('Error marcando procesado');
+      return await response.json();
+    } catch (error) {
+      console.error('ReporteService.marcarProcesado:', error);
+      throw error;
+    }
+  }
+
+  async desmarcarProcesado(serial) {
+    try {
+      const response = await fetch(
+        `${this.baseURL}/validador/casos/${serial}/desmarcar-procesado`,
+        {
+          method: 'POST',
+          headers: this.getHeaders(),
+        }
+      );
+      if (!response.ok) throw new Error('Error desmarcando procesado');
+      return await response.json();
+    } catch (error) {
+      console.error('ReporteService.desmarcarProcesado:', error);
+      throw error;
+    }
+  }
 }
 
 const reporteServiceInstance = new ReporteService();
