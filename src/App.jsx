@@ -2224,7 +2224,7 @@ return (
                 <input 
                   type="file"
                   multiple
-                  accept="image/*"
+                  accept="image/*,.pdf,application/pdf"
                   onChange={(e) => setAdjuntos(Array.from(e.target.files))}
                   className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white file:font-semibold hover:file:bg-blue-700 cursor-pointer"
                 />
@@ -2946,8 +2946,13 @@ function AppContent({ authUser, onLogout }) {
                         </td>
                         <td className="px-4 py-3">
                           <button
-                            onClick={() => {
-                              setCasoSeleccionado(caso);
+                            onClick={async () => {
+                              try {
+                                const detalle = await api.getCasoDetalle(caso.serial);
+                                setCasoSeleccionado(detalle);
+                              } catch (e) {
+                                setCasoSeleccionado(caso);
+                              }
                               setIndiceActual(casos.indexOf(caso));
                             }}
                             className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
