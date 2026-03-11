@@ -2072,6 +2072,15 @@ return (
           </button>
           
           <button 
+            onClick={() => handleValidar(casoSeleccionado.serial, 'eps')}
+            disabled={enviandoValidacion}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
+            style={{backgroundColor: '#ca8a04'}}>
+            <FileText className="w-4 h-4" />
+            📋 Transcribir ante la EPS
+          </button>
+          
+          <button 
             onClick={() => setAccionSeleccionada('tthh')}
             disabled={enviandoValidacion}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
