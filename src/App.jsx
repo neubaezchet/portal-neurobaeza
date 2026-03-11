@@ -84,8 +84,8 @@ const STATUS_MAP = {
   'INCOMPLETA': { label: 'INCOMPLETA', color: '#dc2626', borderColor: 'border-red-500', icon: XCircle },
   'ILEGIBLE': { label: 'ILEGIBLE', color: '#f59e0b', borderColor: 'border-orange-500', icon: AlertCircle },
   'INCOMPLETA_ILEGIBLE': { label: 'INCOMPLETA/ILEGIBLE', color: '#ef4444', borderColor: 'border-red-600', icon: XCircle },
-  'EPS_TRANSCRIPCION': { label: 'EPS', color: '#ca8a04', borderColor: 'border-yellow-500', icon: FileText },
-  'DERIVADO_TTHH': { label: 'P. FRAUDE', color: '#dc2626', borderColor: 'border-red-600', icon: Send },
+  'EPS_TRANSCRIPCION': { label: 'EN VALIDACION', color: '#ca8a04', borderColor: 'border-yellow-500', icon: FileText },
+  'DERIVADO_TTHH': { label: 'P. FRAUDE', color: '#dc2626', borderColor: 'border-red-600', icon: AlertCircle },
   'CAUSA_EXTRA': { label: 'EXTRA', color: '#6b7280', borderColor: 'border-gray-500', icon: Edit3 },
   'COMPLETA': { label: 'VALIDADA', color: '#16a34a', borderColor: 'border-green-500', icon: CheckCircle },
 };
@@ -685,9 +685,13 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
         } else if (accion === 'incompleta') {
           mostrarNotificacion('⚠️ Caso marcado como INCOMPLETO', 'success');
         } else if (accion === 'tthh') {
-          mostrarNotificacion('👮 Caso marcado como PRESUNTO FRAUDE', 'success');
+          mostrarNotificacion('� Caso marcado como POSIBLE FRAUDE', 'success');
         } else if (accion === 'eps') {
           mostrarNotificacion('🏥 Caso derivado a EPS', 'success');
+        } else if (accion === 'solicitar_epicrisis') {
+          mostrarNotificacion('📋 Solicitud de epicrisis enviada al colaborador/a', 'success');
+        } else if (accion === 'enviar_validar') {
+          mostrarNotificacion('🔍 Caso enviado a validar con EPS', 'success');
         } else {
           mostrarNotificacion(`✅ Caso ${accion} correctamente`, 'success');
         }
@@ -2063,12 +2067,21 @@ return (
           </button>
           
           <button 
-            onClick={() => handleValidar(casoSeleccionado.serial, 'eps')}
+            onClick={() => handleValidar(casoSeleccionado.serial, 'solicitar_epicrisis')}
             disabled={enviandoValidacion}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
-            style={{backgroundColor: '#ca8a04'}}>
+            style={{backgroundColor: '#2563eb'}}>
             <FileText className="w-4 h-4" />
-            📋 EPS
+            📋 Solicitar Epicrisis
+          </button>
+          
+          <button 
+            onClick={() => handleValidar(casoSeleccionado.serial, 'enviar_validar')}
+            disabled={enviandoValidacion}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
+            style={{backgroundColor: '#7c3aed'}}>
+            <Send className="w-4 h-4" />
+            🔍 Enviar a Validar
           </button>
           
           <button 
@@ -2076,9 +2089,21 @@ return (
             disabled={enviandoValidacion}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
             style={{backgroundColor: '#dc2626'}}>
-            <Send className="w-4 h-4" />
-            🚨 Presunto Fraude
+            <AlertCircle className="w-4 h-4" />
+            🚨 Posible Fraude
           </button>
+          
+          {/* VALIDADA OK - Solo visible cuando caso está en P. FRAUDE */}
+          {casoSeleccionado.estado === 'DERIVADO_TTHH' && (
+            <button 
+              onClick={() => handleValidar(casoSeleccionado.serial, 'completa')}
+              disabled={enviandoValidacion}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50 ring-2 ring-green-400 ring-offset-2 ring-offset-gray-900"
+              style={{backgroundColor: '#059669'}}>
+              <CheckCircle className="w-4 h-4" />
+              ✅ Validada OK
+            </button>
+          )}
           
           <button 
             onClick={() => setAccionSeleccionada('extra')}
@@ -2318,8 +2343,8 @@ return (
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl">
             <div className="sticky top-0 bg-red-600 text-white p-4 rounded-t-xl flex items-center justify-between">
               <h3 className="text-xl font-bold flex items-center gap-2">
-                <Send className="w-6 h-6" />
-                🚨 Presunto Fraude
+                <AlertCircle className="w-6 h-6" />
+                🚨 Posible Fraude
               </h3>
               <button onClick={() => setAccionSeleccionada(null)} className="p-1 hover:bg-red-700 rounded">
                 <X className="w-5 h-5" />
@@ -2329,36 +2354,19 @@ return (
             <div className="p-6 space-y-4">
               <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
                 <p className="text-sm text-red-800">
-                  <strong>⚠️ Caso con inconsistencias detectadas.</strong> Se enviará alerta confidencial al encargado de presunto fraude y al correo de la empresa. A la empleada se le envía confirmación neutra.
+                  <strong>⚠️ Caso con inconsistencias detectadas.</strong> Se enviará alerta confidencial al validador EPS y al correo de la empresa. Al colaborador/a se le envía un mensaje neutro indicando que la EPS aún no ha confirmado la incapacidad.
                 </p>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-800 mb-3">🔍 Inconsistencias Detectadas</h4>
-                <div className="space-y-2">
-                  {[
-                    { key: 'solicitar_epicrisis_tthh', label: 'TTHH debe solicitar epicrisis', desc: 'Validación directa requerida' },
-                    { key: 'solicitar_transcripcion_tthh', label: 'TTHH debe solicitar transcripción', desc: 'Verificación en EPS necesaria' },
-                  ].map(check => (
-                    <label key={check.key} className="flex items-start gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-blue-50 transition-colors border border-gray-200">
-                      <input 
-                        type="checkbox"
-                        checked={checksSeleccionados.includes(check.key)}
-                        onChange={() => toggleCheck(check.key)}
-                        className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                      />
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-800 text-sm">{check.label}</div>
-                        <div className="text-xs text-gray-600 mt-0.5">{check.desc}</div>
-                      </div>
-                    </label>
-                  ))}
-                </div>
+              <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+                <p className="text-sm text-yellow-800">
+                  <strong>📌 Flujo posterior:</strong> Cuando la EPS responda y la incapacidad sea legítima, usar el botón <strong>"Validada OK"</strong> para moverla a Completa. Si es definitivamente falsa, quedará en la carpeta de falsas.
+                </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  📝 Observaciones Adicionales (Opcional)
+                  📝 Observaciones (Opcional)
                 </label>
                 <textarea
                   value={mensajePersonalizado}
@@ -2382,8 +2390,8 @@ return (
                     </>
                   ) : (
                     <>
-                      <Send className="w-5 h-5" />
-                      🚨 Confirmar Presunto Fraude
+                      <AlertCircle className="w-5 h-5" />
+                      🚨 Confirmar Posible Fraude
                     </>
                   )}
                 </button>
