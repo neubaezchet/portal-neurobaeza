@@ -2253,7 +2253,7 @@ return (
                   value={mensajePersonalizado}
                   onChange={(e) => setMensajePersonalizado(e.target.value)}
                   placeholder="Ejemplo: 'Falta la epicrisis completa y el registro civil está recortado'"
-                  className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 resize-none"
+                  className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 resize-none text-gray-900 bg-white placeholder-gray-400"
                   rows={3}
                 />
                 <p className="text-xs text-gray-600 mt-2">
@@ -2477,7 +2477,7 @@ return (
                   value={mensajePersonalizado}
                   onChange={(e) => setMensajePersonalizado(e.target.value)}
                   placeholder="Ejemplo: 'Hola María, nos falta el registro civil del bebé, si puedes enviarlo hoy sería genial'"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900 bg-white placeholder-gray-400"
                   rows={5}
                 />
                 <p className="text-xs text-gray-500 mt-1">
