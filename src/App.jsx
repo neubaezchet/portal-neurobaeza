@@ -691,7 +691,9 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
         } else if (accion === 'solicitar_epicrisis') {
           mostrarNotificacion('📋 Solicitud de epicrisis enviada al colaborador/a', 'success');
         } else if (accion === 'enviar_validar') {
-          mostrarNotificacion('🔍 Caso enviado a validar con EPS', 'success');
+          mostrarNotificacion('🔍 Caso enviado a validar - Email al colaborador y al área de validación', 'success');
+        } else if (accion === 'falsa_confirmada') {
+          mostrarNotificacion('🚫 INCAPACIDAD ADULTERADA - Notificada al área encargada', 'success');
         } else {
           mostrarNotificacion(`✅ Caso ${accion} correctamente`, 'success');
         }
@@ -1346,7 +1348,10 @@ useEffect(() => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [handleKeyPress]);
 
-const statusInfo = STATUS_MAP[casoSeleccionado.estado];
+const _isFraudeConf = casoSeleccionado.metadata_form?.fraude_confirmado || casoActualizado?.metadata_form?.fraude_confirmado;
+const statusInfo = _isFraudeConf 
+  ? { label: 'ADULTERADA', color: '#7f1d1d', icon: XCircle }
+  : STATUS_MAP[casoSeleccionado.estado];
 const Icon = statusInfo.icon;
 
 return (
@@ -2067,24 +2072,6 @@ return (
           </button>
           
           <button 
-            onClick={() => handleValidar(casoSeleccionado.serial, 'solicitar_epicrisis')}
-            disabled={enviandoValidacion}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
-            style={{backgroundColor: '#2563eb'}}>
-            <FileText className="w-4 h-4" />
-            📋 Solicitar Epicrisis
-          </button>
-          
-          <button 
-            onClick={() => handleValidar(casoSeleccionado.serial, 'enviar_validar')}
-            disabled={enviandoValidacion}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
-            style={{backgroundColor: '#7c3aed'}}>
-            <Send className="w-4 h-4" />
-            🔍 Enviar a Validar
-          </button>
-          
-          <button 
             onClick={() => setAccionSeleccionada('tthh')}
             disabled={enviandoValidacion}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50"
@@ -2093,16 +2080,34 @@ return (
             🚨 Posible Fraude
           </button>
           
-          {/* VALIDADA OK - Solo visible cuando caso está en P. FRAUDE */}
+          {/* VALIDADA VERDADERA / FALSA VALIDADA - Solo visible cuando caso está en P. FRAUDE */}
           {casoSeleccionado.estado === 'DERIVADO_TTHH' && (
-            <button 
-              onClick={() => handleValidar(casoSeleccionado.serial, 'completa')}
-              disabled={enviandoValidacion}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50 ring-2 ring-green-400 ring-offset-2 ring-offset-gray-900"
-              style={{backgroundColor: '#059669'}}>
-              <CheckCircle className="w-4 h-4" />
-              ✅ Validada OK
-            </button>
+            <>
+              <button 
+                onClick={() => {
+                  if (window.confirm('✅ ¿Está seguro/a que esta incapacidad es VERDADERA?\n\nSe moverá a Completa/Validada. Esta acción no se puede deshacer.')) {
+                    handleValidar(casoSeleccionado.serial, 'completa');
+                  }
+                }}
+                disabled={enviandoValidacion}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50 ring-2 ring-green-400 ring-offset-2 ring-offset-gray-900"
+                style={{backgroundColor: '#059669'}}>
+                <CheckCircle className="w-4 h-4" />
+                ✅ Validada Verdadera
+              </button>
+              <button 
+                onClick={() => {
+                  if (window.confirm('🚫 ¿Está seguro/a que esta incapacidad es FALSA/ADULTERADA?\n\nSe notificará al área encargada y quedará registrada como adulterada. Esta acción no se puede deshacer.')) {
+                    handleValidar(casoSeleccionado.serial, 'falsa_confirmada');
+                  }
+                }}
+                disabled={enviandoValidacion}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50 ring-2 ring-red-400 ring-offset-2 ring-offset-gray-900"
+                style={{backgroundColor: '#b91c1c'}}>
+                <XCircle className="w-4 h-4" />
+                🚫 Falsa Validada
+              </button>
+            </>
           )}
           
           <button 
@@ -2337,7 +2342,7 @@ return (
         </div>
       )}
 
-      {/* MODAL TTHH */}
+      {/* MODAL POSIBLE FRAUDE */}
       {accionSeleccionada === 'tthh' && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl">
@@ -2346,7 +2351,7 @@ return (
                 <AlertCircle className="w-6 h-6" />
                 🚨 Posible Fraude
               </h3>
-              <button onClick={() => setAccionSeleccionada(null)} className="p-1 hover:bg-red-700 rounded">
+              <button onClick={() => { setAccionSeleccionada(null); setMensajePersonalizado(''); }} className="p-1 hover:bg-red-700 rounded">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -2354,34 +2359,37 @@ return (
             <div className="p-6 space-y-4">
               <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
                 <p className="text-sm text-red-800">
-                  <strong>⚠️ Caso con inconsistencias detectadas.</strong> Se enviará alerta confidencial al validador EPS y al correo de la empresa. Al colaborador/a se le envía un mensaje neutro indicando que la EPS aún no ha confirmado la incapacidad.
+                  <strong>⚠️ Caso con posibles inconsistencias.</strong> Seleccione la acción a realizar:
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                <p className="text-sm text-blue-800">
+                  <strong>📋 Solicitar Epicrisis:</strong> Se envía email al colaborador/a pidiéndole el resumen de atención (epicrisis) como si la EPS lo solicitara.
+                </p>
+              </div>
+
+              <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded">
+                <p className="text-sm text-purple-800">
+                  <strong>🔍 Enviar a Validar:</strong> Se envía email neutro al colaborador/a (confirmación normal) y un correo aparte al área de validación con los soportes adjuntos e información del caso para verificar con la EPS.
                 </p>
               </div>
 
               <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
                 <p className="text-sm text-yellow-800">
-                  <strong>📌 Flujo posterior:</strong> Cuando la EPS responda y la incapacidad sea legítima, usar el botón <strong>"Validada OK"</strong> para moverla a Completa. Si es definitivamente falsa, quedará en la carpeta de falsas.
+                  <strong>📌 Flujo:</strong> Después de enviar a validar, cuando la EPS responda aparecerán los botones <strong>"Validada Verdadera"</strong> o <strong>"Falsa Validada"</strong> para cerrar el caso.
                 </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  📝 Observaciones (Opcional)
-                </label>
-                <textarea
-                  value={mensajePersonalizado}
-                  onChange={(e) => setMensajePersonalizado(e.target.value)}
-                  placeholder="Describe brevemente las inconsistencias detectadas..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  rows={4}
-                />
               </div>
 
               <div className="flex gap-3 pt-4">
                 <button
-                  onClick={() => handleValidar(casoSeleccionado.serial, 'tthh')}
+                  onClick={() => {
+                    setAccionSeleccionada(null);
+                    setMensajePersonalizado('');
+                    handleValidar(casoSeleccionado.serial, 'solicitar_epicrisis');
+                  }}
                   disabled={enviandoValidacion}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                 >
                   {enviandoValidacion ? (
                     <>
@@ -2390,22 +2398,42 @@ return (
                     </>
                   ) : (
                     <>
-                      <AlertCircle className="w-5 h-5" />
-                      🚨 Confirmar Posible Fraude
+                      <FileText className="w-5 h-5" />
+                      📋 Solicitar Epicrisis
                     </>
                   )}
                 </button>
                 <button
                   onClick={() => {
                     setAccionSeleccionada(null);
-                    setChecksSeleccionados([]);
                     setMensajePersonalizado('');
+                    handleValidar(casoSeleccionado.serial, 'enviar_validar');
                   }}
-                  className="px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold transition-colors"
+                  disabled={enviandoValidacion}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                 >
-                  ❌ Cancelar
+                  {enviandoValidacion ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      🔍 Enviar a Validar
+                    </>
+                  )}
                 </button>
               </div>
+              <button
+                onClick={() => {
+                  setAccionSeleccionada(null);
+                  setMensajePersonalizado('');
+                }}
+                className="w-full px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold transition-colors"
+              >
+                ❌ Cancelar
+              </button>
             </div>
           </div>
         </div>
@@ -2861,7 +2889,10 @@ function AppContent({ authUser, onLogout }) {
                 </thead>
                 <tbody>
                   {casos.map(caso => {
-                    const statusInfo = STATUS_MAP[caso.estado];
+                    const isFraudeConfirmado = caso.fraude_confirmado || (caso.metadata_form?.fraude_confirmado);
+                    const statusInfo = isFraudeConfirmado 
+                      ? { label: 'ADULTERADA', color: '#7f1d1d', icon: XCircle }
+                      : STATUS_MAP[caso.estado];
                     const Icon = statusInfo.icon;
                     const tieneReenvios = caso.total_reenvios > 0;
                     return (
