@@ -52,3 +52,22 @@ code {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari */
 }
+
+/* Timeline horizontal scrollbar - sutil */
+.timeline-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #374151 transparent;
+}
+.timeline-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.timeline-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.timeline-scroll::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 4px;
+}
+.timeline-scroll::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}

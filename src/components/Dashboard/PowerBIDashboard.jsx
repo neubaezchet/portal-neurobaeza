@@ -56,18 +56,18 @@ function KPI({ icon: Icon, label, value, sub, color = 'blue', alert: isAlert }) 
   };
   const c = colorMap[color] || colorMap.blue;
   return (
-    <div className={`relative bg-gray-900/80 border rounded-xl p-4 transition-all hover:scale-[1.02] ${
+    <div className={`relative bg-gray-900/80 border rounded-xl p-3 transition-all hover:scale-[1.02] overflow-hidden ${
       isAlert ? 'border-red-500/60 ring-1 ring-red-500/30' : 'border-gray-700/60'
     }`}>
       {isAlert && <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />}
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">{label}</p>
-          <p className={`text-2xl font-black mt-1 ${isAlert ? 'text-red-400' : c.text}`}>{value}</p>
-          {sub && <p className="text-[10px] text-gray-500 mt-0.5">{sub}</p>}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold truncate">{label}</p>
+          <p className={`text-xl font-black mt-1 ${isAlert ? 'text-red-400' : c.text}`}>{value}</p>
+          {sub && <p className="text-[10px] text-gray-500 mt-0.5 truncate">{sub}</p>}
         </div>
-        <div className={`p-2 rounded-lg ${isAlert ? 'bg-red-500/20' : c.bg}`}>
-          <Icon className={`w-4 h-4 ${isAlert ? 'text-red-400' : c.text}`} />
+        <div className={`p-1.5 rounded-lg flex-shrink-0 ${isAlert ? 'bg-red-500/20' : c.bg}`}>
+          <Icon className={`w-3.5 h-3.5 ${isAlert ? 'text-red-400' : c.text}`} />
         </div>
       </div>
     </div>
@@ -193,7 +193,7 @@ function TimelineGantt({ timeline, gaps, cadenas }) {
           <span className="flex items-center gap-1"><span className="w-3 h-2 rounded-sm bg-yellow-500 inline-block" /> Gap menor</span>
         </div>
       </div>
-      <div className="p-4 relative overflow-x-auto" style={{ minHeight: 80 }}>
+      <div className="p-4 relative overflow-x-auto overflow-y-hidden timeline-scroll" style={{ minHeight: 80 }}>
         <div style={{ minWidth: Math.max(600, totalDays * 2) }}>
         <div className="relative h-5 mb-2 border-b border-gray-800">
           {months.map((m, i) => (
