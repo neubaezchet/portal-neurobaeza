@@ -528,9 +528,7 @@ export default function ReportsDashboard({ empresas = [] }) {
     { key: 'numero_incapacidad', label: 'Nº Incapacidad', accessor: r => r.numero_incapacidad },
     { key: 'fecha_inicio', label: 'F. Inicio', accessor: r => r.fecha_inicio, render: r => formatFechaCorta(r.fecha_inicio) },
     { key: 'fecha_fin', label: 'F. Fin', accessor: r => r.fecha_fin, render: r => formatFechaCorta(r.fecha_fin) },
-    { key: 'dias_incapacidad', label: 'Días Portal', accessor: r => r.dias_incapacidad, render: r => <span className="font-bold text-white">{r.dias_incapacidad ?? '—'}</span> },
-    { key: 'dias_kactus', label: 'Días Kactus', accessor: r => r.dias_kactus, render: r => <span className="font-bold text-cyan-400">{r.dias_kactus ?? '—'}</span> },
-    { key: 'dias_kactus_empleado', label: 'Kactus Emp.', accessor: r => r.dias_kactus_empleado, render: r => <span className="text-cyan-300">{r.dias_kactus_empleado ?? '—'}</span> },
+    { key: 'dias_incapacidad', label: 'Días', accessor: r => r.dias_incapacidad, render: r => <span className="font-bold text-white">{r.dias_incapacidad ?? '—'}</span> },
     { key: 'es_prorroga', label: 'Prórroga', accessor: r => r.es_prorroga ? 'SÍ' : 'NO', render: r => r.es_prorroga
       ? <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[10px] font-bold">SÍ</span>
       : <span className="text-gray-500">NO</span>

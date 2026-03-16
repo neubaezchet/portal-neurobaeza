@@ -296,16 +296,17 @@ function IncapacidadesTable({ timeline, gaps, onExport }) {
               <th className="px-3 py-2 text-left text-gray-500 font-semibold">Inicio</th>
               <th className="px-3 py-2 text-left text-gray-500 font-semibold">Fin</th>
               <th className="px-3 py-2 text-left text-gray-500 font-semibold">Días</th>
-              <th className="px-3 py-2 text-left text-gray-500 font-semibold">Diagnóstico / CIE-10</th>
+              <th className="px-3 py-2 text-left text-gray-500 font-semibold">CIE-10</th>
               <th className="px-3 py-2 text-left text-gray-500 font-semibold">Serial</th>
               <th className="px-3 py-2 text-left text-gray-500 font-semibold">Estado</th>
+              <th className="px-3 py-2 text-left text-gray-500 font-semibold">Prórroga</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800/50">
             {visible.map((item, i) => (
               item._type === 'gap' ? (
                 <tr key={`g${i}`} className="bg-red-950/30 hover:bg-red-900/40">
-                  <td className="px-3 py-2" colSpan={7}>
+                  <td className="px-3 py-2" colSpan={8}>
                     <div className="flex items-center gap-2">
                       <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${
                         item.corta_prorroga ? 'bg-red-500/30 text-red-300 ring-1 ring-red-500/50' : 'bg-yellow-500/20 text-yellow-400'
@@ -327,7 +328,7 @@ function IncapacidadesTable({ timeline, gaps, onExport }) {
                   <td className="px-3 py-2 font-bold text-white">{item.dias}</td>
                   <td className="px-3 py-2 max-w-xs">
                     {item.codigo_cie10 && <span className="text-cyan-400 font-mono text-[10px] mr-1">[{item.codigo_cie10}]</span>}
-                    <span className="text-gray-400 text-[10px]">{(item.diagnostico || item.cie10_descripcion || '').substring(0, 60)}</span>
+                    <span className="text-gray-400 text-[10px]">{(item.cie10_descripcion || item.diagnostico || '').substring(0, 60)}</span>
                   </td>
                   <td className="px-3 py-2 font-mono text-blue-300 text-[10px]">{item.serial}</td>
                   <td className="px-3 py-2">
@@ -335,6 +336,13 @@ function IncapacidadesTable({ timeline, gaps, onExport }) {
                       backgroundColor: `${ESTADO_COLORS[item.estado] || '#6b7280'}20`,
                       color: ESTADO_COLORS[item.estado] || '#9ca3af',
                     }}>{(item.estado || '').replace(/_/g, ' ')}</span>
+                  </td>
+                  <td className="px-3 py-2">
+                    {item.es_prorroga ? (
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-purple-500/20 text-purple-400 ring-1 ring-purple-500/30">SI</span>
+                    ) : (
+                      <span className="text-gray-600 text-[10px]">NO</span>
+                    )}
                   </td>
                 </tr>
               )
@@ -613,14 +621,17 @@ export default function PowerBIDashboard({ empresas = [] }) {
   // ─── EXPORT CSV INDIVIDUAL ───
   const exportCSV = () => {
     if (!personData) return;
+    const upper = (v) => typeof v === 'string' ? v.toUpperCase() : (v ?? '');
     const rows = [
-      ['Serial', 'Fecha Inicio', 'Fecha Fin', 'Dias', 'Tipo', 'Estado', 'Diagnostico', 'CIE-10', 'Desc CIE-10', 'EPS', 'Prorroga', 'Medico', 'Institucion'],
-      ...personData.timeline.map(t => [
-        t.serial, t.fecha_inicio, t.fecha_fin, t.dias, t.tipo, t.estado,
-        '"' + (t.diagnostico || '').replace(/"/g, '""') + '"', t.codigo_cie10, t.cie10_descripcion,
-        t.eps, t.es_prorroga ? 'Si' : 'No', t.medico_tratante, t.institucion_origen
-      ]),
-    ];
+          ['SERIAL', 'FECHA INICIO', 'FECHA FIN', 'DIAS', 'TIPO', 'ESTADO', 'CODIGO CIE-10', 'DESCRIPCION CIE-10', 'EPS', 'PRORROGA'],
+          ...personData.timeline.map(t => [
+            upper(t.serial), t.fecha_inicio, t.fecha_fin, t.dias, upper(t.tipo),
+            (upper(t.estado) === 'DERIVADO_TTHH' || upper(t.estado) === 'TTHH') ? 'PRESUNTO FRAUDE' : upper(t.estado),
+            upper(t.codigo_cie10), '"' + upper(t.cie10_descripcion || t.diagnostico || '').replace(/"/g, '""') + '"',
+            upper(t.eps || (personData.empleado && personData.empleado.eps) || ''),
+            t.es_prorroga ? 'SI' : 'NO'
+          ]),
+        ];
     const csv = rows.map(r => r.join(',')).join('\n');
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -636,11 +647,12 @@ export default function PowerBIDashboard({ empresas = [] }) {
   const exportGlobalCSV = () => {
     if (!globalData || !globalData.personas) return;
     const rows = [
-      ['Cedula', 'Nombre', 'Empresa', 'Area', 'Cargo', 'EPS', 'Incapacidades', 'Dias Total', 'Cadenas Prorroga', 'Max Cadena Dias', 'Gaps Criticos', 'Total Gaps', 'Supera 180', 'Cerca 180', 'Porcentaje 180d'],
+      ['CEDULA', 'NOMBRE', 'EMPRESA', 'AREA', 'CARGO', 'EPS', 'INCAPACIDADES', 'DIAS TOTAL', 'CADENAS PRORROGA', 'MAX CADENA DIAS', 'GAPS CRITICOS', 'TOTAL GAPS', 'SUPERA 180', 'CERCA 180', 'PORCENTAJE 180D'],
       ...globalData.personas.map(p => [
-        p.cedula, p.nombre, p.empresa, p.area, p.cargo, p.eps,
+        p.cedula, (p.nombre || '').toUpperCase(), (p.empresa || '').toUpperCase(), (p.area || '').toUpperCase(),
+        (p.cargo || '').toUpperCase(), (p.eps || '').toUpperCase(),
         p.total_incapacidades, p.total_dias, p.cadenas_prorroga, p.max_cadena_dias,
-        p.gaps_criticos, p.total_gaps, p.supera_180 ? 'Si' : 'No', p.cerca_180 ? 'Si' : 'No', p.pct_180
+        p.gaps_criticos, p.total_gaps, p.supera_180 ? 'SI' : 'NO', p.cerca_180 ? 'SI' : 'NO', p.pct_180
       ]),
     ];
     const csv = rows.map(r => r.join(',')).join('\n');
