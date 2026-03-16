@@ -193,7 +193,8 @@ function TimelineGantt({ timeline, gaps, cadenas }) {
           <span className="flex items-center gap-1"><span className="w-3 h-2 rounded-sm bg-yellow-500 inline-block" /> Gap menor</span>
         </div>
       </div>
-      <div className="p-4 relative" style={{ minHeight: 80 }}>
+      <div className="p-4 relative overflow-x-auto" style={{ minHeight: 80 }}>
+        <div style={{ minWidth: Math.max(600, totalDays * 2) }}>
         <div className="relative h-5 mb-2 border-b border-gray-800">
           {months.map((m, i) => (
             <div key={i} className="absolute text-[9px] text-gray-500 font-mono" style={{ left: `${m.pos}%` }}>
@@ -235,6 +236,7 @@ function TimelineGantt({ timeline, gaps, cadenas }) {
             );
           })}
         </div>
+        </div>{/* end min-width wrapper */}
         {tooltip && (
           <div className="absolute top-20 bg-gray-950 border border-gray-600 rounded-lg p-3 shadow-2xl z-50 text-xs max-w-xs" style={{ left: `${Math.min(tooltip.x, 70)}%` }}>
             {tooltip.type === 'incap' ? (<>
@@ -942,7 +944,7 @@ export default function PowerBIDashboard({ empresas = [] }) {
               </div>
 
               {/* KPIs */}
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-3">
                 <KPI icon={FileText} label="Incapacidades" value={kpis ? kpis.total_incapacidades : 0} color="blue" />
                 <KPI icon={Calendar} label="Días Total" value={kpis ? kpis.total_dias_incapacidad : 0} color="purple" />
                 <KPI icon={TrendingUp} label="Promedio" value={kpis ? kpis.promedio_dias + 'd' : '0d'} color="cyan" />
@@ -950,6 +952,9 @@ export default function PowerBIDashboard({ empresas = [] }) {
                 <KPI icon={Activity} label="Max Cadena" value={kpis ? kpis.dias_prorroga_max : 0} color="yellow"
                   alert={kpis && kpis.dias_prorroga_max >= 150}
                   sub={kpis && kpis.dias_prorroga_max >= 180 ? 'SUPERA 180d!' : kpis && kpis.dias_prorroga_max >= 150 ? 'CERCA LIMITE' : ''} />
+                <KPI icon={Heart} label="Días Prorrogados" value={kpis ? kpis.dias_prorroga_activa + 'd' : '0d'} color="purple"
+                  alert={kpis && kpis.dias_prorroga_activa >= 150}
+                  sub={kpis && kpis.dias_prorroga_activa === 0 ? 'Sin cadena activa' : kpis && kpis.dias_prorroga_activa >= 180 ? '¡SUPERA 180d!' : 'Cadena activa'} />
                 <KPI icon={AlertTriangle} label="Gaps" value={kpis ? kpis.total_gaps : 0} color="yellow" alert={kpis && kpis.gaps_criticos > 0} />
                 <KPI icon={Shield} label="Gaps Críticos" value={kpis ? kpis.gaps_criticos : 0} color="red" alert={kpis && kpis.gaps_criticos > 0}
                   sub={kpis && kpis.gaps_criticos > 0 ? 'Cortan prórroga' : ''} />
