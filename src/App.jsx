@@ -12,6 +12,7 @@ import {
 import ReportsDashboard from './components/Dashboard/ReportsDashboard';
 import ExportacionesPDF from './components/Dashboard/ExportacionesPDF';
 import PowerBIDashboard from './components/Dashboard/PowerBIDashboard';
+import PendientesEnvioDashboard from './components/Dashboard/PendientesEnvioDashboard';
 import BeforeAfterPDF from './components/BeforeAfterPDF';
 import LivePDFEditor from './components/LivePDFEditor';
 import LoginPage from './components/LoginPage';
@@ -2673,6 +2674,7 @@ function AppContent({ authUser, onLogout }) {
     { id: 'reportes',      permKey: 'reportes',      label: '📊 Reportes y Tablas Vivas',  borderColor: 'border-blue-500',   textColor: 'text-blue-400' },
     { id: 'exportaciones', permKey: 'exportaciones',  label: '📦 Exportaciones PDF',        borderColor: 'border-blue-500',   textColor: 'text-blue-400' },
     { id: 'powerbi',       permKey: 'powerbi',       label: '📈 Power BI',                 borderColor: 'border-yellow-500', textColor: 'text-yellow-400' },
+    { id: 'pendientes-envio', permKey: 'validador', label: '⏳ Pendientes de Envío', borderColor: 'border-purple-500', textColor: 'text-purple-400' },
   ];
 
   const tabsPermitidas = TAB_CONFIG.filter(t => isSuperOrAdmin || userPermisos[t.permKey]);
@@ -2823,6 +2825,10 @@ function AppContent({ authUser, onLogout }) {
 
           {/* ⭐ TAB 1: VALIDACIÓN (CÓDIGO EXISTENTE) */}
           {tabActual === 'validacion' && (
+                      {/* ⭐ TAB Pendientes de Envío */}
+                      {tabActual === 'pendientes-envio' && (
+                        <PendientesEnvioDashboard />
+                      )}
             <>
               {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
