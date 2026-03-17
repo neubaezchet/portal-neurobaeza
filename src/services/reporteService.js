@@ -120,6 +120,56 @@ class ReporteService {
       throw error;
     }
   }
+
+  // ==================== COLA RESILIENTE ====================
+
+  async getColaResiliente() {
+    try {
+      const response = await fetch(
+        `${this.baseURL}/validador/cola-resiliente/estado`,
+        { headers: this.getHeaders() }
+      );
+      if (!response.ok) throw new Error('Error obteniendo estado de cola resiliente');
+      return await response.json();
+    } catch (error) {
+      console.error('ReporteService.getColaResiliente:', error);
+      throw error;
+    }
+  }
+
+  async forzarColaResiliente() {
+    try {
+      const response = await fetch(
+        `${this.baseURL}/validador/cola-resiliente/forzar`,
+        {
+          method: 'POST',
+          headers: this.getHeaders(),
+        }
+      );
+      if (!response.ok) throw new Error('Error forzando cola resiliente');
+      return await response.json();
+    } catch (error) {
+      console.error('ReporteService.forzarColaResiliente:', error);
+      throw error;
+    }
+  }
+
+  async reintentarPendiente(pendienteId) {
+    try {
+      const response = await fetch(
+        `${this.baseURL}/validador/cola-resiliente/${pendienteId}/reintentar`,
+        {
+          method: 'POST',
+          headers: this.getHeaders(),
+        }
+      );
+      if (!response.ok) throw new Error('Error reintentando pendiente');
+      return await response.json();
+    } catch (error) {
+      console.error('ReporteService.reintentarPendiente:', error);
+      throw error;
+    }
+  }
 }
 
 const reporteServiceInstance = new ReporteService();

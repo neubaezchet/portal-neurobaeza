@@ -2825,10 +2825,6 @@ function AppContent({ authUser, onLogout }) {
 
           {/* ⭐ TAB 1: VALIDACIÓN (CÓDIGO EXISTENTE) */}
           {tabActual === 'validacion' && (
-                      {/* ⭐ TAB Pendientes de Envío */}
-                      {tabActual === 'pendientes-envio' && (
-                        <PendientesEnvioDashboard />
-                      )}
             <>
               {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -3011,6 +3007,11 @@ function AppContent({ authUser, onLogout }) {
           {/* ⭐ TAB 4: POWER BI — ANÁLISIS INDIVIDUAL */}
           {tabActual === 'powerbi' && (
             <PowerBIDashboard empresas={empresas} />
+          )}
+
+          {/* ⭐ TAB 5: PENDIENTES DE ENVÍO */}
+          {tabActual === 'pendientes-envio' && (
+            <PendientesEnvioDashboard />
           )}
         </div>
 
