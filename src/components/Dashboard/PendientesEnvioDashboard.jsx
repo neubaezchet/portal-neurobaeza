@@ -50,7 +50,6 @@ function PendientesEnvioDashboard() {
           </div>
           <div className="flex items-center gap-3">
             <button
-               // Removed force / retry logic to keep it simple as before, just refresh
               onClick={() => fetchPendientes()}
               className="p-2 hover:bg-white/20 rounded-lg transition-colors bg-white/10"
               title="Refrescar Cola"
