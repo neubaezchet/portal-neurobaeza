@@ -283,7 +283,7 @@ export default function ReportsDashboard({ empresas = [] }) {
   const [tab, setTab] = useState('resumen');
   const [subTab, setSubTab] = useState('incapacidades');
   const [empresa, setEmpresa] = useState('all');
-  const [periodo, setPeriodo] = useState('mes_actual');
+  const [periodo, setPeriodo] = useState(() => new Date().getDate() <= 15 ? 'quincena_1' : 'quincena_2');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
