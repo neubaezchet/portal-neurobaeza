@@ -42,10 +42,10 @@ function PendientesEnvioDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold flex items-center gap-2">
-              📦 Cola de Envíos Pendientes (N8N / Drive)
+              📦 Cola de Envíos Pendientes (Notificaciones / Drive)
             </h2>
             <p className="text-sm text-orange-100 mt-1">
-              Monitoreo del sistema de auto-recuperación ante fallas de sesión
+              Monitoreo del sistema de auto-recuperación ante fallas de envío
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -98,8 +98,8 @@ function PendientesEnvioDashboard() {
                 <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">✅ No hay envíos pendientes en la cola</td></tr>
               )}
               {pendientes.map(p => {
-                const destino = p.tipo === 'n8n' ? 
-                  (p.payload?.email || p.payload?.whatsapp || p.payload?.tipo_notificacion || 'N8N Webhook') : 
+                const destino = p.tipo === 'notificacion' ? 
+                  (p.payload?.email || p.payload?.whatsapp || p.payload?.tipo_notificacion || 'Notificación pendiente') : 
                   (p.payload?.nombre_archivo || 'Google Drive Upload');
                 
                 const statusColor = p.procesado ? 'text-green-400 bg-green-400/10' : 
