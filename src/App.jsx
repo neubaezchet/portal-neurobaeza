@@ -86,7 +86,7 @@ const STATUS_MAP = {
   'ILEGIBLE': { label: 'ILEGIBLE', color: '#f59e0b', borderColor: 'border-orange-500', icon: AlertCircle },
   'INCOMPLETA_ILEGIBLE': { label: 'INCOMPLETA/ILEGIBLE', color: '#ef4444', borderColor: 'border-red-600', icon: XCircle },
   'EPS_TRANSCRIPCION': { label: 'EN VALIDACION', color: '#ca8a04', borderColor: 'border-yellow-500', icon: FileText },
-  'DERIVADO_TTHH': { label: 'P. FRAUDE', color: '#dc2626', borderColor: 'border-red-600', icon: AlertCircle },
+  'DERIVADO_TTHH': { label: 'ES POSIBLE FRAUDE', color: '#dc2626', borderColor: 'border-red-600', icon: AlertCircle },
   'CAUSA_EXTRA': { label: 'EXTRA', color: '#6b7280', borderColor: 'border-gray-500', icon: Edit3 },
   'COMPLETA': { label: 'VALIDADA', color: '#16a34a', borderColor: 'border-green-500', icon: CheckCircle },
 };
@@ -1926,7 +1926,7 @@ return (
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Estado</div>
                   <div className="flex items-center gap-2 bg-red-600/20 px-2 py-1.5 rounded border border-red-500/30">
                     <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                    <span className="text-xs text-red-300 font-semibold">{casoActualizado.estado ? casoActualizado.estado : 'En proceso'}</span>
+                    <span className="text-xs text-red-300 font-semibold">{casoActualizado.estado === 'DERIVADO_TTHH' ? 'ES POSIBLE FRAUDE' : (casoActualizado.estado ? casoActualizado.estado : 'En proceso')}</span>
                   </div>
                 </div>
                 {casoActualizado.metadata_reenvio?.tiene_reenvios && (

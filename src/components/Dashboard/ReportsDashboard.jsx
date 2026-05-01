@@ -47,7 +47,7 @@ const ESTADO_COLORS = {
 const ESTADO_LABELS = {
   NUEVO: 'Nuevo', EN_REVISION: 'En Revisión', INCOMPLETA: 'Incompleta',
   ILEGIBLE: 'Ilegible', INCOMPLETA_ILEGIBLE: 'Incompleta+Ilegible',
-  EPS_TRANSCRIPCION: 'EPS Transcripción', DERIVADO_TTHH: 'P. Fraude',
+  EPS_TRANSCRIPCION: 'EPS Transcripción', DERIVADO_TTHH: 'ES POSIBLE FRAUDE',
   CAUSA_EXTRA: 'Causa Extra', COMPLETA: 'Completa', EN_RADICACION: 'En Radicación',
 };
 

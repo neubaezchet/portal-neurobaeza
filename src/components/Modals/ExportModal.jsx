@@ -271,7 +271,7 @@ export function ExportModal({ isOpen, onClose, empresas = [] }) {
                         <tr key={idx} className="border-t border-gray-200">
                           <td className="px-2 py-1 text-yellow-600 font-mono">{caso.cedula}</td>
                           <td className="px-2 py-1">{caso.nombre}</td>
-                          <td className="px-2 py-1 text-xs">{caso.estado}</td>
+                          <td className="px-2 py-1 text-xs">{caso.estado === 'DERIVADO_TTHH' ? 'ES POSIBLE FRAUDE' : caso.estado}</td>
                         </tr>
                       ))}
                     </tbody>

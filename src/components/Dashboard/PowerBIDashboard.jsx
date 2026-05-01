@@ -333,9 +333,11 @@ function IncapacidadesTable({ timeline, gaps, onExport }) {
                   <td className="px-3 py-2 font-mono text-blue-300 text-[10px]">{item.serial}</td>
                   <td className="px-3 py-2">
                     <span className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{
-                      backgroundColor: `${ESTADO_COLORS[item.estado] || '#6b7280'}20`,
-                      color: ESTADO_COLORS[item.estado] || '#9ca3af',
-                    }}>{(item.estado || '').replace(/_/g, ' ')}</span>
+                      backgroundColor: `${ESTADO_COLORS[item.estado?.toLowerCase()] || '#6b7280'}20`,
+                      color: ESTADO_COLORS[item.estado?.toLowerCase()] || '#9ca3af',
+                    }}>
+                      {item.estado === 'DERIVADO_TTHH' ? 'ES POSIBLE FRAUDE' : (item.estado || '').replace(/_/g, ' ')}
+                    </span>
                   </td>
                   <td className="px-3 py-2">
                     {item.es_prorroga ? (
