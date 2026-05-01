@@ -626,7 +626,7 @@ export default function PowerBIDashboard({ empresas = [] }) {
           ['SERIAL', 'FECHA INICIO', 'FECHA FIN', 'DIAS', 'TIPO', 'ESTADO', 'CODIGO CIE-10', 'DESCRIPCION CIE-10', 'EPS', 'PRORROGA'],
           ...personData.timeline.map(t => [
             upper(t.serial), t.fecha_inicio, t.fecha_fin, t.dias, upper(t.tipo),
-            (upper(t.estado) === 'DERIVADO_TTHH' || upper(t.estado) === 'TTHH') ? 'PRESUNTO FRAUDE' : upper(t.estado),
+            (upper(t.estado) === 'DERIVADO_TTHH' || upper(t.estado) === 'TTHH') ? 'ES POSIBLE FRAUDE' : upper(t.estado),
             upper(t.codigo_cie10), '"' + upper(t.cie10_descripcion || t.diagnostico || '').replace(/"/g, '""') + '"',
             upper(t.eps || (personData.empleado && personData.empleado.eps) || ''),
             t.es_prorroga ? 'SI' : 'NO'

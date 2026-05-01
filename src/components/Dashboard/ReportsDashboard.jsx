@@ -672,7 +672,7 @@ export default function ReportsDashboard({ empresas = [] }) {
         <KPICard label="Incompletas" value={kpis.incompletas || 0} icon="❌" color="red" />
         <KPICard label="En Proceso" value={kpis.en_proceso || 0} icon="🔵" color="cyan" />
         <KPICard label="EPS Trans." value={kpis.eps_transcripcion || 0} icon="🟡" color="yellow" />
-        <KPICard label="TTHH" value={kpis.derivado_tthh || 0} icon="🟣" color="purple" />
+        <KPICard label="POSIBLE FRAUDE" value={kpis.posible_fraude || 0} icon="🟣" color="purple" />
         <KPICard label="Prom. Días" value={kpis.promedio_dias || 0} icon="📅" color="orange" sub="por incapacidad" />
         {(data?.alertas_180?.length || 0) > 0 && <KPICard label="Alertas 180" value={data.alertas_180.length} icon="⛔" color="red" sub="empleados en riesgo" />}
       </div>

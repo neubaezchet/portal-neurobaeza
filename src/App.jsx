@@ -2774,7 +2774,7 @@ function AppContent({ authUser, onLogout }) {
               <div>
                 <h1 className="text-3xl font-bold flex items-center gap-3">
                   <User className="w-8 h-8" />
-                  Portal de Validadores - IncaBaeza
+                  Portal de Validadores
                 </h1>
                 <p className="text-blue-100 mt-2">Sistema de gestión de incapacidades médicas</p>
               </div>

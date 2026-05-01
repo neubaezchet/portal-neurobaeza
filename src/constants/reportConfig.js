@@ -36,7 +36,7 @@ export const ESTADOS_MAP = {
     border: '#facc15'
   },
   'DERIVADO_TTHH': { 
-    label: '🔵 TTHH',
+    label: '🔵 ES POSIBLE FRAUDE',
     color: '#2563eb',
     bg: '#dbeafe',
     border: '#93c5fd'
@@ -96,10 +96,10 @@ export const EXPORT_PRESETS = [
   },
   {
     id: 'derivadas_tthh',
-    label: '🚨 Derivadas TTHH',
+    label: '🚨 Posibles Fraudes',
     icon: '🚨',
     defaults: { estados: ['DERIVADO_TTHH'], periodo: 'mes_actual' },
-    description: 'Casos enviados a Talento Humano'
+    description: 'Casos con posible fraude'
   },
   {
     id: 'eps_transcripcion',
