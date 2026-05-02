@@ -66,11 +66,6 @@ function formatFecha(iso) {
   return new Date(iso).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function formatFechaCorta(iso) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
-}
-
 // ═══════════════════════════════════════════════════════════
 // EXCEL EXPORT (TSV con BOM para Excel — sin dependencias)
 // ═══════════════════════════════════════════════════════════
