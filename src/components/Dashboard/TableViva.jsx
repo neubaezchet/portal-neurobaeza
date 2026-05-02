@@ -163,25 +163,27 @@ export function TableViva({ empresa = 'all', periodo = 'mes_actual' }) {
           <table className="w-full text-sm">
             <thead className="bg-gray-900/50 border-b border-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300">Cédula</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300">Nombre</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300">Empresa</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300">Tipo</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300">Estado</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300">Fecha</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">Cédula</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">Empleado</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">Empresa</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">Tipo</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">Estado</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">F. Inicio</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">F. Fin</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">F. Envío</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">Hora Envío</th>
+                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">Días</th>
               </tr>
             </thead>
             <tbody>
-              {(datos.casos || []).slice(0, 20).map((caso, idx) => {
+              {(datos.ultimos_casos || []).slice(0, 20).map((caso, idx) => {
                 const info = ESTADOS_MAP[caso.estado] || { color: '#9ca3af', label: caso.estado };
                 return (
                   <tr key={idx} className="border-t border-gray-700 hover:bg-gray-700/30 transition-colors">
                     <td className="px-6 py-3 font-mono text-xs text-yellow-300">{caso.cedula}</td>
-                    <td className="px-6 py-3 text-sm text-gray-300">{caso.nombre}</td>
+                    <td className="px-6 py-3 text-sm text-gray-300">{caso.empleado}</td>
                     <td className="px-6 py-3 text-sm text-gray-400">{caso.empresa}</td>
-                    <td className="px-6 py-3 text-xs text-gray-400">
-                      {caso.tipo?.replace('_', ' ') || 'N/A'}
-                    </td>
+                    <td className="px-6 py-3 text-xs text-gray-400">{caso.tipo}</td>
                     <td className="px-6 py-3">
                       <span
                         className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold"
@@ -190,9 +192,11 @@ export function TableViva({ empresa = 'all', periodo = 'mes_actual' }) {
                         {info.label}
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-xs text-gray-500">
-                      {new Date(caso.fecha).toLocaleDateString('es-CO')}
-                    </td>
+                    <td className="px-6 py-3 text-xs text-gray-500">{caso.fecha_inicio}</td>
+                    <td className="px-6 py-3 text-xs text-gray-500">{caso.fecha_fin}</td>
+                    <td className="px-6 py-3 text-xs text-gray-500">{caso.fecha_envio}</td>
+                    <td className="px-6 py-3 text-xs text-gray-500">{caso.hora_envio}</td>
+                    <td className="px-6 py-3 text-xs text-gray-500 font-bold">{caso.dias}</td>
                   </tr>
                 );
               })}

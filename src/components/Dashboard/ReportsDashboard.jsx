@@ -335,21 +335,26 @@ export default function ReportsDashboard({ empresas = [] }) {
   //  Casos 180 resaltados en rojo
   // ═══════════════════════════════════════════════════════════
   const COLS_TH = useMemo(() => [
-    { key: 'serial', label: 'Llave', width: '100px', accessor: r => r.serial, render: r => (
-      <span className="font-mono text-yellow-400 font-bold">{r.serial}</span>
+    { key: 'serial', label: 'LLAVE', width: '100px', accessor: r => r.serial, render: r => (
+      <span className="font-mono text-yellow-400 font-bold uppercase">{r.serial}</span>
     )},
-    { key: 'cedula', label: 'Cédula', width: '110px', accessor: r => r.cedula, render: r => (
-      <span className="font-mono text-blue-300">{r.cedula}</span>
+    { key: 'cedula', label: 'CÉDULA', width: '110px', accessor: r => r.cedula, render: r => (
+      <span className="font-mono text-blue-300 uppercase">{r.cedula}</span>
     )},
-    { key: 'nombre', label: 'Nombres y Apellidos', width: '180px', accessor: r => r.nombre },
-    { key: 'empresa', label: 'Empresa', accessor: r => r.empresa },
-    { key: 'fecha_inicio', label: 'F. Inicio', accessor: r => r.fecha_inicio, render: r => formatFechaCorta(r.fecha_inicio) },
-    { key: 'fecha_fin', label: 'F. Fin', accessor: r => r.fecha_fin, render: r => formatFechaCorta(r.fecha_fin) },
-    { key: 'dias_incapacidad', label: 'Días Inc.', accessor: r => r.dias_incapacidad, render: r => (
+    { key: 'nombre', label: 'NOMBRES Y APELLIDOS', width: '180px', accessor: r => r.nombre, render: r => (
+      <span className="uppercase">{r.nombre}</span>
+    )},
+    { key: 'empresa', label: 'EMPRESA', accessor: r => r.empresa, render: r => (
+      <span className="uppercase">{r.empresa}</span>
+    )},
+    { key: 'fecha_inicio', label: 'F. INICIO', accessor: r => r.fecha_inicio, render: r => r.fecha_inicio ? <span className="uppercase">{r.fecha_inicio}</span> : '—' },
+    { key: 'fecha_fin', label: 'F. FIN', accessor: r => r.fecha_fin, render: r => r.fecha_fin ? <span className="uppercase">{r.fecha_fin}</span> : '—' },
+    { key: 'hora_envio', label: 'HORA ENVÍO', accessor: r => r.hora_envio, render: r => r.hora_envio || '—' },
+    { key: 'dias_incapacidad', label: 'DÍAS INC.', accessor: r => r.dias_incapacidad, render: r => (
       <span className="font-bold text-white">{r.dias_incapacidad ?? '—'}</span>
     )},
-    { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
-    { key: 'observacion', label: 'Observación / Motivo', width: '280px', accessor: r => r.observacion, render: r => {
+    { key: 'estado', label: 'ESTADO', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
+    { key: 'observacion', label: 'OBSERVACIÓN / MOTIVO', width: '280px', accessor: r => r.observacion, render: r => {
       const obs = r.observacion_detalle || r.observacion;
       const faltantes = r.docs_faltantes || [];
       const ilegibles = r.docs_ilegibles || [];
@@ -357,22 +362,22 @@ export default function ReportsDashboard({ empresas = [] }) {
       if (!obs && faltantes.length === 0 && ilegibles.length === 0 && !sinKactus) return <span className="text-gray-500">—</span>;
       return (
         <div className="max-w-[280px]">
-          {obs && <span className="text-gray-300 text-[10px] block" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{obs}</span>}
+          {obs && <span className="text-gray-300 text-[10px] block uppercase" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{obs}</span>}
           {faltantes.length > 0 && (
             <div className="flex flex-wrap gap-0.5 mt-0.5">
-              {faltantes.map((d,i) => <span key={i} className="px-1 py-0.5 bg-red-500/20 text-red-400 rounded text-[8px]">📄 {d}</span>)}
+              {faltantes.map((d,i) => <span key={i} className="px-1 py-0.5 bg-red-500/20 text-red-400 rounded text-[8px] uppercase">📄 {d}</span>)}
             </div>
           )}
           {ilegibles.length > 0 && (
             <div className="flex flex-wrap gap-0.5 mt-0.5">
-              {ilegibles.map((d,i) => <span key={i} className="px-1 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[8px]">⚠️ {d} ilegible</span>)}
+              {ilegibles.map((d,i) => <span key={i} className="px-1 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[8px] uppercase">⚠️ {d} ILEGIBLE</span>)}
             </div>
           )}
-          {sinKactus && <span className="px-1 py-0.5 bg-pink-500/15 text-pink-400 rounded text-[8px] mt-0.5 inline-block">Sin subir en Kactus</span>}
+          {sinKactus && <span className="px-1 py-0.5 bg-pink-500/15 text-pink-400 rounded text-[8px] mt-0.5 inline-block uppercase">SIN SUBIR EN KACTUS</span>}
         </div>
       );
     }},
-    { key: 'drive', label: 'Drive', width: '60px', accessor: r => r.drive_link || '', render: r => {
+    { key: 'drive', label: 'DRIVE', width: '60px', accessor: r => r.drive_link || '', render: r => {
       if (!r.drive_link) return <span className="text-gray-600">—</span>;
       return (
         <a href={r.drive_link} target="_blank" rel="noopener noreferrer"
@@ -438,51 +443,52 @@ export default function ReportsDashboard({ empresas = [] }) {
   //  estado, diagnóstico principal, CIE-10
   // ═══════════════════════════════════════════════════════════
   const COLS_SST = useMemo(() => [
-    { key: 'serial', label: 'Llave', width: '100px', accessor: r => r.serial, render: r => <span className="font-mono text-yellow-400">{r.serial}</span> },
-    { key: 'cedula', label: 'Cédula', width: '110px', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300">{r.cedula}</span> },
-    { key: 'nombre', label: 'Nombres y Apellidos', width: '180px', accessor: r => r.nombre },
-    { key: 'empresa', label: 'Empresa', accessor: r => r.empresa },
-    { key: 'tipo', label: 'Tipo Incapacidad', accessor: r => r.tipo, render: r => (
-      <span className="px-1.5 py-0.5 bg-gray-700 text-gray-300 rounded text-[10px]">{(r.tipo || '').replace(/_/g, ' ')}</span>
+    { key: 'serial', label: 'LLAVE', width: '100px', accessor: r => r.serial, render: r => <span className="font-mono text-yellow-400 uppercase">{r.serial}</span> },
+    { key: 'cedula', label: 'CÉDULA', width: '110px', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300 uppercase">{r.cedula}</span> },
+    { key: 'nombre', label: 'NOMBRES Y APELLIDOS', width: '180px', accessor: r => r.nombre, render: r => <span className="uppercase">{r.nombre}</span> },
+    { key: 'empresa', label: 'EMPRESA', accessor: r => r.empresa, render: r => <span className="uppercase">{r.empresa}</span> },
+    { key: 'tipo', label: 'TIPO INCAPACIDAD', accessor: r => r.tipo, render: r => (
+      <span className="px-1.5 py-0.5 bg-gray-700 text-gray-300 rounded text-[10px] uppercase">{(r.tipo || '').replace(/_/g, ' ')}</span>
     )},
-    { key: 'es_prorroga', label: 'Prórroga', accessor: r => r.es_prorroga ? 'SÍ' : 'NO', render: r => {
-      if (!r.es_prorroga) return <span className="text-gray-500 font-bold">NO</span>;
+    { key: 'es_prorroga', label: 'PRÓRROGA', accessor: r => r.es_prorroga ? 'SÍ' : 'NO', render: r => {
+      if (!r.es_prorroga) return <span className="text-gray-500 font-bold uppercase">NO</span>;
       const conf = r.prorroga_confianza;
       const color = conf === 'alta' ? 'bg-red-500/20 text-red-400' : conf === 'media' ? 'bg-orange-500/20 text-orange-400' : 'bg-yellow-500/20 text-yellow-400';
       return (
         <div className="flex flex-col items-start gap-0.5">
-          <span className={`px-1.5 py-0.5 ${color} rounded text-[10px] font-black`}>SÍ</span>
-          {r.prorroga_caso_original && <span className="text-[8px] text-gray-500">← {r.prorroga_caso_original}</span>}
+          <span className={`px-1.5 py-0.5 ${color} rounded text-[10px] font-black uppercase`}>SÍ</span>
+          {r.prorroga_caso_original && <span className="text-[8px] text-gray-500 uppercase">← {r.prorroga_caso_original}</span>}
         </div>
       );
     }},
-    { key: 'dias_incapacidad', label: 'Días Inc.', accessor: r => r.dias_incapacidad, render: r => {
+    { key: 'dias_incapacidad', label: 'DÍAS INC.', accessor: r => r.dias_incapacidad, render: r => {
       const v = r.dias_validacion;
       if (v && !v.valido) return <span className="font-bold text-yellow-400" title={v.mensaje || 'Días atípicos'}>{r.dias_incapacidad} ⚠</span>;
-      return <span className="font-bold">{r.dias_incapacidad ?? '—'}</span>;
+      return <span className="font-bold uppercase">{r.dias_incapacidad ?? '—'}</span>;
     }},
-    { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
-    { key: 'diagnostico', label: 'Diagnóstico / Motivo Prórroga', width: '220px', accessor: r => r.diagnostico, render: r => (
+    { key: 'estado', label: 'ESTADO', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
+    { key: 'diagnostico', label: 'DIAGNÓSTICO / MOTIVO PRÓRROGA', width: '220px', accessor: r => r.diagnostico, render: r => (
       <div className="max-w-[220px]">
-        {r.diagnostico === 'En Proceso'
-          ? <span className="text-pink-400 text-[10px] italic">En Proceso</span>
-          : <span className="text-gray-300 text-[10px] block truncate" title={r.diagnostico}>{r.diagnostico || '—'}</span>
+        {r.diagnostico === 'EN PROCESO'
+          ? <span className="text-pink-400 text-[10px] italic uppercase">EN PROCESO</span>
+          : <span className="text-gray-300 text-[10px] block truncate uppercase" title={r.diagnostico}>{r.diagnostico || '—'}</span>
         }
-        {r.prorroga_explicacion && <span className="text-[8px] text-purple-400 block truncate" title={r.prorroga_explicacion}>↳ {r.prorroga_explicacion}</span>}
+        {r.prorroga_explicacion && <span className="text-[8px] text-purple-400 block truncate uppercase" title={r.prorroga_explicacion}>↳ {r.prorroga_explicacion}</span>}
       </div>
     )},
     { key: 'codigo_cie10', label: 'CIE-10', accessor: r => r.codigo_cie10, render: r => {
-      if (r.codigo_cie10 === 'En Proceso') return <span className="text-pink-400 text-[10px] italic">En Proceso</span>;
+      if (r.codigo_cie10 === 'EN PROCESO') return <span className="text-pink-400 text-[10px] italic uppercase">EN PROCESO</span>;
       if (!r.codigo_cie10) return <span className="text-gray-500">—</span>;
       return (
         <div className="flex flex-col">
-          <span className="font-mono text-purple-300 text-[10px]">{r.codigo_cie10}</span>
-          {r.cie10_descripcion && r.cie10_descripcion !== 'En Proceso' && <span className="text-[8px] text-gray-500 truncate max-w-[120px]" title={r.cie10_descripcion}>{r.cie10_descripcion}</span>}
+          <span className="font-mono text-purple-300 text-[10px] uppercase">{r.codigo_cie10}</span>
+          {r.cie10_descripcion && r.cie10_descripcion !== 'EN PROCESO' && <span className="text-[8px] text-gray-500 truncate max-w-[120px] uppercase" title={r.cie10_descripcion}>{r.cie10_descripcion}</span>}
         </div>
       );
     }},
-    { key: 'fecha_inicio', label: 'F. Inicio', accessor: r => r.fecha_inicio, render: r => formatFechaCorta(r.fecha_inicio) },
-    { key: 'fecha_fin', label: 'F. Fin', accessor: r => r.fecha_fin, render: r => formatFechaCorta(r.fecha_fin) },
+    { key: 'fecha_inicio', label: 'F. INICIO', accessor: r => r.fecha_inicio, render: r => r.fecha_inicio || '—' },
+    { key: 'fecha_fin', label: 'F. FIN', accessor: r => r.fecha_fin, render: r => r.fecha_fin || '—' },
+    { key: 'hora_envio', label: 'HORA ENVÍO', accessor: r => r.hora_envio, render: r => r.hora_envio || '—' },
   ], []);
 
   // ═══════════════════════════════════════════════════════════
@@ -519,23 +525,24 @@ export default function ReportsDashboard({ empresas = [] }) {
   //  días Kactus, estado, prórroga, nº incapacidad
   // ═══════════════════════════════════════════════════════════
   const COLS_NOMINA = useMemo(() => [
-    { key: 'serial', label: 'Llave', width: '100px', accessor: r => r.serial, render: r => <span className="font-mono text-yellow-400">{r.serial}</span> },
-    { key: 'cedula', label: 'Cédula', width: '110px', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300">{r.cedula}</span> },
-    { key: 'nombre', label: 'Nombres y Apellidos', width: '180px', accessor: r => r.nombre },
-    { key: 'empresa', label: 'Empresa', accessor: r => r.empresa },
-    { key: 'eps', label: 'EPS', accessor: r => r.eps },
-    { key: 'tipo', label: 'Tipo', accessor: r => r.tipo, render: r => <span className="text-gray-400">{(r.tipo || '').replace(/_/g, ' ')}</span> },
-    { key: 'numero_incapacidad', label: 'Nº Incapacidad', accessor: r => r.numero_incapacidad },
-    { key: 'fecha_inicio', label: 'F. Inicio', accessor: r => r.fecha_inicio, render: r => formatFechaCorta(r.fecha_inicio) },
-    { key: 'fecha_fin', label: 'F. Fin', accessor: r => r.fecha_fin, render: r => formatFechaCorta(r.fecha_fin) },
-    { key: 'dias_incapacidad', label: 'Días', accessor: r => r.dias_incapacidad, render: r => <span className="font-bold text-white">{r.dias_incapacidad ?? '—'}</span> },
-    { key: 'es_prorroga', label: 'Prórroga', accessor: r => r.es_prorroga ? 'SÍ' : 'NO', render: r => r.es_prorroga
-      ? <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[10px] font-bold">SÍ</span>
-      : <span className="text-gray-500">NO</span>
+    { key: 'serial', label: 'LLAVE', width: '100px', accessor: r => r.serial, render: r => <span className="font-mono text-yellow-400 uppercase">{r.serial}</span> },
+    { key: 'cedula', label: 'CÉDULA', width: '110px', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300 uppercase">{r.cedula}</span> },
+    { key: 'nombre', label: 'NOMBRES Y APELLIDOS', width: '180px', accessor: r => r.nombre, render: r => <span className="uppercase">{r.nombre}</span> },
+    { key: 'empresa', label: 'EMPRESA', accessor: r => r.empresa, render: r => <span className="uppercase">{r.empresa}</span> },
+    { key: 'eps', label: 'EPS', accessor: r => r.eps, render: r => <span className="uppercase">{r.eps}</span> },
+    { key: 'tipo', label: 'TIPO', accessor: r => r.tipo, render: r => <span className="text-gray-400 uppercase">{(r.tipo || '').replace(/_/g, ' ')}</span> },
+    { key: 'numero_incapacidad', label: 'Nº INCAPACIDAD', accessor: r => r.numero_incapacidad },
+    { key: 'fecha_inicio', label: 'F. INICIO', accessor: r => r.fecha_inicio, render: r => r.fecha_inicio || '—' },
+    { key: 'fecha_fin', label: 'F. FIN', accessor: r => r.fecha_fin, render: r => r.fecha_fin || '—' },
+    { key: 'hora_envio', label: 'HORA ENVÍO', accessor: r => r.hora_envio, render: r => r.hora_envio || '—' },
+    { key: 'dias_incapacidad', label: 'DÍAS', accessor: r => r.dias_incapacidad, render: r => <span className="font-bold text-white">{r.dias_incapacidad ?? '—'}</span> },
+    { key: 'es_prorroga', label: 'PRÓRROGA', accessor: r => r.es_prorroga ? 'SÍ' : 'NO', render: r => r.es_prorroga
+      ? <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[10px] font-bold uppercase">SÍ</span>
+      : <span className="text-gray-500 uppercase">NO</span>
     },
-    { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
-    { key: 'centro_costo', label: 'Centro Costo', accessor: r => r.centro_costo },
-    { key: 'area', label: 'Área', accessor: r => r.area },
+    { key: 'estado', label: 'ESTADO', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
+    { key: 'centro_costo', label: 'CENTRO COSTO', accessor: r => r.centro_costo, render: r => <span className="uppercase">{r.centro_costo || '—'}</span> },
+    { key: 'area', label: 'ÁREA', accessor: r => r.area, render: r => <span className="uppercase">{r.area || '—'}</span> },
   ], []);
 
   // ═══════════════════════════════════════════════════════════
