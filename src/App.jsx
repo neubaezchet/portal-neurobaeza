@@ -2440,7 +2440,7 @@ return (
                   setAccionSeleccionada(null);
                   setMensajePersonalizado('');
                 }}
-                className="w-full px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold transition-colors"
+                className="w-full px-6 bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-slate-300 py-3 rounded-2026 font-semibold transition-all duration-300 border border-white/[0.06]"
               >
                 ❌ Cancelar
               </button>
@@ -2451,59 +2451,59 @@ return (
 
       {/* MODAL EXTRA */}
       {accionSeleccionada === 'extra' && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl">
-            <div className="sticky top-0 bg-purple-600 text-white p-4 rounded-t-xl flex items-center justify-between">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <Edit3 className="w-6 h-6" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-obsidian-700/95 backdrop-blur-2026 rounded-2026-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto border border-white/[0.06] shadow-glass-lg animate-scale-in">
+            <div className="sticky top-0 bg-gradient-to-r from-indigo-500/15 to-violet-500/10 backdrop-blur-2026 text-white p-5 rounded-t-2026-xl flex items-center justify-between border-b border-white/[0.06]">
+              <h3 className="text-lg font-semibold font-display flex items-center gap-2.5 tracking-tight">
+                <Edit3 className="w-5 h-5 text-indigo-400" />
                 📝 Notificación Personalizada (IA)
               </h3>
-              <button onClick={() => setAccionSeleccionada(null)} className="p-1 hover:bg-purple-700 rounded">
-                <X className="w-5 h-5" />
+              <button onClick={() => setAccionSeleccionada(null)} className="p-1.5 hover:bg-white/[0.06] rounded-xl transition-colors">
+                <X className="w-4 h-4 text-slate-400" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
-              <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded">
-                <p className="text-sm text-purple-800">
+            <div className="p-6 space-y-5">
+              <div className="bg-indigo-500/[0.06] border-l-2 border-indigo-500/40 p-4 rounded-2026">
+                <p className="text-sm text-indigo-300/80">
                   <strong>🤖 Escribe un mensaje informal.</strong> La IA lo convertirá en un email profesional, claro y amable para la empleada.
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">
                   ✍️ Tu Mensaje (Informal)
                 </label>
                 <textarea
                   value={mensajePersonalizado}
                   onChange={(e) => setMensajePersonalizado(e.target.value)}
                   placeholder="Ejemplo: 'Hola María, nos falta el registro civil del bebé, si puedes enviarlo hoy sería genial'"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900 bg-white placeholder-gray-400"
+                  className="input-2026 w-full px-4 py-3 rounded-2026 resize-none text-white placeholder-slate-500 focus:outline-none"
                   rows={5}
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-slate-500 mt-1.5">
                   💡 Escribe natural, la IA lo profesionalizará
                 </p>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="bg-white/[0.02] border border-white/[0.04] rounded-2026 p-4">
+                <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">
                   🔎 Adjuntar Archivos (Opcional)
                 </label>
                 <input 
                   type="file"
                   multiple
                   onChange={(e) => setAdjuntos(Array.from(e.target.files))}
-                  className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-600 file:text-white file:font-semibold hover:file:bg-purple-700 cursor-pointer"
+                  className="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-indigo-500/15 file:text-indigo-300 file:font-semibold hover:file:bg-indigo-500/25 cursor-pointer"
                 />
                 {adjuntos.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {adjuntos.map((file, idx) => (
-                      <div key={idx} className="text-xs bg-white px-3 py-1 rounded-full border border-purple-300 flex items-center gap-2">
+                      <div key={idx} className="text-xs bg-indigo-500/[0.06] px-3 py-1.5 rounded-full border border-indigo-500/15 flex items-center gap-2 text-indigo-300">
                         <span>📄 {file.name}</span>
                         <button 
                           onClick={() => setAdjuntos(prev => prev.filter((_, i) => i !== idx))}
-                          className="text-red-600 hover:text-red-800"
+                          className="text-red-400 hover:text-red-300"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -2517,7 +2517,7 @@ return (
                 <button
                   onClick={() => handleNotificarLibre(casoSeleccionado.serial)}
                   disabled={enviandoValidacion || !mensajePersonalizado.trim()}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 btn-2026-primary py-3 px-6 rounded-2026 font-semibold disabled:opacity-40 transition-all duration-300 flex items-center justify-center gap-2"
                 >
                   {enviandoValidacion ? (
                     <>
@@ -2537,7 +2537,7 @@ return (
                     setMensajePersonalizado('');
                     setAdjuntos([]);
                   }}
-                  className="px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold transition-colors"
+                  className="px-6 bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-slate-300 py-3 rounded-2026 font-semibold transition-all duration-300 border border-white/[0.06]"
                 >
                   ❌ Cancelar
                 </button>
@@ -2766,24 +2766,26 @@ function AppContent({ authUser, onLogout }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-        <div className="max-w-7xl mx-auto p-4 space-y-6">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 shadow-2xl">
-            <div className="flex items-center justify-between">
+      <div className="min-h-screen text-white" style={{ background: 'linear-gradient(180deg, #030305 0%, #08080D 40%, #0E0E16 100%)' }}>
+        <div className="max-w-[1400px] mx-auto p-5 space-y-6">
+          {/* ═══ HEADER — Enterprise 2026 ═══ */}
+          <div className="header-2026 rounded-2026-xl p-6 animate-fade-up">
+            <div className="flex items-center justify-between relative z-10">
               <div>
-                <h1 className="text-3xl font-bold flex items-center gap-3">
-                  <User className="w-8 h-8" />
-                  Portal de Validadores
+                <h1 className="text-[1.75rem] font-bold font-display flex items-center gap-3 tracking-tight">
+                  <div className="w-10 h-10 rounded-2026 bg-gradient-to-br from-indigo-500/20 to-violet-500/10 border border-indigo-400/20 flex items-center justify-center">
+                    <User className="w-5 h-5 text-indigo-400" strokeWidth={1.5} />
+                  </div>
+                  <span className="gradient-text-aurora">Portal de Validadores</span>
                 </h1>
-                <p className="text-blue-100 mt-2">Sistema de gestión de incapacidades médicas</p>
+                <p className="text-slate-500 mt-1.5 text-sm font-light tracking-wide ml-[52px]">Sistema de gestión de incapacidades médicas</p>
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <span className="text-sm text-blue-100 bg-white/10 px-3 py-1.5 rounded-lg block">
+                  <span className="text-sm text-slate-300 bg-white/[0.04] border border-white/[0.06] px-4 py-2 rounded-2026 block font-medium">
                     {authUser?.nombre || authUser?.username}
                   </span>
-                  <span className="text-[10px] text-blue-200/60 mt-0.5 block">
+                  <span className="text-[10px] text-slate-500 mt-1 block tracking-wider uppercase">
                     {authUser?.rol === 'superadmin' ? '🔑 Super Admin' :
                      authUser?.rol === 'admin' ? '🛡️ Administrador' :
                      authUser?.rol === 'th' ? '👥 Talento Humano' :
@@ -2793,56 +2795,54 @@ function AppContent({ authUser, onLogout }) {
                 </div>
                 <button
                   onClick={onLogout}
-                  className="flex items-center gap-1.5 text-sm text-blue-100 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition"
+                  className="flex items-center gap-2 text-sm text-slate-400 hover:text-indigo-400 bg-white/[0.03] hover:bg-indigo-500/[0.06] border border-white/[0.06] hover:border-indigo-400/20 px-4 py-2 rounded-2026 transition-all duration-300"
                   title="Cerrar sesión"
                 >
-                  <LogOut size={16} />
+                  <LogOut size={15} strokeWidth={1.5} />
                   Salir
                 </button>
               </div>
             </div>
           </div>
 
-          {/* ⭐ TABS SELECTOR — filtrado por permisos del usuario */}
-          <div className="flex gap-2 border-b-2 border-gray-700">
+          {/* ═══ TABS — Enterprise 2026 ═══ */}
+          <div className="flex gap-1 border-b border-white/[0.06] overflow-x-auto scrollbar-hide">
             {tabsPermitidas.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setTabActual(tab.id)}
-                className={`px-4 py-3 font-semibold transition-colors ${
-                  tabActual === tab.id
-                    ? `border-b-2 ${tab.borderColor} ${tab.textColor}`
-                    : 'text-gray-400 hover:text-gray-300'
+                className={`tab-2026 ${
+                  tabActual === tab.id ? 'active' : ''
                 }`}
               >
                 {tab.label}
               </button>
             ))}
             {tabsPermitidas.length === 0 && (
-              <span className="px-4 py-3 text-gray-500 text-sm">Sin permisos asignados — contacte al administrador</span>
+              <span className="px-4 py-3 text-slate-600 text-sm">Sin permisos asignados — contacte al administrador</span>
             )}
           </div>
 
           {/* ⭐ TAB 1: VALIDACIÓN (CÓDIGO EXISTENTE) */}
           {tabActual === 'validacion' && (
             <>
-              {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* ═══ STATS — Enterprise 2026 ═══ */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 stagger-children">
           {Object.entries(stats).map(([key, value]) => (
-            <div key={key} className="bg-gray-800/50 backdrop-blur rounded-xl p-4 border border-gray-700">
-              <div className="text-2xl font-bold">{value || 0}</div>
-              <div className="text-sm text-gray-400 capitalize">{key.replace(/_/g, ' ')}</div>
+            <div key={key} className="stat-card-2026 animate-fade-up">
+              <div className="stat-value">{value || 0}</div>
+              <div className="stat-label">{key.replace(/_/g, ' ')}</div>
             </div>
           ))}
         </div>
 
-        {/* Filtros */}
-        <div className="bg-gray-800/50 backdrop-blur rounded-xl p-4 border border-gray-700 space-y-3">
+        {/* ═══ FILTERS — Enterprise 2026 ═══ */}
+        <div className="glass-panel-light rounded-2026-lg p-5">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <select
               value={filtros.empresa}
               onChange={(e) => handleFiltroChange('empresa', e.target.value)}
-              className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+              className="input-2026 rounded-2026 px-4 py-3 text-sm text-slate-300 focus:outline-none"
             >
               <option value="all">Todas las empresas</option>
               {empresas.map(emp => (
@@ -2853,7 +2853,7 @@ function AppContent({ authUser, onLogout }) {
             <select
               value={filtros.estado}
               onChange={(e) => handleFiltroChange('estado', e.target.value)}
-              className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+              className="input-2026 rounded-2026 px-4 py-3 text-sm text-slate-300 focus:outline-none"
             >
               <option value="all">Todos los estados</option>
               {Object.keys(STATUS_MAP).map(key => (
@@ -2866,12 +2866,12 @@ function AppContent({ authUser, onLogout }) {
               placeholder="Buscar serial, cédula, nombre o +5 (≥5 días)..."
               value={filtros.q}
               onChange={(e) => handleFiltroChange('q', e.target.value)}
-              className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+              className="input-2026 rounded-2026 px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none"
             />
 
             <button
               onClick={() => api.exportarCasos('xlsx', filtros)}
-              className="bg-green-600 hover:bg-green-700 rounded-lg px-4 py-2 font-semibold transition-colors flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-2026 font-semibold text-sm text-emerald-300 bg-emerald-500/[0.08] border border-emerald-500/20 hover:bg-emerald-500/[0.15] hover:border-emerald-500/30 transition-all duration-300"
             >
               <Download className="w-4 h-4" />
               Exportar Excel
@@ -2879,44 +2879,43 @@ function AppContent({ authUser, onLogout }) {
           </div>
         </div>
 
-        {/* Lista de Casos */}
-        <div className="bg-gray-800/50 backdrop-blur rounded-xl border border-gray-700 overflow-hidden">
+        {/* ═══ TABLE — Enterprise 2026 ═══ */}
+        <div className="glass-panel-light rounded-2026-lg overflow-hidden">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <RefreshCw className="w-7 h-7 animate-spin text-indigo-400" strokeWidth={1.5} />
+              <span className="text-sm text-slate-500">Cargando casos...</span>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-900/50">
+              <table className="table-2026">
+                <thead>
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Serial</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Nombre</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Empresa</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Estado</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Fecha</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Acciones</th>
+                    <th>Serial</th>
+                    <th>Nombre</th>
+                    <th>Empresa</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {casos.map(caso => {
                     const isFraudeConfirmado = caso.fraude_confirmado || (caso.metadata_form?.fraude_confirmado);
                     const statusInfo = isFraudeConfirmado 
-                      ? { label: 'ADULTERADA', color: '#7f1d1d', icon: XCircle }
+                      ? { label: 'ADULTERADA', color: '#F87171', icon: XCircle }
                       : STATUS_MAP[caso.estado];
                     const Icon = statusInfo.icon;
                     const tieneReenvios = caso.total_reenvios > 0;
                     return (
-                      <tr key={caso.id} className={`border-t border-gray-700 hover:bg-gray-700/50 transition-colors ${
-                        tieneReenvios ? 'bg-rose-950/20' : ''
-                      }`}>
-                        <td className="px-4 py-3">
+                      <tr key={caso.id} className={tieneReenvios ? 'bg-rose-500/[0.03]' : ''}>
+                        <td>
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm text-yellow-300">{caso.serial}</span>
+                            <span className="font-mono text-sm text-indigo-300 font-medium">{caso.serial}</span>
                             {/* Badge de reenvíos: muestra cuántas veces se ha enviado como incompleta */}
                             {tieneReenvios && (
                               <span 
-                                className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold bg-rose-500/80 text-white"
+                                className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[9px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/20"
                                 title={`Reenviado ${caso.total_reenvios} vez${caso.total_reenvios > 1 ? 'es' : ''}`}
                               >
                                 {caso.total_reenvios}
@@ -2924,7 +2923,7 @@ function AppContent({ authUser, onLogout }) {
                             )}
                             {caso.bloquea_nueva && (
                               <span 
-                                className="text-xs px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full border border-red-500"
+                                className="text-[10px] px-1.5 py-0.5 bg-red-500/10 text-red-400 rounded-full border border-red-500/20"
                                 title="Este caso está bloqueando al empleado"
                               >
                                 🔒
@@ -2932,21 +2931,25 @@ function AppContent({ authUser, onLogout }) {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm">{caso.nombre}</td>
-                        <td className="px-4 py-3 text-sm text-gray-400">{caso.empresa}</td>
-                        <td className="px-4 py-3">
+                        <td className="text-slate-300 font-medium">{caso.nombre}</td>
+                        <td>{caso.empresa}</td>
+                        <td>
                           <span 
-                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold"
-                            style={{backgroundColor: statusInfo.color + '20', color: statusInfo.color}}
+                            className="badge-2026"
+                            style={{
+                              backgroundColor: statusInfo.color + '10',
+                              color: statusInfo.color,
+                              borderColor: statusInfo.color + '20'
+                            }}
                           >
                             <Icon className="w-3 h-3" />
                             {statusInfo.label}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-400">
+                        <td className="text-slate-500 text-xs">
                           {new Date(caso.created_at).toLocaleDateString('es-CO')}
                         </td>
-                        <td className="px-4 py-3">
+                        <td>
                           <button
                             onClick={async () => {
                               try {
@@ -2957,7 +2960,7 @@ function AppContent({ authUser, onLogout }) {
                               }
                               setIndiceActual(casos.indexOf(caso));
                             }}
-                            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                            className="px-4 py-2 rounded-2026 text-xs font-semibold text-indigo-300 bg-indigo-500/[0.08] border border-indigo-500/15 hover:bg-indigo-500/[0.15] hover:border-indigo-400/25 transition-all duration-300"
                           >
                             Ver Documento
                           </button>
@@ -2970,24 +2973,24 @@ function AppContent({ authUser, onLogout }) {
             </div>
           )}
 
-          {/* Paginación */}
-          <div className="bg-gray-900/50 px-4 py-3 flex items-center justify-between border-t border-gray-700">
+          {/* ═══ PAGINATION — Enterprise 2026 ═══ */}
+          <div className="px-5 py-4 flex items-center justify-between border-t border-white/[0.04]">
             <button
               onClick={() => handlePageChange(filtros.page - 1)}
               disabled={filtros.page === 1}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 rounded-2026 text-sm text-slate-400 bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:text-slate-300 disabled:opacity-25 disabled:cursor-not-allowed transition-all duration-300"
             >
-              Anterior
+              ← Anterior
             </button>
-            <span className="text-sm">
-              Página {filtros.page} de {totalPages}
+            <span className="text-xs text-slate-500 tracking-wider">
+              Página <span className="text-slate-300 font-semibold">{filtros.page}</span> de <span className="text-slate-300 font-semibold">{totalPages}</span>
             </span>
             <button
               onClick={() => handlePageChange(filtros.page + 1)}
               disabled={filtros.page >= totalPages}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 rounded-2026 text-sm text-slate-400 bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:text-slate-300 disabled:opacity-25 disabled:cursor-not-allowed transition-all duration-300"
             >
-              Siguiente
+              Siguiente →
             </button>
           </div>
         </div>

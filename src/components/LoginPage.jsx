@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Lock, Mail, Eye, EyeOff, ArrowLeft, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, ArrowLeft, Loader2, CheckCircle, AlertCircle, Shield } from 'lucide-react';
 
 const API_BASE_URL = 'https://web-production-95ed.up.railway.app';
 
@@ -19,7 +19,7 @@ export default function LoginPage({ onLogin }) {
   const vantaRef = useRef(null);
   const vantaEffect = useRef(null);
 
-  // Vanta.js FOG effect - Obsidian 2026
+  // Vanta.js FOG effect - Indigo Enterprise 2026
   useEffect(() => {
     if (!vantaEffect.current && window.VANTA) {
       vantaEffect.current = window.VANTA.FOG({
@@ -30,12 +30,13 @@ export default function LoginPage({ onLogin }) {
         gyroControls: false,
         minHeight: 200.00,
         minWidth: 200.00,
-        highlightColor: 0x0ea5e9, /* Sapphire 500 */
-        midtoneColor: 0x050507,   /* Obsidian 900 */
-        lowlightColor: 0x0B0B10,  /* Obsidian 800 */
-        baseColor: 0x000000,
-        blurFactor: 0.90,
-        speed: 2.50,
+        highlightColor: 0x6366F1, /* Indigo 500 */
+        midtoneColor: 0x030305,   /* Obsidian 950 */
+        lowlightColor: 0x08080D,  /* Obsidian 800 */
+        baseColor: 0x000002,
+        blurFactor: 0.85,
+        speed: 1.80,
+        zoom: 1.20,
       });
     }
     return () => { if (vantaEffect.current) vantaEffect.current.destroy(); };
@@ -123,54 +124,66 @@ export default function LoginPage({ onLogin }) {
     }
   };
 
+  // Shared input classes
+  const inputClass = "input-2026 w-full px-5 py-4 rounded-2026 text-white placeholder-slate-500 focus:outline-none transition-all duration-300 text-[0.938rem]";
+  const btnPrimaryClass = "w-full py-4 btn-2026-primary rounded-2026 font-semibold text-[0.938rem] transition-all duration-300 flex items-center justify-center gap-2.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none";
+
   return (
     <div ref={vantaRef} className="min-h-screen flex items-center justify-center px-4" style={{ position: 'relative' }}>
       {/* Content above Vanta */}
-      <div className="relative w-full max-w-md" style={{ zIndex: 1 }}>
+      <div className="relative w-full max-w-[440px] animate-fade-up" style={{ zIndex: 1 }}>
+        
         {/* Logo / Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600/20 rounded-2xl mb-4 border border-blue-500/30">
-            <Lock className="w-8 h-8 text-blue-400" />
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-[72px] h-[72px] mb-5 relative">
+            {/* Animated ring */}
+            <div className="absolute inset-0 rounded-2026 border border-indigo-450/20 animate-pulse-glow" />
+            <div className="absolute inset-0 rounded-2026 bg-gradient-to-br from-indigo-500/15 to-violet-500/10 backdrop-blur-sm border border-white/[0.06]" />
+            <Shield className="w-8 h-8 text-indigo-400 relative z-10" strokeWidth={1.5} />
           </div>
-          <h1 className="text-2xl font-bold text-white">Portal Incapacidades</h1>
-          <p className="text-slate-400 text-sm mt-1">Sistema de Validación</p>
+          <h1 className="text-[1.75rem] font-bold font-display gradient-text-aurora tracking-tight">
+            Portal Incapacidades
+          </h1>
+          <p className="text-slate-500 text-sm mt-2 tracking-wide font-light">
+            Sistema de Validación Empresarial
+          </p>
         </div>
 
         {/* Card */}
-        <div className="glass-panel-2026 rounded-2026-xl p-8 shadow-glass-lg animate-fade-in">
+        <div className="glass-panel-2026 rounded-2026-xl p-8 animate-scale-in" style={{ animationDelay: '100ms' }}>
 
           {/* === LOGIN MODE === */}
           {mode === 'login' && (
             <>
-              <h2 className="text-lg font-semibold text-white mb-6">Iniciar Sesión</h2>
-              <form onSubmit={handleLogin} className="space-y-4">
+              <h2 className="text-lg font-semibold text-white/90 mb-6 font-display tracking-tight">Iniciar Sesión</h2>
+              <form onSubmit={handleLogin} className="space-y-5">
                 <div>
-                  <label className="block text-sm text-slate-300 mb-1.5">Usuario</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">Usuario</label>
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="input-2026 w-full px-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all"
+                    className={inputClass}
                     placeholder="Tu nombre de usuario"
                     required
                     autoFocus
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-slate-300 mb-1.5">Contraseña</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">Contraseña</label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="input-2026 w-full px-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all pr-12"
+                      className={`${inputClass} pr-12`}
                       placeholder="••••••••"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-indigo-400 transition-colors duration-200"
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -178,18 +191,14 @@ export default function LoginPage({ onLogin }) {
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-                    <AlertCircle size={16} />
-                    {error}
+                  <div className="flex items-center gap-2.5 text-red-400 text-sm bg-red-500/[0.06] border border-red-500/15 rounded-2026 px-4 py-3 animate-fade-in">
+                    <AlertCircle size={16} className="shrink-0" />
+                    <span>{error}</span>
                   </div>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-4 bg-sapphire-600 hover:bg-sapphire-500 disabled:bg-sapphire-600/50 text-white font-bold rounded-2026 transition-all duration-300 shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)] border border-sapphire-400/30 flex items-center justify-center gap-2"
-                >
-                  {loading ? <Loader2 size={18} className="animate-spin" /> : null}
+                <button type="submit" disabled={loading} className={btnPrimaryClass}>
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : <Lock size={18} />}
                   {loading ? 'Ingresando...' : 'Iniciar Sesión'}
                 </button>
               </form>
@@ -197,7 +206,7 @@ export default function LoginPage({ onLogin }) {
               <div className="mt-6 text-center">
                 <button
                   onClick={() => { setMode('forgot'); setError(''); setSuccess(''); }}
-                  className="text-sm text-blue-400 hover:text-blue-300 transition"
+                  className="text-sm text-indigo-400/70 hover:text-indigo-300 transition-colors duration-200"
                 >
                   ¿Olvidaste tu contraseña?
                 </button>
@@ -210,22 +219,24 @@ export default function LoginPage({ onLogin }) {
             <>
               <button
                 onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
-                className="flex items-center gap-1 text-sm text-slate-400 hover:text-white transition mb-4"
+                className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-400 transition-colors duration-200 mb-5"
               >
                 <ArrowLeft size={16} /> Volver al login
               </button>
-              <h2 className="text-lg font-semibold text-white mb-2">Recuperar Contraseña</h2>
-              <p className="text-sm text-slate-400 mb-6">Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.</p>
-              <form onSubmit={handleForgot} className="space-y-4">
+              <h2 className="text-lg font-semibold text-white/90 mb-2 font-display tracking-tight">Recuperar Contraseña</h2>
+              <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+                Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+              </p>
+              <form onSubmit={handleForgot} className="space-y-5">
                 <div>
-                  <label className="block text-sm text-slate-300 mb-1.5">Correo electrónico</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">Correo electrónico</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="input-2026 w-full pl-12 pr-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all"
+                      className={`${inputClass} pl-12`}
                       placeholder="tu@correo.com"
                       required
                       autoFocus
@@ -234,23 +245,19 @@ export default function LoginPage({ onLogin }) {
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-                    <AlertCircle size={16} />
-                    {error}
+                  <div className="flex items-center gap-2.5 text-red-400 text-sm bg-red-500/[0.06] border border-red-500/15 rounded-2026 px-4 py-3 animate-fade-in">
+                    <AlertCircle size={16} className="shrink-0" />
+                    <span>{error}</span>
                   </div>
                 )}
                 {success && (
-                  <div className="flex items-center gap-2 text-green-400 text-sm bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-2">
-                    <CheckCircle size={16} />
-                    {success}
+                  <div className="flex items-center gap-2.5 text-emerald-400 text-sm bg-emerald-500/[0.06] border border-emerald-500/15 rounded-2026 px-4 py-3 animate-fade-in">
+                    <CheckCircle size={16} className="shrink-0" />
+                    <span>{success}</span>
                   </div>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={loading || success}
-                  className="w-full py-4 bg-sapphire-600 hover:bg-sapphire-500 disabled:bg-sapphire-600/50 text-white font-bold rounded-2026 transition-all duration-300 shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)] border border-sapphire-400/30 flex items-center justify-center gap-2"
-                >
+                <button type="submit" disabled={loading || success} className={btnPrimaryClass}>
                   {loading ? <Loader2 size={18} className="animate-spin" /> : <Mail size={18} />}
                   {loading ? 'Enviando...' : 'Enviar enlace de recuperación'}
                 </button>
@@ -261,51 +268,47 @@ export default function LoginPage({ onLogin }) {
           {/* === RESET PASSWORD MODE === */}
           {mode === 'reset' && (
             <>
-              <h2 className="text-lg font-semibold text-white mb-2">Nueva Contraseña</h2>
-              <p className="text-sm text-slate-400 mb-6">Escribe tu nueva contraseña.</p>
-              <form onSubmit={handleReset} className="space-y-4">
+              <h2 className="text-lg font-semibold text-white/90 mb-2 font-display tracking-tight">Nueva Contraseña</h2>
+              <p className="text-sm text-slate-500 mb-6">Escribe tu nueva contraseña.</p>
+              <form onSubmit={handleReset} className="space-y-5">
                 <div>
-                  <label className="block text-sm text-slate-300 mb-1.5">Nueva contraseña</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">Nueva contraseña</label>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="input-2026 w-full px-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all"
+                    className={inputClass}
                     placeholder="Mínimo 6 caracteres"
                     required
                     autoFocus
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-slate-300 mb-1.5">Confirmar contraseña</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">Confirmar contraseña</label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="input-2026 w-full px-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all"
+                    className={inputClass}
                     placeholder="Repite la contraseña"
                     required
                   />
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-                    <AlertCircle size={16} />
-                    {error}
+                  <div className="flex items-center gap-2.5 text-red-400 text-sm bg-red-500/[0.06] border border-red-500/15 rounded-2026 px-4 py-3 animate-fade-in">
+                    <AlertCircle size={16} className="shrink-0" />
+                    <span>{error}</span>
                   </div>
                 )}
                 {success && (
-                  <div className="flex items-center gap-2 text-green-400 text-sm bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-2">
-                    <CheckCircle size={16} />
-                    {success}
+                  <div className="flex items-center gap-2.5 text-emerald-400 text-sm bg-emerald-500/[0.06] border border-emerald-500/15 rounded-2026 px-4 py-3 animate-fade-in">
+                    <CheckCircle size={16} className="shrink-0" />
+                    <span>{success}</span>
                   </div>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={loading || success}
-                  className="w-full py-4 bg-sapphire-600 hover:bg-sapphire-500 disabled:bg-sapphire-600/50 text-white font-bold rounded-2026 transition-all duration-300 shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)] border border-sapphire-400/30 flex items-center justify-center gap-2"
-                >
+                <button type="submit" disabled={loading || success} className={btnPrimaryClass}>
                   {loading ? <Loader2 size={18} className="animate-spin" /> : <Lock size={18} />}
                   {loading ? 'Guardando...' : 'Restablecer Contraseña'}
                 </button>
@@ -315,8 +318,8 @@ export default function LoginPage({ onLogin }) {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-slate-500 text-xs mt-6">
-          © 2026 Portal Incapacidades · Todos los derechos reservados
+        <p className="text-center text-slate-600 text-[11px] mt-8 tracking-wider uppercase">
+          © 2026 Portal Incapacidades · NeuroBaeza Enterprise
         </p>
       </div>
     </div>
