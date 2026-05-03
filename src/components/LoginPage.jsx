@@ -19,7 +19,7 @@ export default function LoginPage({ onLogin }) {
   const vantaRef = useRef(null);
   const vantaEffect = useRef(null);
 
-  // Vanta.js FOG effect
+  // Vanta.js FOG effect - Obsidian 2026
   useEffect(() => {
     if (!vantaEffect.current && window.VANTA) {
       vantaEffect.current = window.VANTA.FOG({
@@ -30,10 +30,10 @@ export default function LoginPage({ onLogin }) {
         gyroControls: false,
         minHeight: 200.00,
         minWidth: 200.00,
-        highlightColor: 0x3d82a7,
-        midtoneColor: 0xffffff,
-        lowlightColor: 0xffffff,
-        baseColor: 0xe3aeae,
+        highlightColor: 0x0ea5e9, /* Sapphire 500 */
+        midtoneColor: 0x050507,   /* Obsidian 900 */
+        lowlightColor: 0x0B0B10,  /* Obsidian 800 */
+        baseColor: 0x000000,
         blurFactor: 0.90,
         speed: 2.50,
       });
@@ -137,7 +137,7 @@ export default function LoginPage({ onLogin }) {
         </div>
 
         {/* Card */}
-        <div className="bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl">
+        <div className="glass-panel-2026 rounded-2026-xl p-8 shadow-glass-lg animate-fade-in">
 
           {/* === LOGIN MODE === */}
           {mode === 'login' && (
@@ -150,7 +150,7 @@ export default function LoginPage({ onLogin }) {
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition"
+                    className="input-2026 w-full px-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all"
                     placeholder="Tu nombre de usuario"
                     required
                     autoFocus
@@ -163,7 +163,7 @@ export default function LoginPage({ onLogin }) {
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition pr-12"
+                      className="input-2026 w-full px-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all pr-12"
                       placeholder="••••••••"
                       required
                     />
@@ -187,7 +187,7 @@ export default function LoginPage({ onLogin }) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-sapphire-600 hover:bg-sapphire-500 disabled:bg-sapphire-600/50 text-white font-bold rounded-2026 transition-all duration-300 shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)] border border-sapphire-400/30 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : null}
                   {loading ? 'Ingresando...' : 'Iniciar Sesión'}
@@ -225,7 +225,7 @@ export default function LoginPage({ onLogin }) {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition"
+                      className="input-2026 w-full pl-12 pr-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all"
                       placeholder="tu@correo.com"
                       required
                       autoFocus
@@ -249,7 +249,7 @@ export default function LoginPage({ onLogin }) {
                 <button
                   type="submit"
                   disabled={loading || success}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-sapphire-600 hover:bg-sapphire-500 disabled:bg-sapphire-600/50 text-white font-bold rounded-2026 transition-all duration-300 shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)] border border-sapphire-400/30 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : <Mail size={18} />}
                   {loading ? 'Enviando...' : 'Enviar enlace de recuperación'}
@@ -270,7 +270,7 @@ export default function LoginPage({ onLogin }) {
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition"
+                    className="input-2026 w-full px-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all"
                     placeholder="Mínimo 6 caracteres"
                     required
                     autoFocus
@@ -282,7 +282,7 @@ export default function LoginPage({ onLogin }) {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition"
+                    className="input-2026 w-full px-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all"
                     placeholder="Repite la contraseña"
                     required
                   />
@@ -304,7 +304,7 @@ export default function LoginPage({ onLogin }) {
                 <button
                   type="submit"
                   disabled={loading || success}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-sapphire-600 hover:bg-sapphire-500 disabled:bg-sapphire-600/50 text-white font-bold rounded-2026 transition-all duration-300 shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)] border border-sapphire-400/30 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : <Lock size={18} />}
                   {loading ? 'Guardando...' : 'Restablecer Contraseña'}
