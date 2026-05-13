@@ -13,6 +13,7 @@ import ReportsDashboard from './components/Dashboard/ReportsDashboard';
 import ExportacionesPDF from './components/Dashboard/ExportacionesPDF';
 import PowerBIDashboard from './components/Dashboard/PowerBIDashboard';
 import PendientesEnvioDashboard from './components/Dashboard/PendientesEnvioDashboard';
+import ValidationResultsTable from './components/Dashboard/ValidationResultsTable';
 import BeforeAfterPDF from './components/BeforeAfterPDF';
 import LivePDFEditor from './components/LivePDFEditor';
 import LoginPage from './components/LoginPage';
@@ -2672,6 +2673,7 @@ function AppContent({ authUser, onLogout }) {
   const TAB_CONFIG = [
     { id: 'validacion',    permKey: 'validador',     label: '✅ Validación de Casos',      borderColor: 'border-blue-500',   textColor: 'text-blue-400' },
     { id: 'reportes',      permKey: 'reportes',      label: '📊 Reportes y Tablas Vivas',  borderColor: 'border-blue-500',   textColor: 'text-blue-400' },
+    { id: 'validaciones-ia', permKey: 'validador',  label: '🤖 Validaciones IA',         borderColor: 'border-green-500',  textColor: 'text-green-400' },
     { id: 'exportaciones', permKey: 'exportaciones',  label: '📦 Exportaciones PDF',        borderColor: 'border-blue-500',   textColor: 'text-blue-400' },
     { id: 'powerbi',       permKey: 'powerbi',       label: '📈 Power BI',                 borderColor: 'border-yellow-500', textColor: 'text-yellow-400' },
     { id: 'pendientes-envio', permKey: 'validador', label: '⏳ Pendientes de Envío', borderColor: 'border-purple-500', textColor: 'text-purple-400' },
@@ -2997,6 +2999,28 @@ function AppContent({ authUser, onLogout }) {
           {/* ⭐ TAB 2: REPORTES (CÓDIGO NUEVO) */}
           {tabActual === 'reportes' && (
             <ReportsDashboard empresas={empresas} />
+          )}
+
+          {/* ⭐ TAB 2.5: VALIDACIONES IA */}
+          {tabActual === 'validaciones-ia' && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-300 rounded-lg p-4 text-blue-800">
+                <p className="font-semibold">💡 Ingresa la cédula del empleado para ver sus validaciones con IA</p>
+              </div>
+              <input
+                type="text"
+                placeholder="Ingresa cédula del empleado..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.target.value) {
+                    setFiltros(prev => ({ ...prev, cedula: e.target.value }));
+                  }
+                }}
+                className="w-full max-w-md px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              {filtros.cedula && (
+                <ValidationResultsTable cedula={filtros.cedula} onRefresh={() => cargarCasos()} />
+              )}
+            </div>
           )}
 
           {/* ⭐ TAB 3: EXPORTACIONES MASIVAS PDF */}
