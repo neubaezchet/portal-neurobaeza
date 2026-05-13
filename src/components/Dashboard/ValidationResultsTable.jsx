@@ -250,7 +250,7 @@ const ValidationResultsTable = ({ cedula, onRefresh }) => {
       setLoading(false);
       setIsInitialLoad(false);
     }
-  }, [cedula, filtroDecision, getCached, isInitialLoad]);
+  }, [cedula, filtroDecision, getCached, setCached, isInitialLoad]);
 
   /**
    * Cargar resumen con caché
@@ -280,7 +280,7 @@ const ValidationResultsTable = ({ cedula, onRefresh }) => {
     } catch (err) {
       console.error('Error al cargar resumen:', err);
     }
-  }, [cedula, getCached, isInitialLoad]);
+  }, [cedula, getCached, setCached, isInitialLoad]);
 
   /**
    * Effect principal - Dependencies correctamente configurado
