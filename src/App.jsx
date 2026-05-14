@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import ReportsDashboard from './components/Dashboard/ReportsDashboard';
 import ExportacionesPDF from './components/Dashboard/ExportacionesPDF';
+import ExportacionesIncapacidades from './components/Dashboard/ExportacionesIncapacidades';
 import PowerBIDashboard from './components/Dashboard/PowerBIDashboard';
 import PendientesEnvioDashboard from './components/Dashboard/PendientesEnvioDashboard';
 import ValidationResultsTable from './components/Dashboard/ValidationResultsTable';
@@ -2687,6 +2688,7 @@ function AppContent({ authUser, onLogout }) {
     { id: 'reportes',      permKey: 'reportes',      label: '📊 Reportes y Tablas Vivas',  borderColor: 'border-blue-500',   textColor: 'text-blue-400' },
     { id: 'validaciones-ia', permKey: 'validador',  label: '🤖 Validaciones IA',         borderColor: 'border-green-500',  textColor: 'text-green-400' },
     { id: 'exportaciones', permKey: 'exportaciones',  label: '📦 Exportaciones PDF',        borderColor: 'border-blue-500',   textColor: 'text-blue-400' },
+    { id: 'exportar-incapacidades', permKey: 'exportaciones',  label: '📊 Exportar Excel Incapacidades', borderColor: 'border-cyan-500',  textColor: 'text-cyan-400' },
     { id: 'powerbi',       permKey: 'powerbi',       label: '📈 Power BI',                 borderColor: 'border-yellow-500', textColor: 'text-yellow-400' },
     { id: 'pendientes-envio', permKey: 'validador', label: '⏳ Pendientes de Envío', borderColor: 'border-purple-500', textColor: 'text-purple-400' },
   ];
@@ -3048,6 +3050,11 @@ function AppContent({ authUser, onLogout }) {
           {/* ⭐ TAB 5: PENDIENTES DE ENVÍO */}
           {tabActual === 'pendientes-envio' && (
             <PendientesEnvioDashboard />
+          )}
+
+          {/* ⭐ TAB 6: EXPORTAR INCAPACIDADES EN EXCEL */}
+          {tabActual === 'exportar-incapacidades' && (
+            <ExportacionesIncapacidades empresas={empresas} />
           )}
         </div>
 
