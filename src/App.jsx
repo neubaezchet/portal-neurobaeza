@@ -193,6 +193,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
       'maternidad': [
         { key: 'incapacidad_faltante', label: 'Falta licencia de maternidad', desc: 'Documento oficial de la EPS' },
         { key: 'epicrisis_faltante', label: 'Falta epicrisis', desc: 'Resumen clínico completo' },
+        { key: 'fotocopia_documento_identidad_faltante', label: 'Falta fotocopia del documento', desc: 'Cédula de la madre' },
         { key: 'registro_civil_faltante', label: 'Falta registro civil', desc: 'Del bebé' },
         { key: 'nacido_vivo_faltante', label: 'Falta certificado nacido vivo', desc: 'Original legible' },
       ],
