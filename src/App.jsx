@@ -210,6 +210,17 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
         { key: 'furips_faltante', label: 'Falta FURIPS', desc: 'Formato Único de Reporte' },
         { key: 'soat_faltante', label: 'Falta SOAT', desc: '✅ Se enviará imagen automática', icon: <Image className="w-4 h-4 text-blue-600" /> },
       ],
+      'enfermedad_laboral': [
+        { key: 'incapacidad_faltante', label: 'Falta incapacidad médica', desc: 'Documento oficial de ARL' },
+        { key: 'epicrisis_faltante', label: 'Falta epicrisis', desc: 'Resumen clínico completo' },
+      ],
+      'prelicencia': [
+        { key: 'incapacidad_faltante', label: 'Falta prelicencia', desc: 'Documento oficial de la EPS' },
+        { key: 'epicrisis_faltante', label: 'Falta soporte de atención', desc: 'Resumen clínico completo' },
+      ],
+      'certificado': [
+        { key: 'incapacidad_faltante', label: 'Falta certificado', desc: 'Certificado de hospitalización' },
+      ],
     };
     
     const checksCalidad = [
