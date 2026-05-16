@@ -1,10 +1,44 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Download, Filter, Calendar, Loader2 } from 'lucide-react';
+import { Download, Filter, Calendar, Loader2, Settings2, Eye, EyeOff, Copy, Check } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const ExportacionesIncapacidades = ({ empresas }) => {
   const [datos, setDatos] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showColumnSettings, setShowColumnSettings] = useState(false);
+  const [columnasDisponibles] = useState([
+    { id: 'serial', label: 'Serial' },
+    { id: 'fecha_radicacion', label: 'Fecha Radicación' },
+    { id: 'empresa', label: 'Empresa' },
+    { id: 'nit_empresa', label: 'NIT Empresa' },
+    { id: 'tipo_documento', label: 'Tipo Documento' },
+    { id: 'numero_documento', label: 'Número Documento' },
+    { id: 'nombre_trabajador', label: 'Nombre Trabajador' },
+    { id: 'fecha_inicio', label: 'Fecha Inicio' },
+    { id: 'fecha_fin', label: 'Fecha Fin' },
+    { id: 'dias_incapacidad', label: 'Días' },
+    { id: 'diagnostico', label: 'Diagnóstico' },
+    { id: 'numero_incapacidad', label: 'Número Incapacidad' },
+    { id: 'entidad_expide', label: 'Centro/Clínica' },
+    { id: 'nit_entidad_expide', label: 'NIT Centro' },
+    { id: 'fecha_expedicion', label: 'Fecha Expedición' },
+    { id: 'nombre_medico', label: 'Doctor/Médico' },
+    { id: 'cedula_medico', label: 'Cédula Médico' },
+    { id: 'especialidad_medico', label: 'Especialidad' },
+    { id: 'tipo_incapacidad', label: 'Tipo de Incapacidad' },
+    { id: 'origen', label: 'Origen' },
+    { id: 'entidad_responsable', label: 'Entidad Responsable' },
+    { id: 'estado', label: 'Estado Validación' },
+    { id: 'observaciones', label: 'Observaciones' },
+    { id: 'texto_plano', label: 'Texto Plano Enviado' },
+  ]);
+
+  const [columnasActivas, setColumnasActivas] = useState(() => {
+    const saved = localStorage.getItem('columnasIncapacidades');
+    if (saved) return JSON.parse(saved);
+    return columnasDisponibles.map(c => c.id);
+  });
+
   const [filtros, setFiltros] = useState({
     fecha_inicio: '',
     fecha_fin: '',
@@ -55,93 +89,93 @@ const ExportacionesIncapacidades = ({ empresas }) => {
     }
   }, [filtros, cargarDatos]);
 
-  // 📊 Exportar a Excel
+  // 📊 Exportar a Excel (solo columnas activas)
   const exportarExcel = () => {
     if (datos.length === 0) {
       alert('No hay datos para exportar');
       return;
     }
 
-    const datosFormateados = datos.map(d => ({
-      'Serial': d.serial || '',
-      'Fecha Radicación': d.fecha_radicacion ? new Date(d.fecha_radicacion).toLocaleDateString('es-CO') : '',
-      
-      // EMPRESA
-      'Empresa': d.empresa || '',
-      'NIT Empresa': d.nit_empresa || '',
-      
-      // TRABAJADOR
-      'Tipo Documento': d.tipo_documento || '',
-      'Número Documento': d.numero_documento || '',
-      'Nombre Trabajador': d.nombre_trabajador || '',
-      
-      // INCAPACIDAD
-      'Fecha Inicio': d.fecha_inicio ? new Date(d.fecha_inicio).toLocaleDateString('es-CO') : '',
-      'Fecha Fin': d.fecha_fin ? new Date(d.fecha_fin).toLocaleDateString('es-CO') : '',
-      'Días': d.dias_incapacidad || 0,
-      'Diagnóstico': d.diagnostico || '',
-      'Número Incapacidad': d.numero_incapacidad || '',
-      
-      // ENTIDAD QUE EXPIDE
-      'Centro/Clínica': d.entidad_expide || '',
-      'NIT Centro': d.nit_entidad_expide || '',
-      'Fecha Expedición': d.fecha_expedicion ? new Date(d.fecha_expedicion).toLocaleDateString('es-CO') : '',
-      
-      // MÉDICO
-      'Doctor/Médico': d.nombre_medico || '',
-      'Cédula Médico': d.cedula_medico || '',
-      'Especialidad': d.especialidad_medico || '',
-      
-      // CLASIFICACIÓN
-      'Tipo de Incapacidad': d.tipo_incapacidad || '',
-      'Origen': d.origen || '',
-      'Entidad Responsable': d.entidad_responsable || '',
-      'OCEA': d.ocea || '',
-      
-      // ESTADO
-      'Estado Validación': d.estado || '',
-      'Observaciones': d.observaciones || '',
-    }));
+    const datosFormateados = datos.map(d => {
+      const fila = {};
+      columnasActivas.forEach(colId => {
+        const columna = columnasDisponibles.find(c => c.id === colId);
+        if (!columna) return;
+
+        switch (colId) {
+          case 'fecha_radicacion':
+            fila[columna.label] = d.fecha_radicacion ? new Date(d.fecha_radicacion).toLocaleDateString('es-CO') : '';
+            break;
+          case 'fecha_inicio':
+            fila[columna.label] = d.fecha_inicio ? new Date(d.fecha_inicio).toLocaleDateString('es-CO') : '';
+            break;
+          case 'fecha_fin':
+            fila[columna.label] = d.fecha_fin ? new Date(d.fecha_fin).toLocaleDateString('es-CO') : '';
+            break;
+          case 'fecha_expedicion':
+            fila[columna.label] = d.fecha_expedicion ? new Date(d.fecha_expedicion).toLocaleDateString('es-CO') : '';
+            break;
+          case 'dias_incapacidad':
+            fila[columna.label] = d.dias_incapacidad || 0;
+            break;
+          case 'texto_plano':
+            fila[columna.label] = d.texto_plano || '';
+            break;
+          default:
+            fila[columna.label] = d[colId] || '';
+        }
+      });
+      return fila;
+    });
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(datosFormateados);
 
-    // Ajustar anchos de columna
-    ws['!cols'] = [
-      { wch: 12 }, // Serial
-      { wch: 14 }, // Fecha Radicación
-      { wch: 20 }, // Empresa
-      { wch: 15 }, // NIT Empresa
-      { wch: 18 }, // Tipo Documento
-      { wch: 18 }, // Número Documento
-      { wch: 25 }, // Nombre
-      { wch: 14 }, // Fecha Inicio
-      { wch: 14 }, // Fecha Fin
-      { wch: 8 },  // Días
-      { wch: 25 }, // Diagnóstico
-      { wch: 18 }, // Número Incapacidad
-      { wch: 25 }, // Centro
-      { wch: 15 }, // NIT Centro
-      { wch: 14 }, // Fecha Expedición
-      { wch: 25 }, // Doctor
-      { wch: 15 }, // Cédula Médico
-      { wch: 20 }, // Especialidad
-      { wch: 25 }, // Tipo Incapacidad
-      { wch: 20 }, // Origen
-      { wch: 25 }, // Entidad Responsable
-      { wch: 20 }, // OCEA
-      { wch: 20 }, // Estado
-      { wch: 30 }, // Observaciones
-    ];
+    // Ajustar anchos automáticamente
+    ws['!cols'] = columnasActivas.map(() => ({ wch: 18 }));
 
     XLSX.utils.book_append_sheet(wb, ws, 'Incapacidades');
 
-    // Descargar archivo
     const nombreArchivo = `Incapacidades_${filtros.fecha_inicio}_a_${filtros.fecha_fin}.xlsx`;
     XLSX.writeFile(wb, nombreArchivo);
   };
 
-  // 📄 Mostrar preview de datos
+  // 📌 Guardar configuración de columnas
+  const guardarConfiguracionColumnas = () => {
+    localStorage.setItem('columnasIncapacidades', JSON.stringify(columnasActivas));
+    alert('✅ Configuración guardada como predeterminada');
+    setShowColumnSettings(false);
+  };
+
+  // 🔄 Mover columna arriba
+  const moverColumnaArriba = (index) => {
+    if (index <= 0) return;
+    const nueva = [...columnasActivas];
+    [nueva[index], nueva[index - 1]] = [nueva[index - 1], nueva[index]];
+    setColumnasActivas(nueva);
+  };
+
+  // 🔄 Mover columna abajo
+  const moverColumnaAbajo = (index) => {
+    if (index >= columnasActivas.length - 1) return;
+    const nueva = [...columnasActivas];
+    [nueva[index], nueva[index + 1]] = [nueva[index + 1], nueva[index]];
+    setColumnasActivas(nueva);
+  };
+
+  // ➕ Agregar columna
+  const agregarColumna = (colId) => {
+    if (!columnasActivas.includes(colId)) {
+      setColumnasActivas([...columnasActivas, colId]);
+    }
+  };
+
+  // ➖ Quitar columna
+  const quitarColumna = (colId) => {
+    setColumnasActivas(columnasActivas.filter(id => id !== colId));
+  };
+
+  // 📄 Mostrar preview de datos (solo columnas activas)
   const renderTabla = () => {
     if (datos.length === 0) {
       return (
@@ -158,44 +192,33 @@ const ExportacionesIncapacidades = ({ empresas }) => {
       );
     }
 
+    const columnasVisibles = columnasDisponibles.filter(c => columnasActivas.includes(c.id));
+
     return (
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-900 sticky top-0">
             <tr>
-              <th className="px-4 py-2 text-left">Serial</th>
-              <th className="px-4 py-2 text-left">Empresa</th>
-              <th className="px-4 py-2 text-left">Trabajador</th>
-              <th className="px-4 py-2 text-left">Documento</th>
-              <th className="px-4 py-2 text-left">Fecha Inicio</th>
-              <th className="px-4 py-2 text-left">Fecha Fin</th>
-              <th className="px-4 py-2 text-left">Días</th>
-              <th className="px-4 py-2 text-left">Tipo</th>
-              <th className="px-4 py-2 text-left">Entidad</th>
-              <th className="px-4 py-2 text-left">Estado</th>
+              {columnasVisibles.map(col => (
+                <th key={col.id} className="px-4 py-2 text-left whitespace-nowrap">
+                  {col.label}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {datos.map((d, idx) => (
               <tr key={idx} className="border-t border-gray-700 hover:bg-gray-800/50">
-                <td className="px-4 py-2 font-mono text-yellow-300">{d.serial}</td>
-                <td className="px-4 py-2">{d.empresa}</td>
-                <td className="px-4 py-2">{d.nombre_trabajador}</td>
-                <td className="px-4 py-2">{d.numero_documento}</td>
-                <td className="px-4 py-2">{d.fecha_inicio ? new Date(d.fecha_inicio).toLocaleDateString('es-CO') : '-'}</td>
-                <td className="px-4 py-2">{d.fecha_fin ? new Date(d.fecha_fin).toLocaleDateString('es-CO') : '-'}</td>
-                <td className="px-4 py-2 text-center">{d.dias_incapacidad}</td>
-                <td className="px-4 py-2 text-xs">{d.tipo_incapacidad}</td>
-                <td className="px-4 py-2 text-xs">{d.entidad_responsable}</td>
-                <td className="px-4 py-2">
-                  <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
-                    d.estado === 'COMPLETA' ? 'bg-green-500/20 text-green-400' :
-                    d.estado === 'INCOMPLETA' ? 'bg-red-500/20 text-red-400' :
-                    'bg-yellow-500/20 text-yellow-400'
-                  }`}>
-                    {d.estado}
-                  </span>
-                </td>
+                {columnasVisibles.map(col => (
+                  <td key={col.id} className="px-4 py-2 text-xs">
+                    {col.id === 'fecha_radicacion' ? (d.fecha_radicacion ? new Date(d.fecha_radicacion).toLocaleDateString('es-CO') : '-') :
+                     col.id === 'fecha_inicio' ? (d.fecha_inicio ? new Date(d.fecha_inicio).toLocaleDateString('es-CO') : '-') :
+                     col.id === 'fecha_fin' ? (d.fecha_fin ? new Date(d.fecha_fin).toLocaleDateString('es-CO') : '-') :
+                     col.id === 'fecha_expedicion' ? (d.fecha_expedicion ? new Date(d.fecha_expedicion).toLocaleDateString('es-CO') : '-') :
+                     col.id === 'texto_plano' ? <pre className="whitespace-pre-wrap text-xs font-mono bg-gray-900 p-2 rounded">{d.texto_plano || ''}</pre> :
+                     d[col.id] || '-'}
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
@@ -274,8 +297,8 @@ const ExportacionesIncapacidades = ({ empresas }) => {
           </div>
         </div>
 
-        {/* BOTÓN EXPORTAR */}
-        <div className="mt-4 flex gap-3">
+        {/* BOTONES */}
+        <div className="mt-4 flex gap-3 flex-wrap">
           <button
             onClick={cargarDatos}
             disabled={!filtros.fecha_inicio || !filtros.fecha_fin || loading}
@@ -283,6 +306,14 @@ const ExportacionesIncapacidades = ({ empresas }) => {
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Filter className="w-4 h-4" />}
             Actualizar Datos
+          </button>
+
+          <button
+            onClick={() => setShowColumnSettings(!showColumnSettings)}
+            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-lg font-semibold transition"
+          >
+            <Settings2 className="w-4 h-4" />
+            Configurar Columnas
           </button>
 
           <button
@@ -296,6 +327,99 @@ const ExportacionesIncapacidades = ({ empresas }) => {
         </div>
       </div>
 
+      {/* MODAL DE CONFIGURACIÓN DE COLUMNAS */}
+      {showColumnSettings && (
+        <div className="bg-gray-800/70 backdrop-blur rounded-xl p-6 border border-purple-500/50">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <Settings2 className="w-5 h-5 text-purple-400" />
+            Personalizar Columnas
+          </h3>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* COLUMNAS ACTIVAS */}
+            <div>
+              <h4 className="font-semibold text-green-400 mb-3 flex items-center gap-2">
+                <Eye className="w-4 h-4" />
+                Columnas Visibles ({columnasActivas.length})
+              </h4>
+              <div className="space-y-2 bg-gray-900/50 p-4 rounded-lg max-h-80 overflow-y-auto">
+                {columnasActivas.map((colId, idx) => {
+                  const col = columnasDisponibles.find(c => c.id === colId);
+                  return (
+                    <div key={colId} className="flex items-center gap-2 bg-gray-800 p-2 rounded hover:bg-gray-700 transition group">
+                      <span className="text-gray-500 text-sm">::</span>
+                      <span className="flex-1 text-sm">{col?.label}</span>
+                      <button
+                        onClick={() => moverColumnaArriba(idx)}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-xs bg-blue-600 rounded"
+                        title="Mover arriba"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        onClick={() => moverColumnaAbajo(idx)}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-xs bg-blue-600 rounded"
+                        title="Mover abajo"
+                      >
+                        ↓
+                      </button>
+                      <button
+                        onClick={() => quitarColumna(colId)}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-xs bg-red-600 rounded"
+                        title="Eliminar"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* COLUMNAS DISPONIBLES */}
+            <div>
+              <h4 className="font-semibold text-gray-400 mb-3 flex items-center gap-2">
+                <EyeOff className="w-4 h-4" />
+                Columnas No Mostradas
+              </h4>
+              <div className="space-y-2 bg-gray-900/50 p-4 rounded-lg max-h-80 overflow-y-auto">
+                {columnasDisponibles
+                  .filter(c => !columnasActivas.includes(c.id))
+                  .map(col => (
+                    <div key={col.id} className="flex items-center gap-2 bg-gray-800 p-2 rounded hover:bg-gray-700 transition">
+                      <span className="flex-1 text-sm">{col.label}</span>
+                      <button
+                        onClick={() => agregarColumna(col.id)}
+                        className="p-1 text-xs bg-green-600 rounded hover:bg-green-700"
+                        title="Agregar"
+                      >
+                        ✓
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+
+          {/* BOTONES DE CONFIGURACIÓN */}
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={() => setShowColumnSettings(false)}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={guardarConfiguracionColumnas}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition"
+            >
+              <Check className="w-4 h-4" />
+              Guardar como Predeterminado
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* PREVIEW TABLA */}
       <div className="bg-gray-800/50 backdrop-blur rounded-xl border border-gray-700 overflow-hidden">
         <div className="max-h-[600px] overflow-y-auto">
@@ -305,18 +429,10 @@ const ExportacionesIncapacidades = ({ empresas }) => {
 
       {/* INFO */}
       <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 text-blue-200 text-sm">
-        <p className="font-semibold mb-2">📊 Campos incluidos en la exportación:</p>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-          <div>✅ Serial</div>
-          <div>✅ Empresa y NIT</div>
-          <div>✅ Tipo y Número Documento</div>
-          <div>✅ Fechas Incapacidad</div>
-          <div>✅ Diagnóstico</div>
-          <div>✅ Centro/Clínica</div>
-          <div>✅ Médico y Datos</div>
-          <div>✅ Entidad Responsable</div>
-          <div>✅ Origen y OCEA</div>
-        </div>
+        <p className="font-semibold mb-2">📊 Columnas actualmente visibles: {columnasActivas.length}</p>
+        <p className="text-xs text-gray-400">
+          🎨 Usa la tuerca ⚙️ para arrastar columnas, agregar/quitar campos, y guardar tu configuración personalizada.
+        </p>
       </div>
     </div>
   );
