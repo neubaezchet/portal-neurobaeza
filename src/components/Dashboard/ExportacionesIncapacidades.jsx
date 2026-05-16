@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Download, Filter, Calendar, Loader2, Settings2, Eye, EyeOff, Copy, Check } from 'lucide-react';
+import { Download, Filter, Calendar, Loader2, Settings2, Eye, EyeOff, Check } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const ExportacionesIncapacidades = ({ empresas }) => {
