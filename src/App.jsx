@@ -10,6 +10,7 @@ import {
   LogOut
 } from 'lucide-react';
 import ReportsDashboard from './components/Dashboard/ReportsDashboard';
+import PlanoIncapacidades from './components/Dashboard/PlanoIncapacidades';
 import ExportacionesPDF from './components/Dashboard/ExportacionesPDF';
 import ExportacionesIncapacidades from './components/Dashboard/ExportacionesIncapacidades';
 import PowerBIDashboard from './components/Dashboard/PowerBIDashboard';
@@ -2691,6 +2692,7 @@ function AppContent({ authUser, onLogout }) {
     { id: 'exportar-incapacidades', permKey: 'exportaciones',  label: '📊 Exportar Excel Incapacidades', borderColor: 'border-cyan-500',  textColor: 'text-cyan-400' },
     { id: 'powerbi',       permKey: 'powerbi',       label: '📈 Power BI',                 borderColor: 'border-yellow-500', textColor: 'text-yellow-400' },
     { id: 'pendientes-envio', permKey: 'validador', label: '⏳ Pendientes de Envío', borderColor: 'border-purple-500', textColor: 'text-purple-400' },
+    { id: 'plano-incapacidades', permKey: 'reportes', label: '📋 Plano Incapacidades', borderColor: 'border-indigo-500', textColor: 'text-indigo-400' },
   ];
 
   const tabsPermitidas = TAB_CONFIG.filter(t => isSuperOrAdmin || userPermisos[t.permKey]);
@@ -3055,6 +3057,11 @@ function AppContent({ authUser, onLogout }) {
           {/* ⭐ TAB 6: EXPORTAR INCAPACIDADES EN EXCEL */}
           {tabActual === 'exportar-incapacidades' && (
             <ExportacionesIncapacidades empresas={empresas} />
+          )}
+
+          {/* ⭐ TAB 7: PLANO INCAPACIDADES */}
+          {tabActual === 'plano-incapacidades' && (
+            <PlanoIncapacidades empresas={empresas} />
           )}
         </div>
 
