@@ -368,8 +368,8 @@ export default function PlanoIncapacidades({ empresas = [] }) {
     },
   ], []);
 
-  // Casos: usa data.casos (mismo campo que dashboard-completo)
-  const casos = useMemo(() => data?.casos || [], [data]);
+  // Casos: usa data.tabla_principal (campo real del endpoint dashboard-completo)
+  const casos = useMemo(() => data?.tabla_principal || [], [data]);
 
   // ═══ ESTADOS DE CARGA ═══
   if (loading && !data) {
