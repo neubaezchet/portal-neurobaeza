@@ -1,7 +1,8 @@
-import React, { 
-  useState, useEffect, useCallback, useRef 
+import React, {
+  useState, useEffect, useCallback, useRef
 } from 'react';
 import ProgressBar, { useProgress } from './components/ProgressBar';
+import { useTenantTheme } from './hooks/useTenantTheme';
 import { 
   User, CheckCircle, XCircle, FileText, Send, Edit3, Clock, 
   ChevronLeft, X, Download, RefreshCw, 
@@ -2648,16 +2649,45 @@ export default function App() {
     try { return JSON.parse(localStorage.getItem('portal_user')); } catch { return null; }
   });
 
-  const handleLogin = (token, user) => {
+  const handleLogin = async (token, user) => {
     localStorage.setItem('portal_token', token);
     localStorage.setItem('portal_user', JSON.stringify(user));
     setAuthToken(token);
     setAuthUser(user);
+
+    // Si es tenant admin, cargar y guardar la config de su empresa para el branding
+    if (user?.es_tenant_admin && user?.company_id) {
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/tenants/${user.company_id}`,
+          { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
+        );
+        if (res.ok) {
+          const tenantData = await res.json();
+          // Guardar en formato que useTenantTheme espera
+          const config = {
+            nombre:         tenantData.nombre         || tenantData.company?.nombre,
+            nit:            tenantData.nit             || tenantData.tenant_config?.nit,
+            logo_url:       tenantData.logo_url        || tenantData.tenant_config?.logo_url,
+            paleta_colores: tenantData.paleta_colores  || tenantData.tenant_config?.paleta_colores,
+            estilo_ui:      tenantData.estilo_ui       || tenantData.tenant_config?.estilo_ui,
+            ciclo_reporte:  tenantData.ciclo_reporte   || tenantData.tenant_config?.ciclo_reporte,
+          };
+          localStorage.setItem('tenant_config', JSON.stringify(config));
+        }
+      } catch (err) {
+        console.warn('No se pudo cargar el tema del tenant:', err);
+      }
+    } else {
+      // Usuario global → limpiar cualquier tenant_config anterior
+      localStorage.removeItem('tenant_config');
+    }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('portal_token');
     localStorage.removeItem('portal_user');
+    localStorage.removeItem('tenant_config');
     setAuthToken(null);
     setAuthUser(null);
   };
@@ -2672,6 +2702,9 @@ export default function App() {
 }     
 
 function AppContent({ authUser, onLogout }) {
+  // ── Tema tenant (branding multi-empresa) ──────────────────
+  const tenantTheme = useTenantTheme();
+
   const [empresas, setEmpresas] = useState([]);
   const [casos, setCasos] = useState([]);
   const [stats, setStats] = useState({});
@@ -2786,15 +2819,42 @@ function AppContent({ authUser, onLogout }) {
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
         <div className="max-w-7xl mx-auto p-4 space-y-6">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 shadow-2xl">
+          {/* Header — con branding tenant si está configurado */}
+          <div
+            className="rounded-2xl p-6 shadow-2xl"
+            style={tenantTheme.loaded ? {
+              background: `linear-gradient(135deg, ${tenantTheme.primary}, ${tenantTheme.secondary})`,
+            } : {
+              background: 'linear-gradient(135deg, #2563EB, #7C3AED)',
+            }}
+          >
             <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold flex items-center gap-3">
-                  <User className="w-8 h-8" />
-                  Portal de Validadores
-                </h1>
-                <p className="text-blue-100 mt-2">Sistema de gestión de incapacidades médicas</p>
+              <div className="flex items-center gap-4">
+                {/* Logo del tenant si existe */}
+                {tenantTheme.loaded && tenantTheme.logoUrl ? (
+                  <img
+                    src={tenantTheme.logoUrl}
+                    alt={tenantTheme.nombreEmpresa || 'Logo'}
+                    className="w-14 h-14 object-contain rounded-xl bg-white/15 p-1 flex-shrink-0"
+                    onError={e => { e.currentTarget.style.display = 'none'; }}
+                  />
+                ) : (
+                  <User className="w-8 h-8 flex-shrink-0" />
+                )}
+                <div>
+                  <h1 className="text-3xl font-bold">
+                    {tenantTheme.loaded && tenantTheme.nombreEmpresa
+                      ? tenantTheme.nombreEmpresa
+                      : 'Portal de Validadores'
+                    }
+                  </h1>
+                  <p className="text-blue-100 mt-1 opacity-80">
+                    {tenantTheme.loaded && tenantTheme.nit
+                      ? `NIT ${tenantTheme.nit} · Sistema de gestión de incapacidades`
+                      : 'Sistema de gestión de incapacidades médicas'
+                    }
+                  </p>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-right">
@@ -2889,7 +2949,16 @@ function AppContent({ authUser, onLogout }) {
 
             <button
               onClick={() => api.exportarCasos('xlsx', filtros)}
-              className="bg-green-600 hover:bg-green-700 rounded-lg px-4 py-2 font-semibold transition-colors flex items-center justify-center gap-2"
+              className="rounded-lg px-4 py-2 font-semibold transition-colors flex items-center justify-center gap-2"
+              style={tenantTheme.loaded ? {
+                background: `var(--tenant-primary, #16a34a)`,
+                color: 'white',
+              } : {
+                background: '#16a34a',
+                color: 'white',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
             >
               <Download className="w-4 h-4" />
               Exportar Excel
