@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { RefreshCw, Download, Search, Pause, Play, ArrowUpDown, X } from 'lucide-react';
+import { RefreshCw, Download, Search, Pause, Play, ArrowUpDown, X, AlertCircle } from 'lucide-react';
 import { API_CONFIG } from '../../constants/reportConfig';
 
 // ═══════════════════════════════════════════════════════════
-// PLANO INCAPACIDADES — Tabla en Vivo
-// Campos EPS: tipo doc, nº doc, empresa, EPS, días, fechas,
-// médico, lugar, NIT lugar, diagnóstico, origen, tipo
+// PLANO INCAPACIDADES — 100 % OCR
+// Única fuente de verdad: texto extraído por Mistral + Gemini.
+// El único campo que viene de BD es "empresa".
 // ═══════════════════════════════════════════════════════════
 
 const PERIODOS = [
@@ -19,32 +19,16 @@ const PERIODOS = [
   { value: 'personalizado', label: '📅 Personalizado...' },
 ];
 
-// Mapeo tipo → origen de la incapacidad (Colombia)
-function getOrigen(tipo) {
-  if (!tipo) return '—';
-  const t = tipo.toLowerCase();
-  if (t.includes('laboral') || t.includes('trabajo')) return 'Laboral';
-  if (t.includes('transito')) return 'Accidente de Tránsito';
-  return 'Común';
-}
+// Colores por origen
+const ORIGEN_COLORS = {
+  'Laboral':               'bg-red-500/20 text-red-400',
+  'Accidente de Tránsito': 'bg-orange-500/20 text-orange-400',
+  'Común':                 'bg-blue-500/20 text-blue-300',
+  'Maternidad':            'bg-pink-500/20 text-pink-300',
+  'Paternidad':            'bg-purple-500/20 text-purple-300',
+};
 
-// Mapeo tipo → etiqueta legible
-function getTipoLabel(tipo) {
-  const MAP = {
-    enfermedad_general:  'Enf. General',
-    enfermedad_laboral:  'Enf. Laboral',
-    accidente_laboral:   'Acc. Laboral',
-    accidente_transito:  'Acc. Tránsito',
-    maternidad:          'Maternidad',
-    paternidad:          'Paternidad',
-    prelicencia:         'Prelicencia',
-    certificado:         'Cert. Hospitalización',
-    enfermedad_especial: 'Enf. Especial',
-  };
-  return MAP[(tipo || '').toLowerCase()] || (tipo || '—').replace(/_/g, ' ');
-}
-
-// Excel export idéntico al de ReportsDashboard
+// Excel export
 function exportToExcel(data, columns, filename) {
   let csv = '﻿';
   csv += columns.map(c => `"${c.label}"`).join('\t') + '\n';
@@ -68,12 +52,12 @@ function exportToExcel(data, columns, filename) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// SORTABLE TABLE (misma lógica que ReportsDashboard)
+// SORTABLE TABLE
 // ═══════════════════════════════════════════════════════════
 function SortableTable({ data, columns, title, exportFilename, maxHeight = '520px' }) {
-  const [sortKey, setSortKey]   = useState(null);
-  const [sortDir, setSortDir]   = useState('asc');
-  const [search, setSearch]     = useState('');
+  const [sortKey, setSortKey] = useState(null);
+  const [sortDir, setSortDir] = useState('asc');
+  const [search,  setSearch]  = useState('');
 
   const filteredData = useMemo(() => {
     if (!search.trim()) return data;
@@ -109,8 +93,8 @@ function SortableTable({ data, columns, title, exportFilename, maxHeight = '520p
 
   return (
     <div className="bg-gray-800/60 backdrop-blur rounded-xl border border-gray-700 overflow-hidden">
-      {/* Header barra */}
-      <div className="bg-gray-900/70 px-4 py-3 border-b border-gray-700 flex items-center justify-between gap-3">
+      {/* Header */}
+      <div className="bg-gray-900/70 px-4 py-3 border-b border-gray-700 flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <h3 className="font-bold text-white text-sm">{title}</h3>
           <span className="text-[10px] bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full">
@@ -170,7 +154,11 @@ function SortableTable({ data, columns, title, exportFilename, maxHeight = '520p
                 </td>
               </tr>
             ) : sortedData.map((row, idx) => (
-              <tr key={idx} className="hover:bg-gray-700/30 transition-colors">
+              <tr
+                key={idx}
+                className={`hover:bg-gray-700/30 transition-colors ${!row.tiene_ocr ? 'opacity-40' : ''}`}
+                title={!row.tiene_ocr ? 'OCR pendiente — sin datos extraídos aún' : undefined}
+              >
                 {columns.map(col => (
                   <td key={col.key} className="px-3 py-2 text-gray-300 whitespace-nowrap">
                     {col.render ? col.render(row) : String(col.accessor(row) ?? '—')}
@@ -210,7 +198,7 @@ export default function PlanoIncapacidades({ empresas = [] }) {
         params.set('fecha_hasta', fechaHasta);
       }
       const resp = await fetch(
-        `${API_CONFIG.BASE_URL}/validador/casos/dashboard-completo?${params.toString()}`,
+        `${API_CONFIG.BASE_URL}/validador/casos/plano-ocr?${params.toString()}`,
         { headers: { 'X-Admin-Token': API_CONFIG.ADMIN_TOKEN } }
       );
       if (!resp.ok) throw new Error(`Error ${resp.status}`);
@@ -233,15 +221,15 @@ export default function PlanoIncapacidades({ empresas = [] }) {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [autoRefresh, fetchData]);
 
-  // ═══ COLUMNAS DEL PLANO ═══
+  // ═══ COLUMNAS — todo desde OCR, salvo empresa ═══
   const COLS_PLANO = useMemo(() => [
     {
       key: 'tipo_documento',
       label: 'TIPO DOC.',
       width: '80px',
       accessor: r => r.tipo_documento || 'CC',
-      render:   r => (
-        <span className="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-300 rounded text-[10px] font-bold uppercase">
+      render: r => (
+        <span className="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-300 rounded text-[10px] font-bold">
           {r.tipo_documento || 'CC'}
         </span>
       ),
@@ -249,31 +237,35 @@ export default function PlanoIncapacidades({ empresas = [] }) {
     {
       key: 'cedula',
       label: 'Nº DOCUMENTO',
-      width: '120px',
+      width: '130px',
       accessor: r => r.cedula,
-      render:   r => <span className="font-mono text-yellow-300 font-bold">{r.cedula || '—'}</span>,
+      render: r => <span className="font-mono text-yellow-300 font-bold">{r.cedula || '—'}</span>,
     },
     {
       key: 'empresa',
       label: 'EMPRESA',
       width: '160px',
       accessor: r => r.empresa,
-      render:   r => <span className="uppercase text-gray-200">{r.empresa || '—'}</span>,
+      render: r => (
+        <span className="uppercase text-gray-200 flex items-center gap-1">
+          {r.empresa || '—'}
+        </span>
+      ),
     },
     {
       key: 'eps',
       label: 'EPS',
-      width: '130px',
+      width: '140px',
       accessor: r => r.eps,
-      render:   r => <span className="uppercase text-cyan-300">{r.eps || '—'}</span>,
+      render: r => <span className="uppercase text-cyan-300">{r.eps || '—'}</span>,
     },
     {
       key: 'dias_incapacidad',
       label: 'DÍAS',
       width: '60px',
       accessor: r => r.dias_incapacidad,
-      render:   r => (
-        <span className="font-black text-white text-sm">{r.dias_incapacidad ?? '—'}</span>
+      render: r => (
+        <span className="font-black text-white text-sm">{r.dias_incapacidad || '—'}</span>
       ),
     },
     {
@@ -281,102 +273,96 @@ export default function PlanoIncapacidades({ empresas = [] }) {
       label: 'F. INICIO',
       width: '100px',
       accessor: r => r.fecha_inicio,
-      render:   r => <span className="text-gray-300">{r.fecha_inicio || '—'}</span>,
+      render: r => <span className="text-gray-300">{r.fecha_inicio || '—'}</span>,
     },
     {
       key: 'fecha_fin',
       label: 'F. FIN',
       width: '100px',
       accessor: r => r.fecha_fin,
-      render:   r => <span className="text-gray-300">{r.fecha_fin || '—'}</span>,
+      render: r => <span className="text-gray-300">{r.fecha_fin || '—'}</span>,
     },
     {
       key: 'medico',
       label: 'MÉDICO',
-      width: '150px',
-      accessor: r => r.medico || r.metadata_form?.medico || '',
-      render:   r => {
-        const val = r.medico || r.metadata_form?.medico;
-        return <span className="uppercase text-gray-400">{val || '—'}</span>;
-      },
+      width: '160px',
+      accessor: r => r.medico,
+      render: r => <span className="uppercase text-gray-400">{r.medico || '—'}</span>,
+    },
+    {
+      key: 'registro_medico',
+      label: 'REG. MÉDICO',
+      width: '110px',
+      accessor: r => r.registro_medico,
+      render: r => <span className="font-mono text-gray-400">{r.registro_medico || '—'}</span>,
     },
     {
       key: 'lugar_atencion',
       label: 'LUGAR DE ATENCIÓN',
-      width: '170px',
-      accessor: r => r.lugar_atencion || r.metadata_form?.lugar_atencion || '',
-      render:   r => {
-        const val = r.lugar_atencion || r.metadata_form?.lugar_atencion;
-        return <span className="uppercase text-gray-400">{val || '—'}</span>;
-      },
+      width: '180px',
+      accessor: r => r.lugar_atencion,
+      render: r => <span className="uppercase text-gray-400">{r.lugar_atencion || '—'}</span>,
     },
     {
       key: 'nit_lugar_atencion',
       label: 'NIT LUGAR',
       width: '120px',
-      accessor: r => r.nit_lugar_atencion || r.metadata_form?.nit_lugar_atencion || '',
-      render:   r => {
-        const val = r.nit_lugar_atencion || r.metadata_form?.nit_lugar_atencion;
-        return <span className="font-mono text-gray-400">{val || '—'}</span>;
-      },
+      accessor: r => r.nit_lugar_atencion,
+      render: r => <span className="font-mono text-gray-400">{r.nit_lugar_atencion || '—'}</span>,
+    },
+    {
+      key: 'codigo_cie10',
+      label: 'CIE-10',
+      width: '80px',
+      accessor: r => r.codigo_cie10,
+      render: r => (
+        <span className="font-mono text-purple-300 text-[10px]">{r.codigo_cie10 || '—'}</span>
+      ),
     },
     {
       key: 'diagnostico',
       label: 'DIAGNÓSTICO',
       width: '200px',
-      accessor: r => r.diagnostico || r.codigo_cie10 || '',
-      render:   r => (
-        <div className="max-w-[200px]">
-          {r.codigo_cie10 && (
-            <span className="font-mono text-purple-300 text-[10px] block uppercase">{r.codigo_cie10}</span>
-          )}
-          <span className="text-gray-300 text-[10px] truncate block uppercase" title={r.diagnostico}>
-            {r.diagnostico || '—'}
-          </span>
-        </div>
+      accessor: r => r.diagnostico,
+      render: r => (
+        <span className="text-gray-300 text-[10px] truncate block max-w-[200px] uppercase" title={r.diagnostico}>
+          {r.diagnostico || '—'}
+        </span>
       ),
     },
     {
       key: 'origen',
       label: 'ORIGEN',
-      width: '120px',
-      accessor: r => getOrigen(r.tipo),
-      render:   r => {
-        const origen = getOrigen(r.tipo);
-        const colors = {
-          'Laboral':               'bg-red-500/20 text-red-400',
-          'Accidente de Tránsito': 'bg-orange-500/20 text-orange-400',
-          'Común':                 'bg-blue-500/20 text-blue-300',
-        };
-        return (
-          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${colors[origen] || 'bg-gray-700 text-gray-400'}`}>
-            {origen}
-          </span>
-        );
-      },
+      width: '130px',
+      accessor: r => r.origen,
+      render: r => (
+        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${ORIGEN_COLORS[r.origen] || 'bg-gray-700 text-gray-400'}`}>
+          {r.origen || '—'}
+        </span>
+      ),
     },
     {
       key: 'tipo',
       label: 'TIPO INCAPACIDAD',
-      width: '140px',
-      accessor: r => getTipoLabel(r.tipo),
-      render:   r => (
+      width: '150px',
+      accessor: r => r.tipo,
+      render: r => (
         <span className="px-1.5 py-0.5 bg-gray-700 text-gray-300 rounded text-[10px] uppercase">
-          {getTipoLabel(r.tipo)}
+          {r.tipo || '—'}
         </span>
       ),
     },
   ], []);
 
-  // Casos: usa data.tabla_principal (campo real del endpoint dashboard-completo)
-  const casos = useMemo(() => data?.tabla_principal || [], [data]);
+  const casos = useMemo(() => data?.casos || [], [data]);
+  const sinOcr = useMemo(() => casos.filter(c => !c.tiene_ocr).length, [casos]);
 
-  // ═══ ESTADOS DE CARGA ═══
+  // ═══ LOADING / ERROR ═══
   if (loading && !data) {
     return (
       <div className="flex items-center justify-center py-20">
         <RefreshCw className="w-8 h-8 animate-spin text-indigo-500" />
-        <span className="ml-3 text-gray-400">Cargando plano...</span>
+        <span className="ml-3 text-gray-400">Cargando plano OCR...</span>
       </div>
     );
   }
@@ -398,15 +384,19 @@ export default function PlanoIncapacidades({ empresas = [] }) {
 
   return (
     <div className="space-y-4">
+
       {/* ═══ HEADER ═══ */}
       <div className="bg-gradient-to-r from-indigo-600/20 via-violet-600/20 to-purple-600/20 border border-gray-700 rounded-xl p-5">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h2 className="text-xl font-black text-white flex items-center gap-2">
               📋 Plano Incapacidades
+              <span className="text-[11px] font-normal text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded-full">
+                100 % OCR
+              </span>
             </h2>
             <p className="text-gray-400 text-xs mt-1">
-              Tabla en vivo · Auto-refresh cada 30s
+              Campos extraídos por Mistral + Gemini · Auto-refresh cada 30s
               {lastUpdate && (
                 <span className="ml-2 text-gray-500">
                   · Actualizado: {lastUpdate.toLocaleTimeString('es-CO')}
@@ -498,39 +488,42 @@ export default function PlanoIncapacidades({ empresas = [] }) {
           <div className="text-2xl font-black text-indigo-300">
             {casos.reduce((s, c) => s + (c.dias_incapacidad || 0), 0)}
           </div>
-          <div className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">Días totales</div>
+          <div className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">Días totales (OCR)</div>
         </div>
-        <div className="bg-violet-900/30 border border-violet-700/40 rounded-xl p-4">
-          <div className="text-2xl font-black text-violet-300">
-            {casos.filter(c => getOrigen(c.tipo) === 'Laboral').length}
+        <div className="bg-green-900/30 border border-green-700/40 rounded-xl p-4">
+          <div className="text-2xl font-black text-green-300">
+            {casos.filter(c => c.tiene_ocr).length}
           </div>
-          <div className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">Origen laboral</div>
+          <div className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">Con OCR completo</div>
         </div>
-        <div className="bg-cyan-900/30 border border-cyan-700/40 rounded-xl p-4">
-          <div className="text-2xl font-black text-cyan-300">
-            {new Set(casos.map(c => c.empresa).filter(Boolean)).size}
+        <div className={`rounded-xl p-4 border ${sinOcr > 0 ? 'bg-yellow-900/30 border-yellow-700/40' : 'bg-gray-800/60 border-gray-700'}`}>
+          <div className={`text-2xl font-black ${sinOcr > 0 ? 'text-yellow-300' : 'text-gray-500'}`}>
+            {sinOcr}
           </div>
-          <div className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">Empresas</div>
+          <div className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">Sin OCR aún</div>
         </div>
       </div>
+
+      {/* Aviso si hay casos sin OCR */}
+      {sinOcr > 0 && (
+        <div className="flex items-center gap-2 bg-yellow-900/20 border border-yellow-700/40 rounded-lg px-4 py-2 text-yellow-300 text-xs">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>
+            <strong>{sinOcr}</strong> caso(s) aparecen atenuados porque el OCR aún no ha procesado su documento.
+            Se completarán automáticamente cuando el validador IA termine de procesar.
+          </span>
+        </div>
+      )}
 
       {/* ═══ TABLA PRINCIPAL ═══ */}
       <SortableTable
         data={casos}
         columns={COLS_PLANO}
-        title="Plano de Incapacidades"
-        exportFilename="plano_incapacidades"
+        title="Plano de Incapacidades — Extracción OCR"
+        exportFilename="plano_incapacidades_ocr"
         maxHeight="600px"
       />
 
-      {/* ═══ NOTA CAMPOS VACÍOS ═══ */}
-      <div className="bg-gray-800/40 border border-gray-700/50 rounded-lg px-4 py-3 text-[11px] text-gray-500">
-        Los campos <span className="text-gray-400 font-semibold">Médico</span>,{' '}
-        <span className="text-gray-400 font-semibold">Lugar de Atención</span> y{' '}
-        <span className="text-gray-400 font-semibold">NIT Lugar</span> se completarán
-        automáticamente cuando el validador IA extraiga esos datos del documento OCR.
-        Los campos no disponibles muestran <span className="font-mono text-gray-400">—</span>.
-      </div>
     </div>
   );
 }
