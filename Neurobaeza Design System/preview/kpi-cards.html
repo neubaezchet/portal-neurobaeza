@@ -1,0 +1,187 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="KPI cards" subtitle="Icon chips, trend pills, sparklines" viewport="700x200" --><html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"><title>KPI cards</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  .row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+  .kpi {
+    position: relative;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.04), transparent 35%),
+      linear-gradient(180deg, var(--kpi-tint-a), var(--kpi-tint-b)),
+      #0B0B10;
+    border: 1px solid var(--kpi-border);
+    border-radius: 16px;
+    padding: 14px 14px 12px;
+    overflow: hidden;
+    box-shadow:
+      0 12px 28px rgba(0,0,0,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .kpi::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent);
+  }
+  .kpi::after { /* soft inner radial */
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(80% 50% at 0% 0%, var(--kpi-glow), transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Icon chip */
+  .chip {
+    position: relative; z-index: 1;
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: var(--kpi-chip-bg);
+    border: 1px solid var(--kpi-chip-border);
+    color: var(--kpi-chip-fg);
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow:
+      0 4px 12px var(--kpi-chip-shadow),
+      inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+  .chip i { width: 18px; height: 18px; }
+
+  /* Trend pill */
+  .trend {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-family: "JetBrains Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 10px; font-weight: 700;
+    padding: 3px 7px; border-radius: 9999px;
+    backdrop-filter: blur(8px);
+  }
+  .trend.up   { background: rgba(34,197,94,0.18);  color: #4ADE80; border: 1px solid rgba(34,197,94,0.35); }
+  .trend.down { background: rgba(248,113,113,0.18); color: #F87171; border: 1px solid rgba(248,113,113,0.35); }
+  .trend.flat { background: rgba(148,163,184,0.14); color: #CBD5E1; border: 1px solid rgba(148,163,184,0.3); }
+  .trend i { width: 10px; height: 10px; }
+
+  .head { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; }
+  .label {
+    font-size: 10px; font-weight: 700; color: #94A3B8;
+    letter-spacing: 0.14em; text-transform: uppercase; margin-top: 10px;
+    position: relative; z-index: 1;
+  }
+  .value {
+    font-family: Outfit, sans-serif; font-weight: 900; font-size: 34px;
+    color: white; line-height: 1; letter-spacing: -0.02em; margin-top: 4px;
+    position: relative; z-index: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .sub {
+    font-size: 10.5px; color: #94A3B8; margin-top: 8px;
+    position: relative; z-index: 1;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sub b { color: #CBD5E1; font-weight: 600; }
+
+  /* Sparkline */
+  .spark {
+    margin-top: 8px;
+    height: 22px;
+    position: relative; z-index: 1;
+    display: flex; align-items: flex-end; gap: 2px;
+  }
+  .bar {
+    flex: 1; border-radius: 2px 2px 0 0;
+    background: linear-gradient(180deg, var(--kpi-chip-fg), transparent);
+    opacity: 0.45;
+  }
+  .bar.peak { opacity: 1; }
+
+  /* ─── Tints per status ─── */
+  .blue {
+    --kpi-tint-a: rgba(59,130,246,0.22); --kpi-tint-b: rgba(30,64,175,0.10);
+    --kpi-border: rgba(59,130,246,0.30); --kpi-glow: rgba(56,189,248,0.16);
+    --kpi-chip-bg: rgba(56,189,248,0.18); --kpi-chip-border: rgba(56,189,248,0.45);
+    --kpi-chip-fg: #93C5FD; --kpi-chip-shadow: rgba(37,99,235,0.4);
+  }
+  .red {
+    --kpi-tint-a: rgba(220,38,38,0.22); --kpi-tint-b: rgba(127,29,29,0.10);
+    --kpi-border: rgba(220,38,38,0.30); --kpi-glow: rgba(248,113,113,0.16);
+    --kpi-chip-bg: rgba(248,113,113,0.18); --kpi-chip-border: rgba(248,113,113,0.45);
+    --kpi-chip-fg: #FCA5A5; --kpi-chip-shadow: rgba(185,28,28,0.4);
+  }
+  .amber {
+    --kpi-tint-a: rgba(245,158,11,0.22); --kpi-tint-b: rgba(180,83,9,0.10);
+    --kpi-border: rgba(245,158,11,0.30); --kpi-glow: rgba(251,191,36,0.18);
+    --kpi-chip-bg: rgba(251,191,36,0.18); --kpi-chip-border: rgba(251,191,36,0.45);
+    --kpi-chip-fg: #FDE68A; --kpi-chip-shadow: rgba(180,83,9,0.4);
+  }
+  .green {
+    --kpi-tint-a: rgba(34,197,94,0.22); --kpi-tint-b: rgba(21,128,61,0.10);
+    --kpi-border: rgba(34,197,94,0.30); --kpi-glow: rgba(74,222,128,0.16);
+    --kpi-chip-bg: rgba(74,222,128,0.18); --kpi-chip-border: rgba(74,222,128,0.45);
+    --kpi-chip-fg: #86EFAC; --kpi-chip-shadow: rgba(21,128,61,0.4);
+  }
+</style>
+</head><body>
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;">
+    <div class="eyebrow">KPI cards · dashboard tiles</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#475569;letter-spacing:0.4px;">icon chip · trend · sparkline</div>
+  </div>
+
+  <div class="row">
+
+    <div class="kpi blue">
+      <div class="head">
+        <span class="chip"><i data-lucide="inbox"></i></span>
+        <span class="trend up"><i data-lucide="trending-up"></i> +12%</span>
+      </div>
+      <div class="label">Nuevos</div>
+      <div class="value">147</div>
+      <div class="spark">
+        <div class="bar" style="height:30%"></div>
+        <div class="bar" style="height:55%"></div>
+        <div class="bar" style="height:40%"></div>
+        <div class="bar" style="height:70%"></div>
+        <div class="bar" style="height:60%"></div>
+        <div class="bar" style="height:85%"></div>
+        <div class="bar peak" style="height:100%"></div>
+      </div>
+    </div>
+
+    <div class="kpi amber">
+      <div class="head">
+        <span class="chip"><i data-lucide="clock"></i></span>
+        <span class="trend flat"><i data-lucide="minus"></i> 0%</span>
+      </div>
+      <div class="label">Pendientes</div>
+      <div class="value">23</div>
+      <div class="sub"><i data-lucide="alert-triangle" style="width:11px;height:11px;color:#FDE68A;"></i><b>8</b> &gt; 7 días</div>
+    </div>
+
+    <div class="kpi red">
+      <div class="head">
+        <span class="chip"><i data-lucide="alert-octagon"></i></span>
+        <span class="trend up"><i data-lucide="trending-up"></i> +3</span>
+      </div>
+      <div class="label">Incompletas</div>
+      <div class="value">8</div>
+      <div class="sub"><b>5</b> esperan documentos</div>
+    </div>
+
+    <div class="kpi green">
+      <div class="head">
+        <span class="chip"><i data-lucide="check-circle-2"></i></span>
+        <span class="trend up"><i data-lucide="trending-up"></i> +18%</span>
+      </div>
+      <div class="label">Validadas</div>
+      <div class="value">412</div>
+      <div class="spark">
+        <div class="bar" style="height:45%"></div>
+        <div class="bar" style="height:55%"></div>
+        <div class="bar" style="height:70%"></div>
+        <div class="bar" style="height:60%"></div>
+        <div class="bar" style="height:80%"></div>
+        <div class="bar" style="height:90%"></div>
+        <div class="bar peak" style="height:100%"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>

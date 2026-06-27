@@ -1,0 +1,181 @@
+<!doctype html>
+<!-- @dsCard group="Colors" name="Paletas empresariales (propuesta)" subtitle="3 direcciones · Navy / Indigo / Sapphire+ · escoge una" viewport="700x460" --><html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"><title>Paletas empresariales · 3 direcciones</title>
+<style>
+  .head-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+
+  .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+  .opt {
+    position: relative;
+    background: rgba(255,255,255,0.018);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 16px 16px 14px;
+    display: flex; flex-direction: column; gap: 12px;
+    overflow: hidden;
+  }
+  .opt::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
+  }
+
+  .opt-tag {
+    font-family: "JetBrains Mono", monospace; font-size: 9px;
+    color: #475569; letter-spacing: 0.4px;
+  }
+  .opt-name {
+    font-family: Outfit, sans-serif; font-weight: 700;
+    font-size: 16px; color: #F8FAFC; letter-spacing: -0.01em;
+    margin-top: -3px;
+  }
+  .opt-vibe {
+    font-size: 11px; color: #94A3B8; line-height: 1.4;
+  }
+
+  /* Swatches */
+  .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .sw {
+    height: 36px; border-radius: 7px;
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+    position: relative;
+  }
+  .sw-row { display: flex; flex-direction: column; gap: 3px; align-items: center; }
+  .sw-name {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8.5px; color: #64748B; letter-spacing: 0.2px;
+    text-align: center;
+  }
+  .sw-hex {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8px; color: #475569; letter-spacing: 0.2px;
+  }
+
+  /* In-use demo */
+  .demo {
+    margin-top: 4px;
+    padding: 12px 12px 10px;
+    border-radius: 10px;
+    background: rgba(11,11,16,0.7);
+    border: 1px solid rgba(255,255,255,0.05);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .demo .h {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .demo .h .chip {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 14px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  .demo .h .meta { display: flex; flex-direction: column; gap: 1px; }
+  .demo .h .title { font-family: "Plus Jakarta Sans"; font-size: 12px; font-weight: 700; color: #F8FAFC; line-height: 1.1; }
+  .demo .h .sub { font-family: "JetBrains Mono"; font-size: 9px; color: #64748B; }
+
+  .demo .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px; border-radius: 9999px;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.03em;
+    width: fit-content;
+  }
+  .demo .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 13px; border-radius: 10px;
+    color: #fff; border: none; cursor: pointer;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 11px; font-weight: 700;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+</style>
+</head><body>
+<div class="card">
+  <div class="head-row">
+    <div class="eyebrow">Paletas empresariales · propuestas</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#475569;letter-spacing:0.4px;">3 direcciones · ninguna aplicada aún · escoge una</div>
+  </div>
+
+  <div class="row3">
+
+    <!-- ─────────── A · Navy Institutional ─────────── -->
+    <div class="opt">
+      <div class="opt-tag">DIRECCIÓN A</div>
+      <div class="opt-name">Navy Institutional</div>
+      <div class="opt-vibe">Banca premium · J.P. Morgan / Goldman · profundo, confiable, restringido</div>
+
+      <div class="swatches">
+        <div class="sw-row"><div class="sw" style="background:#0F1E3D"></div><div class="sw-name">primary</div><div class="sw-hex">#0F1E3D</div></div>
+        <div class="sw-row"><div class="sw" style="background:#1E40AF"></div><div class="sw-name">action</div><div class="sw-hex">#1E40AF</div></div>
+        <div class="sw-row"><div class="sw" style="background:#C9A36A"></div><div class="sw-name">gold</div><div class="sw-hex">#C9A36A</div></div>
+        <div class="sw-row"><div class="sw" style="background:#475569"></div><div class="sw-name">steel</div><div class="sw-hex">#475569</div></div>
+        <div class="sw-row"><div class="sw" style="background:#065F46"></div><div class="sw-name">forest</div><div class="sw-hex">#065F46</div></div>
+      </div>
+
+      <div class="demo">
+        <div class="h">
+          <span class="chip" style="background:linear-gradient(180deg,#1E40AF,#0F1E3D)">✓</span>
+          <div class="meta"><span class="title">Caso validado</span><span class="sub">NB-2026-00471</span></div>
+        </div>
+        <span class="pill" style="background:rgba(201,163,106,0.16);color:#C9A36A;border:1px solid rgba(201,163,106,0.35)">PREMIUM TIER</span>
+        <button class="btn" style="background:linear-gradient(180deg,#1E40AF,#1E3A8A)">Validar</button>
+      </div>
+    </div>
+
+    <!-- ─────────── B · Linear Indigo (modern SaaS) ─────────── -->
+    <div class="opt">
+      <div class="opt-tag">DIRECCIÓN B</div>
+      <div class="opt-name">Linear Indigo</div>
+      <div class="opt-vibe">SaaS moderno · Linear / Vercel · joven sin perder seriedad</div>
+
+      <div class="swatches">
+        <div class="sw-row"><div class="sw" style="background:#4F46E5"></div><div class="sw-name">primary</div><div class="sw-hex">#4F46E5</div></div>
+        <div class="sw-row"><div class="sw" style="background:#A78BFA"></div><div class="sw-name">accent</div><div class="sw-hex">#A78BFA</div></div>
+        <div class="sw-row"><div class="sw" style="background:#22D3EE"></div><div class="sw-name">cyan</div><div class="sw-hex">#22D3EE</div></div>
+        <div class="sw-row"><div class="sw" style="background:#10B981"></div><div class="sw-name">success</div><div class="sw-hex">#10B981</div></div>
+        <div class="sw-row"><div class="sw" style="background:#64748B"></div><div class="sw-name">slate</div><div class="sw-hex">#64748B</div></div>
+      </div>
+
+      <div class="demo">
+        <div class="h">
+          <span class="chip" style="background:linear-gradient(180deg,#A78BFA,#4F46E5)">✓</span>
+          <div class="meta"><span class="title">Caso validado</span><span class="sub">NB-2026-00471</span></div>
+        </div>
+        <span class="pill" style="background:rgba(34,211,238,0.15);color:#22D3EE;border:1px solid rgba(34,211,238,0.35)">EN REVISIÓN</span>
+        <button class="btn" style="background:linear-gradient(180deg,#A78BFA,#4F46E5)">Validar</button>
+      </div>
+    </div>
+
+    <!-- ─────────── C · Sapphire+ (refined current) ─────────── -->
+    <div class="opt" style="border-color: rgba(56,189,248,0.25);">
+      <div class="opt-tag" style="color:#38BDF8">DIRECCIÓN C · evolución del actual</div>
+      <div class="opt-name">Sapphire+ Executive</div>
+      <div class="opt-vibe">Refina lo que ya tienes · sapphire más profundo + bronce ejecutivo + teal acción</div>
+
+      <div class="swatches">
+        <div class="sw-row"><div class="sw" style="background:#0369A1"></div><div class="sw-name">primary</div><div class="sw-hex">#0369A1</div></div>
+        <div class="sw-row"><div class="sw" style="background:#38BDF8"></div><div class="sw-name">accent</div><div class="sw-hex">#38BDF8</div></div>
+        <div class="sw-row"><div class="sw" style="background:#B45309"></div><div class="sw-name">bronze</div><div class="sw-hex">#B45309</div></div>
+        <div class="sw-row"><div class="sw" style="background:#0D9488"></div><div class="sw-name">teal</div><div class="sw-hex">#0D9488</div></div>
+        <div class="sw-row"><div class="sw" style="background:#334155"></div><div class="sw-name">slate-deep</div><div class="sw-hex">#334155</div></div>
+      </div>
+
+      <div class="demo">
+        <div class="h">
+          <span class="chip" style="background:linear-gradient(180deg,#38BDF8,#0369A1)">✓</span>
+          <div class="meta"><span class="title">Caso validado</span><span class="sub">NB-2026-00471</span></div>
+        </div>
+        <span class="pill" style="background:rgba(180,83,9,0.15);color:#FCD34D;border:1px solid rgba(180,83,9,0.45)">PRIORITARIO</span>
+        <button class="btn" style="background:linear-gradient(180deg,#0EA5E9,#0369A1)">Validar</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:14px; padding:10px 14px; background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.18); border-radius:10px; font-family:'JetBrains Mono', monospace; font-size:10px; color:#94A3B8; line-height:1.5;">
+    <b style="color:#38BDF8;">A</b> · más institucional · ideal si los usuarios son ejecutivos · &nbsp;&nbsp;
+    <b style="color:#38BDF8;">B</b> · moderno joven SaaS · ideal para producto digital diferenciador · &nbsp;&nbsp;
+    <b style="color:#38BDF8;">C</b> · cambio mínimo · mantiene tu sapphire pero lo profundiza y agrega bronce ejecutivo
+  </div>
+</div>
+</body></html>

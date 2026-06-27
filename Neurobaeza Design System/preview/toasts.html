@@ -1,0 +1,146 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Toasts" subtitle="Title + descripción · sentence case · icon chip" viewport="700x360" --><html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"><title>Toasts</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  .stack { display: flex; flex-direction: column; gap: 10px; max-width: 540px; }
+
+  .toast {
+    position: relative;
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 14px 12px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--t-border);
+    background: linear-gradient(180deg, var(--t-bg-a), var(--t-bg-b)), rgba(11,11,16,0.75);
+    box-shadow:
+      0 12px 28px rgba(0,0,0,0.45),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+  }
+  .toast::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
+  }
+
+  /* Icon chip */
+  .chip {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--t-chip-bg); border: 1px solid var(--t-chip-border);
+    color: var(--t-chip-fg);
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 4px 10px var(--t-chip-shadow);
+    flex-shrink: 0;
+  }
+  .chip i { width: 18px; height: 18px; }
+
+  /* Body — sentence case, two lines */
+  .body { min-width: 0; }
+  .title {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 600; font-size: 13.5px;
+    color: #F8FAFC;
+    line-height: 1.35; letter-spacing: -0.005em;
+    margin: 0 0 2px;
+  }
+  .desc {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 400; font-size: 12px;
+    color: #94A3B8;
+    line-height: 1.45;
+    margin: 0;
+  }
+  .desc .mono {
+    font-family: "JetBrains Mono", monospace; font-size: 11px;
+    color: #CBD5E1; background: rgba(255,255,255,0.05);
+    padding: 1px 6px; border-radius: 4px;
+  }
+  .desc b { color: #CBD5E1; font-weight: 600; }
+
+  /* Right actions */
+  .actions { display: flex; align-items: center; gap: 6px; padding-top: 2px; flex-shrink: 0; }
+  .meta { font-family: "JetBrains Mono", monospace; font-size: 10px; color: #64748B; }
+  .close-btn {
+    background: transparent; border: none; color: #64748B;
+    cursor: pointer; padding: 4px; border-radius: 6px;
+    display: inline-flex;
+  }
+  .close-btn:hover { background: rgba(255,255,255,0.06); color: #CBD5E1; }
+  .close-btn i { width: 14px; height: 14px; }
+
+  /* ─── Variants ─── */
+  .success {
+    --t-bg-a: rgba(16,185,129,0.10); --t-bg-b: rgba(16,185,129,0.04);
+    --t-border: rgba(16,185,129,0.30);
+    --t-chip-bg: rgba(16,185,129,0.20); --t-chip-border: rgba(16,185,129,0.45);
+    --t-chip-fg: #6EE7B7; --t-chip-shadow: rgba(5,150,105,0.4);
+  }
+  .info {
+    --t-bg-a: rgba(56,189,248,0.10); --t-bg-b: rgba(56,189,248,0.04);
+    --t-border: rgba(56,189,248,0.30);
+    --t-chip-bg: rgba(56,189,248,0.18); --t-chip-border: rgba(56,189,248,0.45);
+    --t-chip-fg: #7DD3FC; --t-chip-shadow: rgba(2,132,199,0.4);
+  }
+  .warning {
+    --t-bg-a: rgba(245,158,11,0.10); --t-bg-b: rgba(245,158,11,0.04);
+    --t-border: rgba(245,158,11,0.30);
+    --t-chip-bg: rgba(251,191,36,0.18); --t-chip-border: rgba(251,191,36,0.45);
+    --t-chip-fg: #FDE68A; --t-chip-shadow: rgba(180,83,9,0.4);
+  }
+  .danger {
+    --t-bg-a: rgba(220,38,38,0.10); --t-bg-b: rgba(220,38,38,0.04);
+    --t-border: rgba(220,38,38,0.30);
+    --t-chip-bg: rgba(248,113,113,0.18); --t-chip-border: rgba(248,113,113,0.45);
+    --t-chip-fg: #FCA5A5; --t-chip-shadow: rgba(185,28,28,0.4);
+  }
+</style>
+</head><body>
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;">
+    <div class="eyebrow">Toasts · notification system</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#475569;letter-spacing:0.4px;">title + descripción · sentence case</div>
+  </div>
+
+  <div class="stack">
+
+    <div class="toast success">
+      <span class="chip"><i data-lucide="check-circle-2"></i></span>
+      <div class="body">
+        <p class="title">Caso validado correctamente</p>
+        <p class="desc"><b>NB-2026-00471</b> · enviando notificación y avanzando al siguiente caso</p>
+      </div>
+      <div class="actions"><span class="meta">hace 2 s</span><button class="close-btn"><i data-lucide="x"></i></button></div>
+    </div>
+
+    <div class="toast info">
+      <span class="chip"><i data-lucide="mail"></i></span>
+      <div class="body">
+        <p class="title">Notificación enviada al colaborador</p>
+        <p class="desc">Email · <span class="mono">carolina@empresa.com</span> &nbsp;·&nbsp; WhatsApp · <span class="mono">+57 312 *** 4471</span></p>
+      </div>
+      <div class="actions"><button class="close-btn"><i data-lucide="x"></i></button></div>
+    </div>
+
+    <div class="toast warning">
+      <span class="chip"><i data-lucide="alert-triangle"></i></span>
+      <div class="body">
+        <p class="title">Sin correo registrado</p>
+        <p class="desc">El colaborador no tiene email en el directorio. No se envió notificación automática.</p>
+      </div>
+      <div class="actions"><button class="close-btn"><i data-lucide="x"></i></button></div>
+    </div>
+
+    <div class="toast danger">
+      <span class="chip"><i data-lucide="wifi-off"></i></span>
+      <div class="body">
+        <p class="title">Error de conexión con el servidor</p>
+        <p class="desc">Verifica tu conexión a internet o intenta de nuevo en unos segundos.</p>
+      </div>
+      <div class="actions"><button class="close-btn"><i data-lucide="x"></i></button></div>
+    </div>
+
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>

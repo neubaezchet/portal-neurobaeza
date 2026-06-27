@@ -1,0 +1,100 @@
+<!doctype html>
+<!-- @dsCard group="Colors" name="Obsidian scale" subtitle="4-level depth stack with usage" viewport="700x240" --><html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"><title>Obsidian scale</title>
+<style>
+  .obs-card { display: grid; grid-template-columns: 260px 1fr; gap: 28px; align-items: stretch; }
+  /* Layered stack visual — left side */
+  .stack {
+    position: relative;
+    height: 168px;
+    border-radius: 14px;
+    background: #050507;
+    border: 1px solid rgba(255,255,255,0.06);
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+  }
+  .stack::before { /* the brand top highlight */
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+    z-index: 5;
+  }
+  .layer { position: absolute; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); }
+  .layer.s { left: 22px; right: 22px; top: 22px; bottom: 22px; background: #0B0B10; }
+  .layer.t { left: 38px; right: 38px; top: 38px; bottom: 56px; background: #12121A; box-shadow: 0 6px 16px rgba(0,0,0,0.4); }
+  .layer.q { left: 56px; right: 56px; top: 56px; height: 28px; background: #1A1A24;
+             box-shadow: 0 6px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07); }
+  .layer.q::before {
+    content: ""; position: absolute; top: 0; left: 8px; right: 8px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  }
+  .pin {
+    position: absolute; right: -3px; transform: translateY(-50%);
+    height: 1px; background: rgba(56,189,248,0.4);
+  }
+  .pin span {
+    position: absolute; right: 0; top: -8px;
+    background: rgba(56,189,248,0.12);
+    border: 1px solid rgba(56,189,248,0.35);
+    color: #38BDF8;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px; font-weight: 600;
+    padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+  }
+
+  /* Token table — right side */
+  .tokens { display: grid; grid-template-columns: 24px 1fr auto auto; column-gap: 14px; row-gap: 11px; align-items: center; }
+  .chip { width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.10); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); }
+  .role { display: flex; flex-direction: column; gap: 1px; }
+  .role .name { font-family: "JetBrains Mono", monospace; font-size: 11px; color: #F8FAFC; font-weight: 600; letter-spacing: 0.1px; }
+  .role .use { font-size: 11px; color: #94A3B8; }
+  .hex { font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: #CBD5E1; letter-spacing: 0.5px; }
+  .tag {
+    font-family: "JetBrains Mono", monospace; font-size: 9px; font-weight: 600;
+    padding: 2px 7px; border-radius: 4px;
+    background: rgba(255,255,255,0.04); color: #64748B;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .tag.brand { background: rgba(56,189,248,0.10); color: #38BDF8; border-color: rgba(56,189,248,0.25); }
+</style>
+</head><body>
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:18px;">
+    <div class="eyebrow">Backgrounds · Obsidian scale</div>
+    <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#475569; letter-spacing:0.5px;">4 levels · darkest → raised</div>
+  </div>
+
+  <div class="obs-card">
+    <!-- Layered hierarchy visual -->
+    <div class="stack">
+      <div class="layer s"></div>
+      <div class="layer t"></div>
+      <div class="layer q"></div>
+      <!-- subtle pins -->
+      <div class="pin" style="left:10px; right:auto; top:8px; width:6px;"></div>
+      <div class="pin" style="left:30px; right:auto; top:30px; width:6px;"></div>
+    </div>
+
+    <!-- Token table -->
+    <div class="tokens">
+      <div class="chip" style="background:#050507"></div>
+      <div class="role"><span class="name">--bg-primary</span><span class="use">Page · the canvas</span></div>
+      <span class="hex">#050507</span>
+      <span class="tag brand">L0</span>
+
+      <div class="chip" style="background:#0B0B10"></div>
+      <div class="role"><span class="name">--bg-secondary</span><span class="use">Section · header band</span></div>
+      <span class="hex">#0B0B10</span>
+      <span class="tag">L1</span>
+
+      <div class="chip" style="background:#12121A"></div>
+      <div class="role"><span class="name">--bg-tertiary</span><span class="use">Card · solid surface</span></div>
+      <span class="hex">#12121A</span>
+      <span class="tag">L2</span>
+
+      <div class="chip" style="background:#1A1A24"></div>
+      <div class="role"><span class="name">--bg-quaternary</span><span class="use">Raised · menus · pills</span></div>
+      <span class="hex">#1A1A24</span>
+      <span class="tag">L3</span>
+    </div>
+  </div>
+</div>
+</body></html>

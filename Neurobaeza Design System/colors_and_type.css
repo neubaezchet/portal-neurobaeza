@@ -1,0 +1,321 @@
+/* ============================================================
+   Neurobaeza Design System · Obsidian 2026
+   Core tokens — colors, type, spacing, radii, shadows
+   ============================================================ */
+
+/* Fonts loaded from Google Fonts (Plus Jakarta Sans + Outfit) */
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+:root {
+  /* ── Backgrounds — Light theme ─────────────────────────── */
+  --bg-primary:    #FFFFFF;   /* page base       */
+  --bg-secondary:  #F8FAFC;   /* section / band  */
+  --bg-tertiary:   #FFFFFF;   /* card solid      */
+  --bg-quaternary: #F1F5F9;   /* raised / hover  */
+  --bg-card:       rgba(255, 255, 255, 0.85);
+  --bg-input:      rgba(15, 23, 42, 0.025);
+  --bg-hover:      rgba(79, 70, 229, 0.06);
+
+  /* ── Text — slate stack on white ────────────────────────── */
+  --text-primary:    #0F172A;
+  --text-secondary:  #334155;
+  --text-tertiary:   #64748B;
+  --text-muted:      #94A3B8;
+  --text-disabled:   #CBD5E1;
+
+  /* ── Borders ─────────────────────────────────────────────── */
+  --border-subtle:  rgba(15, 23, 42, 0.05);
+  --border-primary: rgba(15, 23, 42, 0.08);
+  --border-strong:  rgba(15, 23, 42, 0.14);
+  --border-focus:   var(--indigo-600);
+
+  /* ── Brand · Indigo (primary) ───────────────────────────── */
+  --indigo-300: #A5B4FC;
+  --indigo-400: #818CF8;
+  --indigo-500: #6366F1;
+  --indigo-600: #4F46E5;   /* ★ primary action */
+  --indigo-700: #4338CA;
+  --indigo-800: #3730A3;
+  --accent-primary:       var(--indigo-600);
+  --accent-primary-hover: var(--indigo-700);
+
+  /* ── Brand · Violet (accent · 2nd brand color) ──────────── */
+  --violet-300: #C4B5FD;
+  --violet-400: #A78BFA;   /* ★ accent */
+  --violet-500: #8B5CF6;
+  --violet-600: #7C3AED;
+
+  /* ── Brand · Cyan (data / info highlights) ──────────────── */
+  --cyan-400:   #22D3EE;
+  --cyan-500:   #06B6D4;
+
+  /* ── Legacy Sapphire aliases (map to Indigo for back-compat) */
+  --sapphire-400: var(--indigo-400);
+  --sapphire-500: var(--indigo-600);
+  --sapphire-600: var(--indigo-700);
+  --sapphire-700: var(--indigo-800);
+
+  /* ── Brand · Champagne (warm tertiary, restricted use) ──── */
+  --champagne-400: #FDE68A;
+  --champagne-500: #F59E0B;
+  --champagne-600: #D97706;
+
+  /* ── Semantic state colors ───────────────────────────────── */
+  --success-500: #10B981;  --success-600: #059669;
+  --warning-500: #F59E0B;  --warning-600: #D97706;
+  --danger-500:  #EF4444;  --danger-600:  #DC2626;
+  --info-500:    #3B82F6;  --info-600:    #2563EB;
+  --fraude-900:  #7F1D1D;  /* "adulterada" deep red */
+
+  /* ── Validation pipeline status colors ───────────────────── */
+  --status-nuevo:       #3B82F6; /* blue-500   */
+  --status-revision:    #06B6D4; /* cyan-500   */
+  --status-incompleta:  #DC2626; /* red-600    */
+  --status-ilegible:    #F59E0B; /* amber-500  */
+  --status-eps:         #CA8A04; /* yellow-700 */
+  --status-fraude:      #DC2626; /* red-600    */
+  --status-extra:       #6B7280; /* gray-500   */
+  --status-completa:    #16A34A; /* green-600  */
+  --status-radicacion:  #14B8A6; /* teal-500   */
+
+  /* ── Glass panel 2026 — light theme ─────────────────────── */
+  --glass-bg:     rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(15, 23, 42, 0.08);
+  --glass-shadow: 0 16px 48px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  --glass-blur:   blur(24px); /* @kind other */
+
+  /* ── Typography ──────────────────────────────────────────── */
+  --font-sans:    "Plus Jakarta Sans", "Inter", "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-display: "Outfit", "Plus Jakarta Sans", sans-serif;
+  --font-mono:    "JetBrains Mono", "SF Mono", "Fira Code", "Cascadia Code", monospace;
+
+  --fs-12: 0.75rem;   --fs-13: 0.8125rem; --fs-14: 0.875rem;
+  --fs-15: 0.9375rem; --fs-16: 1rem;      --fs-18: 1.125rem;
+  --fs-20: 1.25rem;   --fs-24: 1.5rem;    --fs-30: 1.875rem;
+  --fs-36: 2.25rem;   --fs-48: 3rem;      --fs-60: 3.75rem;
+
+  --fw-light: 300;     /* @kind font */
+  --fw-regular: 400;   /* @kind font */
+  --fw-medium: 500;    /* @kind font */
+  --fw-semibold: 600;  /* @kind font */
+  --fw-bold: 700;      /* @kind font */
+  --fw-extrabold: 800; /* @kind font */
+  --fw-black: 900;     /* @kind font */
+
+  --lh-tight:   1.1;  /* @kind font */
+  --lh-snug:    1.25; /* @kind font */
+  --lh-normal:  1.5;  /* @kind font */
+  --lh-relaxed: 1.65; /* @kind font */
+
+  --tracking-tighter: -0.04em; /* @kind font */
+  --tracking-tight:   -0.02em; /* @kind font */
+  --tracking-normal:  0;        /* @kind font */
+  --tracking-wide:    0.02em;   /* @kind font */
+  --tracking-wider:   0.08em;   /* @kind font */
+
+  /* ── Spacing scale (4px base) ────────────────────────────── */
+  --space-1:  4px;   --space-2:  8px;   --space-3:  12px;
+  --space-4:  16px;  --space-5:  20px;  --space-6:  24px;
+  --space-8:  32px;  --space-10: 40px;  --space-12: 48px;
+  --space-16: 64px;  --space-20: 80px;  --space-24: 96px;
+
+  /* ── Radii ───────────────────────────────────────────────── */
+  --r-sm:   8px;
+  --r-md:   12px;
+  --r-lg:   16px;
+  --r-2026: 20px;      /* signature radius for cards   */
+  --r-2026-lg: 28px;   /* signature for hero / modals  */
+  --r-2026-xl: 36px;   /* signature for large panels   */
+  --r-pill: 9999px;
+
+  /* ── Shadows / Elevation ─────────────────────────────────── */
+  --shadow-sm:   0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md:   0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg:   0 16px 48px rgba(0, 0, 0, 0.5);
+  --shadow-xl:   0 24px 64px rgba(0, 0, 0, 0.65);
+
+  --shadow-glass-sm: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  --shadow-glass-md: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-glass-lg: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --shadow-glow-sapphire: 0 0 24px rgba(79, 70, 229, 0.45);     /* legacy name → indigo glow */
+  --shadow-glow-sapphire-lg: 0 0 32px rgba(99, 102, 241, 0.6);   /* legacy name → indigo glow lg */
+  --shadow-glow-indigo:    0 0 24px rgba(79, 70, 229, 0.45);
+  --shadow-glow-indigo-lg: 0 0 32px rgba(99, 102, 241, 0.6);
+  --shadow-glow-violet:    0 0 24px rgba(139, 92, 246, 0.45);
+
+  /* ── Motion ──────────────────────────────────────────────── */
+  --ease-2026:    cubic-bezier(0.22, 1, 0.36, 1);   /* @kind other */
+  --ease-in-out:  cubic-bezier(0.4, 0, 0.6, 1);      /* @kind other */
+  --dur-fast:     150ms; /* @kind other */
+  --dur-base:     200ms; /* @kind other */
+  --dur-slow:     300ms; /* @kind other */
+  --dur-deliberate: 600ms; /* @kind other */
+
+  /* ── Gradients ───────────────────────────────────────────── */
+  --grad-sapphire:    linear-gradient(135deg, #818CF8 0%, #4F46E5 50%, #A78BFA 100%); /* @kind color */
+  --grad-indigo:      linear-gradient(135deg, #818CF8 0%, #4F46E5 50%, #A78BFA 100%); /* @kind color */
+  --grad-header-2026: linear-gradient(135deg, #4F46E5 0%, #7C3AED 60%, #A78BFA 100%); /* @kind color */
+  --grad-obsidian:    linear-gradient(135deg, #0B0B10 0%, #12121A 50%, #0B0B10 100%); /* @kind color */
+}
+
+/* ============================================================
+   Base / Reset
+   ============================================================ */
+html, body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-15);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================
+   Semantic typography roles
+   ============================================================ */
+h1, .h1, .display-1 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-extrabold);
+  font-size: var(--fs-48);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+h2, .h2 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-30);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+h3, .h3 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-24);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+h4, .h4 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-18);
+  line-height: var(--lh-snug);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+p, .body {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-15);
+  line-height: var(--lh-relaxed);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.body-sm {
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
+  line-height: var(--lh-normal);
+}
+
+.label, .eyebrow {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-12);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+code, .code, kbd {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-primary);
+  color: var(--sapphire-400);
+}
+
+.serial {
+  font-family: var(--font-mono);
+  font-weight: var(--fw-bold);
+  color: var(--champagne-400);
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   Signature: Glass Panel 2026
+   ============================================================ */
+.glass-panel-2026 {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--r-2026-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* The signature "top highlight line" on every glass panel */
+.glass-panel-2026::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  z-index: 10;
+}
+
+/* ============================================================
+   Gradient text — sapphire signature
+   ============================================================ */
+.gradient-text-sapphire {
+  background: var(--grad-sapphire);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================================
+   Scrollbar — premium thin
+   ============================================================ */
+::-webkit-scrollbar         { width: 6px; height: 6px; }
+::-webkit-scrollbar-track   { background: transparent; }
+::-webkit-scrollbar-thumb   { background: rgba(255,255,255,0.05); border-radius: 20px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+/* ============================================================
+   Animations
+   ============================================================ */
+@keyframes fadeUp2026 {
+  0%   { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulseSapphire {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+  50%      { box-shadow: 0 0 24px 8px rgba(14, 165, 233, 0.25); }
+}
+@keyframes shimmer2026 {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+.animate-fade-up-2026 { animation: fadeUp2026 0.6s var(--ease-2026) both; }
+.animate-pulse-sapphire { animation: pulseSapphire 3s var(--ease-in-out) infinite; }

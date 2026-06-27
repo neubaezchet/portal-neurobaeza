@@ -1,0 +1,48 @@
+<!-- @dsCard group="Components" viewport="700x150" name="Button (component)" subtitle="Importable React component · 5 variants · 3 sizes" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; background: #FFFFFF; }
+  .wrap { padding: 24px 28px; display: flex; flex-direction: column; gap: 16px; }
+  .eyebrow { font-size: 10px; font-weight: 700; color: #64748B; letter-spacing: 0.14em; text-transform: uppercase; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">window.NeurobaezaDesignSystem_a0fa6a.Button</div>
+  <div id="variants" class="row"></div>
+  <div id="sizes" class="row"></div>
+</div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="../_ds_bundle.js"></script>
+<script>
+  const { Button } = window.NeurobaezaDesignSystem_a0fa6a;
+  const h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById("variants")).render(
+    h(React.Fragment, null,
+      h(Button, { variant: "primary" }, "✅ Validar"),
+      h(Button, { variant: "success" }, "Aprobar"),
+      h(Button, { variant: "danger" }, "Rechazar"),
+      h(Button, { variant: "warning" }, "🚨 Marcar"),
+      h(Button, { variant: "ghost" }, "Cancelar"),
+    )
+  );
+
+  ReactDOM.createRoot(document.getElementById("sizes")).render(
+    h(React.Fragment, null,
+      h(Button, { size: "sm" }, "Small"),
+      h(Button, { size: "md" }, "Medium"),
+      h(Button, { size: "lg" }, "Large"),
+      h(Button, { variant: "primary", disabled: true }, "Disabled"),
+    )
+  );
+</script>
+</body>
+</html>

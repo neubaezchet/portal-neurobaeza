@@ -1,0 +1,232 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Buttons" subtitle="Emoji prefix variant + Lucide variant · states · sizes" viewport="700x420" --><html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"><title>Buttons</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  /* ────────── Layout shell ────────── */
+  .grid { display: grid; grid-template-columns: 280px 1fr; gap: 26px; align-items: stretch; }
+
+  .stage {
+    position: relative; height: 100%;
+    border-radius: 14px;
+    background:
+      radial-gradient(60% 80% at 50% 0%, rgba(14,165,233,0.10), transparent 60%),
+      #0B0B10;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+    overflow: hidden;
+    padding: 28px 22px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  }
+  .stage::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent); }
+  .stage-label {
+    position: absolute; top: 10px; left: 12px;
+    font-family: "JetBrains Mono", monospace; font-size: 9px;
+    color: #475569; letter-spacing: 0.4px;
+  }
+
+  /* ────────── Featured primary ────────── */
+  .btn-primary {
+    background: linear-gradient(180deg, #38BDF8 0%, #0284C7 100%);
+    color: #fff;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 700; font-size: 14px; letter-spacing: 0.01em;
+    padding: 13px 26px;
+    border: none;
+    border-radius: 20px;
+    box-shadow:
+      0 0 0 1px rgba(56,189,248,0.45),
+      0 8px 24px rgba(2,132,199,0.35),
+      0 0 32px rgba(14,165,233,0.45),
+      inset 0 1px 0 rgba(255,255,255,0.45),
+      inset 0 -1px 0 rgba(2,132,199,0.4);
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    position: relative;
+  }
+  .btn-primary i { width: 16px; height: 16px; }
+
+  .callouts {
+    display: flex; gap: 18px; align-items: center;
+    font-family: "JetBrains Mono", monospace; font-size: 9px; color: #475569; letter-spacing: 0.3px;
+  }
+  .callouts span { display: inline-flex; align-items: center; gap: 4px; }
+  .callouts b { color: #94A3B8; font-weight: 600; }
+
+  /* ────────── Library grid ────────── */
+  .library { display: flex; flex-direction: column; gap: 14px; }
+  .lib-row { display: flex; flex-direction: column; gap: 8px; }
+  .lib-head { display: flex; align-items: center; gap: 10px; }
+  .lib-label { font-size: 10px; font-weight: 700; color: #94A3B8; letter-spacing: 0.14em; text-transform: uppercase; }
+  .lib-rule { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.08), transparent); }
+  .lib-items { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+  /* ────────── Button variants ────────── */
+  .btn {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 700; font-size: 12.5px; letter-spacing: 0.01em;
+    padding: 10px 16px;
+    border-radius: 14px;
+    border: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .btn i { width: 14px; height: 14px; }
+
+  .btn.sapphire {
+    color: #fff;
+    background: linear-gradient(180deg, #38BDF8 0%, #0284C7 100%);
+    box-shadow:
+      0 0 0 1px rgba(56,189,248,0.4),
+      0 6px 18px rgba(2,132,199,0.3),
+      0 0 22px rgba(14,165,233,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.4);
+  }
+  .btn.ghost {
+    color: #CBD5E1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .btn.success {
+    color: #fff;
+    background: linear-gradient(180deg, #22C55E 0%, #15803D 100%);
+    box-shadow:
+      0 0 0 1px rgba(34,197,94,0.4),
+      0 6px 18px rgba(21,128,61,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+  .btn.danger {
+    color: #fff;
+    background: linear-gradient(180deg, #F87171 0%, #B91C1C 100%);
+    box-shadow:
+      0 0 0 1px rgba(248,113,113,0.4),
+      0 6px 18px rgba(185,28,28,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.32);
+  }
+  .btn.warning {
+    color: #fff;
+    background: linear-gradient(180deg, #FBBF24 0%, #B45309 100%);
+    box-shadow:
+      0 0 0 1px rgba(251,191,36,0.4),
+      0 6px 18px rgba(180,83,9,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+
+  /* states */
+  .btn.state-hover.sapphire {
+    background: linear-gradient(180deg, #7DD3FC 0%, #0EA5E9 100%);
+    box-shadow:
+      0 0 0 1px rgba(125,211,252,0.55),
+      0 10px 28px rgba(2,132,199,0.45),
+      0 0 36px rgba(14,165,233,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.55);
+    transform: translateY(-1px);
+  }
+  .btn.state-focus.sapphire {
+    box-shadow:
+      0 0 0 1px rgba(56,189,248,0.4),
+      0 0 0 4px rgba(56,189,248,0.32),
+      0 6px 18px rgba(2,132,199,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.4);
+  }
+  .btn.state-disabled.sapphire {
+    background: rgba(2,132,199,0.35);
+    color: rgba(255,255,255,0.45);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    cursor: not-allowed;
+  }
+
+  /* sizes */
+  .btn.sm { padding: 7px 12px; font-size: 11px; border-radius: 10px; gap: 6px; }
+  .btn.lg { padding: 13px 22px; font-size: 14px; border-radius: 18px; gap: 8px; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin 0.9s linear infinite; }
+
+  .anno {
+    font-family: "JetBrains Mono", monospace; font-size: 9px;
+    color: #475569; letter-spacing: 0.3px;
+  }
+  .anno.tip { color: #38BDF8; }
+</style>
+</head><body>
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;">
+    <div class="eyebrow">Buttons · primary action system</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#475569;letter-spacing:0.4px;">emoji optional · semantic prefix · never decorativo</div>
+  </div>
+
+  <div class="grid">
+    <!-- Featured stage -->
+    <div class="stage">
+      <span class="stage-label">PRIMARY · sapphire · ✅ emoji prefix</span>
+      <button class="btn-primary">
+        ✅ Validar caso
+      </button>
+      <div class="callouts">
+        <span><b>r</b>20</span>
+        <span><b>h</b>44</span>
+        <span><b>gap</b>8</span>
+      </div>
+      <div class="anno tip" style="text-align:center; max-width:220px; line-height:1.5;">
+        Emoji clasifica el resultado · acompaña al verbo, jamás lo reemplaza
+      </div>
+    </div>
+
+    <!-- Library -->
+    <div class="library">
+
+      <!-- Variants — with emoji prefix (on-brand) -->
+      <div class="lib-row">
+        <div class="lib-head"><span class="lib-label">Variants · emoji prefix</span><span class="lib-rule"></span><span class="anno">producto real · acciones del validador</span></div>
+        <div class="lib-items">
+          <button class="btn sapphire">📧 Enviar</button>
+          <button class="btn success">✅ Aprobar</button>
+          <button class="btn danger">❌ Rechazar</button>
+          <button class="btn warning">🚨 Marcar fraude</button>
+          <button class="btn ghost">⏎ Cancelar</button>
+        </div>
+      </div>
+
+      <!-- Variants — Lucide only (formal / login / chrome) -->
+      <div class="lib-row">
+        <div class="lib-head"><span class="lib-label">Variants · Lucide</span><span class="lib-rule"></span><span class="anno">login · chrome · sin marca semántica</span></div>
+        <div class="lib-items">
+          <button class="btn sapphire"><i data-lucide="log-in"></i>Iniciar sesión</button>
+          <button class="btn ghost"><i data-lucide="download"></i>Descargar</button>
+          <button class="btn ghost"><i data-lucide="refresh-cw"></i>Refrescar</button>
+          <button class="btn ghost"><i data-lucide="settings"></i>Ajustes</button>
+        </div>
+      </div>
+
+      <!-- States -->
+      <div class="lib-row">
+        <div class="lib-head"><span class="lib-label">States</span><span class="lib-rule"></span><span class="anno">primary · transitions 200ms</span></div>
+        <div class="lib-items">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><button class="btn sapphire">✅ Validar</button><span class="anno">rest</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><button class="btn sapphire state-hover">✅ Validar</button><span class="anno">↑ glow + lift</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><button class="btn sapphire state-focus">✅ Validar</button><span class="anno">ring 4 px</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><button class="btn sapphire state-disabled">✅ Validar</button><span class="anno">35% bg</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><button class="btn sapphire"><i data-lucide="loader-2" class="spin"></i>Cargando</button><span class="anno">loader-2 spin</span></div>
+        </div>
+      </div>
+
+      <!-- Sizes -->
+      <div class="lib-row">
+        <div class="lib-head"><span class="lib-label">Sizes</span><span class="lib-rule"></span><span class="anno">sm 28 · md 36 · lg 44</span></div>
+        <div class="lib-items">
+          <button class="btn sapphire sm">📧 Enviar</button>
+          <button class="btn sapphire">📧 Enviar</button>
+          <button class="btn sapphire lg">📧 Enviar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  lucide.createIcons();
+</script>
+</body></html>

@@ -1,0 +1,201 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Motion principles" subtitle="fade-up-2026 + pulse-sapphire" viewport="700x180" --><html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"><title>Motion</title>
+<style>
+  /* ───── Apple-grade easing curves ───── */
+  :root {
+    --ease-standard:   cubic-bezier(0.4, 0.0, 0.2, 1);    /* iOS standard */
+    --ease-decel:      cubic-bezier(0.0, 0.0, 0.2, 1);    /* enter */
+    --ease-accel:      cubic-bezier(0.4, 0.0, 1.0, 1);    /* exit */
+    --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1); /* gentle overshoot */
+    --ease-emphasized: cubic-bezier(0.2, 0.0, 0.0, 1);    /* hero  */
+  }
+
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 26px; }
+
+  /* ───── Hero stage: layered fluid demo ───── */
+  .stage {
+    position: relative; height: 230px;
+    border-radius: 16px;
+    background:
+      radial-gradient(60% 60% at 30% 0%, rgba(14,165,233,0.14), transparent 70%),
+      radial-gradient(50% 80% at 100% 100%, rgba(139,92,246,0.10), transparent 65%),
+      #0B0B10;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  .stage::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent); }
+  .stage-label { position: absolute; top: 10px; left: 12px;
+    font-family: "JetBrains Mono", monospace; font-size: 9px;
+    color: #475569; letter-spacing: 0.4px; }
+
+  /* Layered cards floating in */
+  .layer {
+    position: absolute; border-radius: 14px;
+    background: rgba(11,11,16,0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+    opacity: 0; will-change: transform, opacity, filter;
+  }
+  @keyframes fluidIn {
+    0%   { opacity: 0; transform: translateY(28px) scale(0.94); filter: blur(8px); }
+    60%  { opacity: 1; filter: blur(0); }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
+  .layer.l1 {
+    left: 24px; top: 50px; width: 140px; height: 80px;
+    animation: fluidIn 1.2s var(--ease-emphasized) 0.0s infinite both;
+  }
+  .layer.l2 {
+    left: 96px; top: 90px; width: 140px; height: 80px;
+    animation: fluidIn 1.2s var(--ease-emphasized) 0.15s infinite both;
+  }
+  .layer.l3 {
+    left: 168px; top: 130px; width: 140px; height: 80px;
+    animation: fluidIn 1.2s var(--ease-emphasized) 0.30s infinite both;
+  }
+  .layer .row1 { position: absolute; top: 14px; left: 14px; right: 14px; height: 7px; border-radius: 3px; background: rgba(255,255,255,0.08); }
+  .layer .row2 { position: absolute; top: 30px; left: 14px; width: 60%; height: 5px; border-radius: 2px; background: rgba(255,255,255,0.05); }
+  .layer .dot  { position: absolute; bottom: 12px; left: 14px; width: 18px; height: 18px; border-radius: 50%;
+                 background: radial-gradient(circle at 30% 30%, #7DD3FC, #0284C7);
+                 box-shadow: 0 0 14px rgba(14,165,233,0.5); }
+
+  /* ───── Easing curve cards ───── */
+  .curves { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .curve-card {
+    position: relative;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 12px;
+    overflow: hidden;
+  }
+  .curve-card:hover { background: rgba(255,255,255,0.04); }
+  .curve-svg {
+    width: 100%; height: 56px; display: block; margin-bottom: 8px;
+  }
+  .curve-name {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 700; font-size: 12px; color: #F8FAFC;
+    letter-spacing: -0.005em;
+  }
+  .curve-vals {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; color: #64748B; margin-top: 2px;
+  }
+  .curve-use {
+    font-size: 10.5px; color: #94A3B8; margin-top: 6px; line-height: 1.35;
+  }
+  .curve-card .ball {
+    position: absolute; right: 12px; top: 12px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #38BDF8; box-shadow: 0 0 10px #38BDF8;
+  }
+
+  /* Each curve gets its own demo: a ball traveling left→right with that easing */
+  @keyframes travel { 0%, 6% { left: 12px; } 50% { left: calc(100% - 20px); } 94%, 100% { left: 12px; } }
+  .curve-card .runner {
+    position: absolute; bottom: 10px; width: 8px; height: 8px; border-radius: 50%;
+    background: #38BDF8; box-shadow: 0 0 12px rgba(56,189,248,0.7);
+    left: 12px;
+  }
+  .c-standard   .runner { animation: travel 3.0s var(--ease-standard)   infinite; }
+  .c-decel      .runner { animation: travel 3.0s var(--ease-decel)      infinite; background:#A78BFA; box-shadow: 0 0 12px rgba(167,139,250,0.7); }
+  .c-spring     .runner { animation: travel 3.0s var(--ease-spring)     infinite; background:#4ADE80; box-shadow: 0 0 12px rgba(74,222,128,0.7); }
+  .c-emphasized .runner { animation: travel 3.0s var(--ease-emphasized) infinite; background:#FDE68A; box-shadow: 0 0 12px rgba(253,230,138,0.7); }
+
+  /* Duration scale strip */
+  .durations {
+    display: flex; gap: 8px; margin-top: 14px; padding-top: 14px;
+    border-top: 1px dashed rgba(255,255,255,0.06);
+  }
+  .dur {
+    flex: 1;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 8px 10px;
+  }
+  .dur .v { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; font-size: 14px; color: #F8FAFC; }
+  .dur .v small { font-family: "JetBrains Mono", monospace; font-weight: 500; font-size: 10px; color: #64748B; margin-left: 3px; }
+  .dur .use { font-size: 10px; color: #94A3B8; margin-top: 1px; }
+</style>
+</head><body>
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;">
+    <div class="eyebrow">Motion · fluid · iOS-grade</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#475569;letter-spacing:0.4px;">enter calm · exit fast · spring sparingly</div>
+  </div>
+
+  <div class="grid">
+    <!-- Hero stage with layered fluid choreography -->
+    <div class="stage">
+      <span class="stage-label">CHOREOGRAPHY · staggered fluid in · 150 ms apart</span>
+      <div class="layer l1"><div class="row1"></div><div class="row2"></div><div class="dot"></div></div>
+      <div class="layer l2"><div class="row1"></div><div class="row2"></div><div class="dot"></div></div>
+      <div class="layer l3"><div class="row1"></div><div class="row2"></div><div class="dot"></div></div>
+    </div>
+
+    <!-- Curve cards -->
+    <div class="curves">
+      <div class="curve-card c-standard">
+        <svg class="curve-svg" viewBox="0 0 100 50" preserveAspectRatio="none">
+          <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+          <line x1="0" y1="0"  x2="0"   y2="50" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+          <path d="M 0 50 C 40 50 20 0 100 0" fill="none" stroke="#38BDF8" stroke-width="1.2"/>
+        </svg>
+        <div class="curve-name">Standard</div>
+        <div class="curve-vals">cubic-bezier(0.4, 0.0, 0.2, 1)</div>
+        <div class="curve-use">Default · transiciones suaves de UI</div>
+        <span class="runner"></span>
+      </div>
+
+      <div class="curve-card c-decel">
+        <svg class="curve-svg" viewBox="0 0 100 50" preserveAspectRatio="none">
+          <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+          <line x1="0" y1="0"  x2="0"   y2="50" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+          <path d="M 0 50 C 0 50 20 0 100 0" fill="none" stroke="#A78BFA" stroke-width="1.2"/>
+        </svg>
+        <div class="curve-name">Decelerate</div>
+        <div class="curve-vals">cubic-bezier(0.0, 0.0, 0.2, 1)</div>
+        <div class="curve-use">Entrada · sheets · modales</div>
+        <span class="runner"></span>
+      </div>
+
+      <div class="curve-card c-emphasized">
+        <svg class="curve-svg" viewBox="0 0 100 50" preserveAspectRatio="none">
+          <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+          <line x1="0" y1="0"  x2="0"   y2="50" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+          <path d="M 0 50 C 20 50 0 0 100 0" fill="none" stroke="#FDE68A" stroke-width="1.2"/>
+        </svg>
+        <div class="curve-name">Emphasized</div>
+        <div class="curve-vals">cubic-bezier(0.2, 0.0, 0.0, 1)</div>
+        <div class="curve-use">Hero · onboarding · momentos clave</div>
+        <span class="runner"></span>
+      </div>
+
+      <div class="curve-card c-spring">
+        <svg class="curve-svg" viewBox="0 0 100 50" preserveAspectRatio="none">
+          <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+          <line x1="0" y1="0"  x2="0"   y2="50" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+          <path d="M 0 50 C 34 -28 64 5 100 0" fill="none" stroke="#4ADE80" stroke-width="1.2"/>
+        </svg>
+        <div class="curve-name">Spring · gentle</div>
+        <div class="curve-vals">cubic-bezier(0.34, 1.56, 0.64, 1)</div>
+        <div class="curve-use">Confirmaciones · interacciones puntuales</div>
+        <span class="runner"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Durations strip -->
+  <div class="durations">
+    <div class="dur"><div class="v">120 <small>ms</small></div><div class="use">tap feedback · hover</div></div>
+    <div class="dur"><div class="v">240 <small>ms</small></div><div class="use">enter · exit estándar</div></div>
+    <div class="dur"><div class="v">400 <small>ms</small></div><div class="use">layout · sheet</div></div>
+    <div class="dur"><div class="v">600 <small>ms</small></div><div class="use">hero · onboarding</div></div>
+  </div>
+</div>
+</body></html>

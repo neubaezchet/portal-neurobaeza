@@ -316,8 +316,66 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
     }
   }, [casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
 
-  // Legacy wrappers para compatibilidad con atajos de teclado
-  const mejorarCalidadHD = useCallback(() => abrirEditorEnVivo('sharpen'), [abrirEditorEnVivo]);
+  // ✅ MEJORA HD (servidor): mejora el PDF en el backend y muestra antes/después
+  const mejorarCalidadHD = useCallback(async (mode = 'fast') => {
+    setEnviandoValidacion(true);
+    mostrarNotificacion(
+      mode === 'hd' ? '🤖 Mejorando con IA (puede tardar)...' : '⚡ Mejorando calidad HD...'
+    );
+
+    try {
+      // 1) Obtener el PDF actual (reusa el de caché si ya está cargado)
+      let pdfFile = currentPDFFile;
+      if (!pdfFile) {
+        const resp = await fetch(
+          `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/pdf/fast`,
+          { headers: getHeaders() }
+        );
+        pdfFile = new File([await resp.blob()], `${casoSeleccionado.serial}.pdf`, { type: 'application/pdf' });
+        setCurrentPDFFile(pdfFile);
+      }
+
+      // 2) Enviar al backend para mejorar
+      const fd = new FormData();
+      fd.append('archivo', pdfFile, 'original.pdf');
+
+      const enhanceResp = await fetch(
+        `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/mejorar-hd?mode=${mode}`,
+        {
+          method: 'POST',
+          headers: { 'X-Admin-Token': ADMIN_TOKEN },
+          body: fd,
+          // HD sin GPU puede tardar; damos margen amplio
+          signal: AbortSignal.timeout(mode === 'hd' ? 180000 : 60000),
+        }
+      );
+      if (!enhanceResp.ok) throw new Error(`Error ${enhanceResp.status}`);
+
+      const enhancedBlob = await enhanceResp.blob();
+      const enhancedFile = new File([enhancedBlob], 'enhanced.pdf', { type: 'application/pdf' });
+
+      // 3) Renderizar la página actual ANTES y DESPUÉS a canvases
+      const { renderPDFPageToCanvas } = await import('./utils/pdfUtils');
+      const [originalCanvas, editedCanvas] = await Promise.all([
+        renderPDFPageToCanvas(pdfFile, currentPage, 1.5),
+        renderPDFPageToCanvas(enhancedFile, currentPage, 1.5),
+      ]);
+
+      // 4) Mostrar el comparador antes/después
+      setEditedPDFFile(enhancedFile);                 // lo que se guardará al aceptar
+      setBeforeAfterCanvases({ originalCanvas, editedCanvas });
+      setShowBeforeAfter(true);
+      mostrarNotificacion('✅ Listo — revisa el antes/después', 'success');
+    } catch (err) {
+      console.error('[mejorarCalidadHD]', err);
+      mostrarNotificacion(
+        err.name === 'TimeoutError' ? '⏱️ Tardó demasiado, intenta modo rápido' : '❌ Error al mejorar',
+        'error'
+      );
+    } finally {
+      setEnviandoValidacion(false);
+    }
+  }, [casoSeleccionado.serial, currentPDFFile, currentPage, mostrarNotificacion]);
   const aplicarFiltro = useCallback((tipo) => {
     if (tipo === 'grayscale') abrirEditorEnVivo('grayscale');
     else if (tipo === 'contrast') abrirEditorEnVivo('contrast');
@@ -1407,6 +1465,11 @@ return (
                 mostrarNotificacion('✅ Cambios guardados en Drive', 'success');
                 setShowBeforeAfter(false);
                 setBeforeAfterCanvases(null);
+                // Limpiar caché para que se recargue el PDF mejorado
+                await invalidatePDFCache(casoSeleccionado.serial);
+                setCurrentPDFFile(null);
+                setHasUnsavedChanges(false);
+                await recargarPDFInPlace(casoSeleccionado.serial);
               } else {
                 mostrarNotificacion('❌ Error guardando', 'error');
               }
@@ -1991,6 +2054,33 @@ return (
               <button onClick={() => {abrirEditorEnVivo('contrast'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">◈ Contraste (en vivo)</button>
               <button onClick={() => {abrirEditorEnVivo('sharpen'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">🎯 Enfoque HD (en vivo)</button>
               <button onClick={() => {abrirEditorEnVivo('grayscale'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">⚪ Blanco y Negro</button>
+            </div>
+          </div>
+
+          {/* 🚀 MEJORA HD (SERVIDOR) */}
+          <div className="border border-gray-700 rounded-lg overflow-hidden">
+            <button className="w-full px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold text-sm hover:from-emerald-700 hover:to-teal-700 flex items-center justify-between">
+              <span>🚀 Mejora HD (servidor)</span>
+              <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded">NUEVO</span>
+            </button>
+            <div className="bg-gray-800/50 p-2 space-y-1">
+              <button
+                onClick={() => { mejorarCalidadHD('fast'); setShowToolsMenu(false); }}
+                disabled={enviandoValidacion}
+                className="w-full px-3 py-2 bg-gray-700 hover:bg-emerald-600 text-white text-xs rounded disabled:opacity-50 flex items-center gap-2"
+              >
+                ⚡ Mejorar a HD (rápido)
+              </button>
+              <button
+                onClick={() => { mejorarCalidadHD('hd'); setShowToolsMenu(false); }}
+                disabled={enviandoValidacion}
+                className="w-full px-3 py-2 bg-gray-700 hover:bg-purple-600 text-white text-xs rounded disabled:opacity-50 flex items-center gap-2"
+              >
+                🤖 Mejorar a HD (IA máxima)
+              </button>
+              <p className="text-[10px] text-gray-500 px-1 pt-1">
+                Endereza, quita ruido y mejora nitidez. El modo IA es más lento.
+              </p>
             </div>
           </div>
 

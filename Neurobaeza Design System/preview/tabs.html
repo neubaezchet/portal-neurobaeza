@@ -1,0 +1,241 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Tabs" subtitle="Underline · pill group · segmented — hero + library" viewport="700x380" --><html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"><title>Tabs</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  .grid { display: grid; grid-template-columns: 340px 1fr; gap: 26px; align-items: stretch; }
+
+  /* ─── Hero stage (app-level tab bar in context) ─── */
+  .stage {
+    position: relative; height: 100%;
+    border-radius: 14px;
+    background:
+      radial-gradient(60% 60% at 20% 0%, rgba(14,165,233,0.10), transparent 70%),
+      #0B0B10;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+    padding: 16px 18px 14px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .stage::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent); }
+  .stage-head {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: "JetBrains Mono", monospace; font-size: 9px;
+    color: #475569; letter-spacing: 0.4px;
+  }
+
+  /* The actual tab bar */
+  .tabbar {
+    display: flex; gap: 0; border-bottom: 1.5px solid rgba(255,255,255,0.06);
+    overflow: hidden;
+  }
+  .tab {
+    background: transparent; border: none; cursor: pointer;
+    color: #94A3B8;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 600; font-size: 12px; letter-spacing: 0.01em;
+    padding: 10px 14px;
+    position: relative;
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-bottom: -1.5px;
+    border-bottom: 1.5px solid transparent;
+    transition: color 200ms cubic-bezier(0.22,1,0.36,1);
+  }
+  .tab.active { color: #38BDF8; font-weight: 700; border-bottom: 1.5px solid #0EA5E9; }
+  .tab.active::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1.5px; height: 6px;
+    background: radial-gradient(50% 100% at 50% 100%, rgba(14,165,233,0.45), transparent 70%);
+    pointer-events: none;
+  }
+  .tab.hover { color: #CBD5E1; background: linear-gradient(180deg, transparent, rgba(255,255,255,0.02)); }
+  .tab .count {
+    background: rgba(220,38,38,0.85); color: #fff;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px; font-weight: 700;
+    padding: 1px 6px; border-radius: 9999px;
+    line-height: 1.4;
+  }
+  .tab .count.dot {
+    background: #0EA5E9;
+    padding: 0; width: 6px; height: 6px; border-radius: 50%; margin-left: 2px;
+    box-shadow: 0 0 8px #0EA5E9;
+  }
+
+  /* Hint of the panel below the tab bar */
+  .panel-hint {
+    height: 64px;
+    background: rgba(11,11,16,0.6);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 6px;
+    position: relative; overflow: hidden;
+  }
+  .panel-hint::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 30px;
+    background: linear-gradient(180deg, transparent, #0B0B10);
+  }
+  .skel { height: 8px; border-radius: 3px; background: rgba(255,255,255,0.05); }
+  .skel.w1 { width: 40%; }
+  .skel.w2 { width: 70%; }
+  .skel.w3 { width: 55%; }
+
+  /* anatomy callouts under hero */
+  .callouts {
+    display: flex; gap: 14px; align-items: center;
+    font-family: "JetBrains Mono", monospace; font-size: 9px; color: #475569; letter-spacing: 0.3px;
+  }
+  .callouts b { color: #94A3B8; font-weight: 600; }
+
+  /* ─── Library (right) ─── */
+  .library { display: flex; flex-direction: column; gap: 14px; }
+  .lib-row { display: flex; flex-direction: column; gap: 8px; }
+  .lib-head { display: flex; align-items: center; gap: 10px; }
+  .lib-label { font-size: 10px; font-weight: 700; color: #94A3B8; letter-spacing: 0.14em; text-transform: uppercase; }
+  .lib-rule { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.08), transparent); }
+  .anno { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #475569; letter-spacing: 0.3px; }
+  .lib-items { display: flex; flex-wrap: wrap; gap: 16px 22px; align-items: flex-end; }
+
+  /* Sub-tab pill group */
+  .pillgroup {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: rgba(11,11,16,0.7); padding: 4px;
+    border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .pill {
+    background: transparent; color: #94A3B8;
+    font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; font-size: 10.5px;
+    padding: 6px 11px; border: none; border-radius: 7px; cursor: pointer;
+    white-space: nowrap;
+    transition: all 200ms cubic-bezier(0.22,1,0.36,1);
+  }
+  .pill.active.blue    { background: linear-gradient(180deg,#3B82F6,#2563EB); color:#fff;
+                         box-shadow: 0 4px 12px rgba(37,99,235,0.4), inset 0 1px 0 rgba(255,255,255,0.35); }
+  .pill.active.purple  { background: linear-gradient(180deg,#A855F7,#7C3AED); color:#fff;
+                         box-shadow: 0 4px 12px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.35); }
+  .pill.active.emerald { background: linear-gradient(180deg,#10B981,#059669); color:#fff;
+                         box-shadow: 0 4px 12px rgba(5,150,105,0.4), inset 0 1px 0 rgba(255,255,255,0.35); }
+
+  /* segmented (vertical / side) tabs sample */
+  .seg {
+    display: inline-flex; flex-direction: column; gap: 2px;
+    background: rgba(11,11,16,0.5); padding: 6px;
+    border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);
+    min-width: 140px;
+  }
+  .seg-item {
+    background: transparent; border: none; cursor: pointer;
+    color: #94A3B8; text-align: left;
+    font-family: "Plus Jakarta Sans", sans-serif; font-weight: 600; font-size: 11px;
+    padding: 7px 10px; border-radius: 7px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .seg-item i { width: 13px; height: 13px; opacity: 0.7; }
+  .seg-item.active {
+    background: rgba(14,165,233,0.10);
+    color: #38BDF8;
+    box-shadow: inset 0 0 0 1px rgba(56,189,248,0.25);
+  }
+  .seg-item.active i { opacity: 1; }
+</style>
+</head><body>
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;">
+    <div class="eyebrow">Tabs · navigation system</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#475569;letter-spacing:0.4px;">3 patterns · underline · pill · segmented</div>
+  </div>
+
+  <div class="grid">
+    <!-- Hero stage -->
+    <div class="stage">
+      <div class="stage-head">
+        <span>UNDERLINE · app-level</span>
+        <span>sapphire-500 · 1.5 px</span>
+      </div>
+      <div class="tabbar">
+        <button class="tab active">✅ Validación <span class="count dot"></span></button>
+        <button class="tab hover">📊 Reportes</button>
+        <button class="tab">🤖 IA <span class="count">23</span></button>
+        <button class="tab">📦 Exportar</button>
+      </div>
+      <div class="panel-hint">
+        <div class="skel w1"></div>
+        <div class="skel w2"></div>
+        <div class="skel w3"></div>
+      </div>
+      <div class="callouts">
+        <span><b>weight</b>700·600</span>
+        <span><b>color</b>#38BDF8 / #94A3B8</span>
+        <span><b>glow</b>↓6 px</span>
+      </div>
+    </div>
+
+    <!-- Library -->
+    <div class="library">
+
+      <!-- States row -->
+      <div class="lib-row">
+        <div class="lib-head"><span class="lib-label">States</span><span class="lib-rule"></span><span class="anno">underline tab · transitions 200ms</span></div>
+        <div class="lib-items">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><button class="tab" style="padding:8px 12px;">Default</button><span class="anno">rest · slate-400</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><button class="tab hover" style="padding:8px 12px;">Hover</button><span class="anno">slate-300</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><button class="tab active" style="padding:8px 12px;">Active</button><span class="anno">sapphire + glow</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><button class="tab" style="padding:8px 12px;">Badge <span class="count">23</span></button><span class="anno">count · danger</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><button class="tab" style="padding:8px 12px;opacity:0.4;cursor:not-allowed;">Disabled</button><span class="anno">no permission</span></div>
+        </div>
+      </div>
+
+      <!-- Pill group row -->
+      <div class="lib-row">
+        <div class="lib-head"><span class="lib-label">Sub-tabs · pill group</span><span class="lib-rule"></span><span class="anno">color-coded by section</span></div>
+        <div class="lib-items">
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start;">
+            <div class="pillgroup">
+              <button class="pill active blue">📊 Resumen</button>
+              <button class="pill">👔 TH</button>
+              <button class="pill">🛡️ SST</button>
+            </div>
+            <span class="anno">blue · default</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start;">
+            <div class="pillgroup">
+              <button class="pill">📈 KPI</button>
+              <button class="pill active purple">📋 Detalle</button>
+            </div>
+            <span class="anno">purple · reports</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start;">
+            <div class="pillgroup">
+              <button class="pill active emerald">✅ Activos</button>
+              <button class="pill">🗂️ Histórico</button>
+            </div>
+            <span class="anno">emerald · accent</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Segmented row -->
+      <div class="lib-row">
+        <div class="lib-head"><span class="lib-label">Segmented · side nav</span><span class="lib-rule"></span><span class="anno">vertical · settings & wizards</span></div>
+        <div class="lib-items" style="gap:14px;">
+          <div class="seg">
+            <button class="seg-item active"><i data-lucide="sliders"></i> General</button>
+            <button class="seg-item"><i data-lucide="bell"></i> Notificaciones</button>
+            <button class="seg-item"><i data-lucide="users"></i> Equipo</button>
+            <button class="seg-item"><i data-lucide="shield"></i> Permisos</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start;">
+            <span class="anno"><b style="color:#94A3B8;font-weight:600;">item</b> 28 × auto</span>
+            <span class="anno"><b style="color:#94A3B8;font-weight:600;">active</b> bg-sapphire/10</span>
+            <span class="anno"><b style="color:#94A3B8;font-weight:600;">ring</b> inset 1 px</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>

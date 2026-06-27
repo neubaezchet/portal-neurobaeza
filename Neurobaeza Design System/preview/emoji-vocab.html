@@ -1,0 +1,143 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Emoji vocabulary" subtitle="Twemoji SVG · grouped by intent" viewport="700x540" --><html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"><title>Emoji vocabulary</title>
+<style>
+  .group { display: flex; flex-direction: column; gap: 8px; }
+  .group + .group { margin-top: 16px; padding-top: 14px; border-top: 1px dashed rgba(255,255,255,0.06); }
+  .group-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .group-label { font-size: 10px; font-weight: 700; color: #94A3B8; letter-spacing: 0.14em; text-transform: uppercase; }
+  .group-rule  { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.08), transparent); }
+  .group-meta  { font-family: "JetBrains Mono", monospace; font-size: 10px; color: #475569; }
+
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+  .tile {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    align-items: center; gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: background 200ms;
+  }
+  .tile:hover { background: rgba(255,255,255,0.04); }
+
+  .glyph {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background:
+      radial-gradient(60% 60% at 30% 25%, rgba(255,255,255,0.10), transparent 70%),
+      rgba(11,11,16,0.75);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 10px rgba(0,0,0,0.3);
+    font-size: 20px;
+    line-height: 1;
+  }
+  .glyph svg { display: block; }
+
+  .meaning { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .meaning .label {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 11.5px; font-weight: 600; color: #F8FAFC;
+    line-height: 1.2;
+  }
+  .meaning .desc {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; color: #64748B; letter-spacing: 0.2px;
+    line-height: 1.2;
+  }
+  .meaning .desc.brand { color: #38BDF8; }
+</style>
+</head><body>
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;">
+    <div class="eyebrow">Emoji vocabulary · semantic markers</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#475569;letter-spacing:0.4px;">Unicode nativo · brand SVG cuando aplica</div>
+  </div>
+
+  <!-- ─── Status & outcome ─────────────────── Unicode -->
+  <div class="group">
+    <div class="group-head"><span class="group-label">Status &amp; outcome</span><span class="group-rule"></span><span class="group-meta">prefix · pills</span></div>
+    <div class="grid">
+      <div class="tile"><span class="glyph">✅</span><div class="meaning"><span class="label">Éxito</span><span class="desc">validado · completo</span></div></div>
+      <div class="tile"><span class="glyph">❌</span><div class="meaning"><span class="label">Error</span><span class="desc">fallo · cancelar</span></div></div>
+      <div class="tile"><span class="glyph">⚠️</span><div class="meaning"><span class="label">Advertencia</span><span class="desc">requiere atención</span></div></div>
+      <div class="tile"><span class="glyph">🚨</span><div class="meaning"><span class="label">Posible fraude</span><span class="desc">escalation</span></div></div>
+    </div>
+  </div>
+
+  <!-- ─── Channels & documents ───────────── mezcla -->
+  <div class="group">
+    <div class="group-head"><span class="group-label">Canales &amp; documentos</span><span class="group-rule"></span><span class="group-meta">brand mark · más alusivo</span></div>
+    <div class="grid">
+      <div class="tile"><span class="glyph">✉️</span><div class="meaning"><span class="label">Email</span><span class="desc">canal correo</span></div></div>
+
+      <!-- WhatsApp brand -->
+      <div class="tile">
+        <span class="glyph">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-label="WhatsApp">
+            <rect x="1" y="1" width="22" height="22" rx="6" fill="#25D366"/>
+            <path fill="#fff" d="M12 4.5c-4.1 0-7.5 3.4-7.5 7.5 0 1.4.4 2.7 1.1 3.9L5 20l4.2-1.1c1.1.6 2.4.9 3.8.9 4.1 0 7.5-3.4 7.5-7.5S16.1 4.5 12 4.5zm0 13.7c-1.3 0-2.5-.3-3.5-.9l-.3-.2-2.5.7.7-2.4-.2-.3c-.6-1-1-2.2-1-3.4 0-3.4 2.8-6.2 6.2-6.2s6.2 2.8 6.2 6.2c0 3.4-2.8 6.2-6.2 6.2z"/>
+            <path fill="#fff" d="M15.6 13.5c-.2-.1-1.1-.5-1.3-.6-.2-.1-.3-.1-.4.1-.1.2-.5.6-.6.7-.1.1-.2.1-.4 0-.2-.1-.8-.3-1.5-1-.6-.5-1-1.2-1.1-1.4-.1-.2 0-.3.1-.4.1-.1.2-.2.3-.3.1-.1.1-.2.2-.3.1-.1 0-.2 0-.3 0-.1-.4-1-.6-1.4-.1-.3-.3-.3-.4-.3h-.4c-.1 0-.3 0-.5.2-.2.2-.7.7-.7 1.6 0 1 .7 1.9.8 2 .1.1 1.4 2.1 3.4 3 .5.2.8.3 1.1.4.5.2.9.1 1.2.1.4-.1 1.1-.5 1.3-.9.2-.5.2-.8.1-.9-.1-.1-.2-.2-.5-.3z"/>
+          </svg>
+        </span>
+        <div class="meaning"><span class="label">WhatsApp</span><span class="desc brand">brand · canal móvil</span></div>
+      </div>
+
+      <!-- Google Drive brand -->
+      <div class="tile">
+        <span class="glyph">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-label="Google Drive">
+            <polygon points="12,3.5 7.3,11.7 16.7,11.7" fill="#FBBC04"/>
+            <polygon points="7.3,11.7 16.7,11.7 21.5,20 11.9,20" fill="#34A853"/>
+            <polygon points="2.5,20 11.9,20 16.7,11.7 7.3,11.7" fill="#4285F4"/>
+            <polygon points="7.3,11.7 12,3.5 9,3.5 4.6,11.7" fill="#FBBC04" opacity="0.85"/>
+            <polygon points="16.7,11.7 12,3.5 15,3.5 19.4,11.7" fill="#34A853" opacity="0.85"/>
+          </svg>
+        </span>
+        <div class="meaning"><span class="label">Google Drive</span><span class="desc brand">brand · guardado · sync</span></div>
+      </div>
+
+      <!-- PDF brand mark -->
+      <div class="tile">
+        <span class="glyph">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-label="PDF">
+            <rect x="3.5" y="2" width="17" height="20" rx="2.5" fill="#fff"/>
+            <path d="M16.5 2 L20.5 6 L16.5 6 Z" fill="#F3F4F6"/>
+            <rect x="3.5" y="11.5" width="17" height="7" fill="#E0341A"/>
+            <text x="12" y="17" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="5.5" fill="#fff" letter-spacing="0.3">PDF</text>
+          </svg>
+        </span>
+        <div class="meaning"><span class="label">PDF</span><span class="desc brand">brand · documento</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Departments ─────────────────── Unicode -->
+  <div class="group">
+    <div class="group-head"><span class="group-label">Departamentos</span><span class="group-rule"></span><span class="group-meta">tabs · roles</span></div>
+    <div class="grid">
+      <div class="tile"><span class="glyph">👔</span><div class="meaning"><span class="label">Talento Humano</span><span class="desc">TH</span></div></div>
+      <div class="tile"><span class="glyph">🛡️</span><div class="meaning"><span class="label">SST</span><span class="desc">seguridad y salud</span></div></div>
+      <div class="tile"><span class="glyph">💰</span><div class="meaning"><span class="label">Nómina</span><span class="desc">payroll</span></div></div>
+      <div class="tile"><span class="glyph">📊</span><div class="meaning"><span class="label">Reportes</span><span class="desc">analítica</span></div></div>
+    </div>
+  </div>
+
+  <!-- ─── Roles ─────────────────── Unicode -->
+  <div class="group">
+    <div class="group-head"><span class="group-label">Roles &amp; estados especiales</span><span class="group-rule"></span><span class="group-meta">badges · headers</span></div>
+    <div class="grid">
+      <div class="tile"><span class="glyph">🔑</span><div class="meaning"><span class="label">Super Admin</span><span class="desc">acceso total</span></div></div>
+      <div class="tile"><span class="glyph">🤖</span><div class="meaning"><span class="label">Validación IA</span><span class="desc">auto-check</span></div></div>
+      <div class="tile"><span class="glyph">🔒</span><div class="meaning"><span class="label">Bloqueado</span><span class="desc">empleado</span></div></div>
+      <div class="tile"><span class="glyph">⏳</span><div class="meaning"><span class="label">Pendiente</span><span class="desc">en cola</span></div></div>
+    </div>
+  </div>
+
+  <div style="margin-top: 14px; padding: 10px 12px; background: rgba(56,189,248,0.06); border: 1px solid rgba(56,189,248,0.18); border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #94A3B8; line-height: 1.5;">
+    <b style="color:#38BDF8;">regla</b> · Unicode nativo del OS para conceptos genéricos · SVG inline cuando hay una marca reconocible (Drive, WhatsApp, PDF) que comunica más rápido que un emoji genérico
+  </div>
+</div>
+</body></html>

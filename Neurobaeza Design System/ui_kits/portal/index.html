@@ -1,0 +1,159 @@
+<!doctype html>
+<!-- @dsCard group="UI Kit — Portal" name="Portal · UI Kit" subtitle="Login → Dashboard → Document viewer · live click-thru" viewport="1280x800" -->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portal Neurobaeza · UI Kit</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+  html, body { background: #FFFFFF; color: #0F172A; margin: 0; }
+  body { font-family: "Plus Jakarta Sans", sans-serif; }
+
+  /* Login fog approximation */
+  .fog-layer { position: absolute; inset: 0; pointer-events: none; }
+  .fog-1 {
+    background:
+      radial-gradient(60% 50% at 30% 30%, rgba(79,70,229,0.18), transparent 60%),
+      radial-gradient(40% 30% at 70% 20%, rgba(129,140,248,0.10), transparent 70%);
+    animation: fogDriftA 22s ease-in-out infinite alternate;
+  }
+  .fog-2 {
+    background:
+      radial-gradient(50% 40% at 80% 70%, rgba(99,102,241,0.16), transparent 60%),
+      radial-gradient(30% 25% at 20% 80%, rgba(79,70,229,0.10), transparent 70%);
+    animation: fogDriftB 28s ease-in-out infinite alternate;
+    mix-blend-mode: screen;
+  }
+  .fog-3 {
+    background: radial-gradient(70% 50% at 50% 50%, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 80%);
+  }
+  @keyframes fogDriftA {
+    0%   { transform: translate3d(0,0,0) scale(1); }
+    100% { transform: translate3d(-6%, 4%, 0) scale(1.12); }
+  }
+  @keyframes fogDriftB {
+    0%   { transform: translate3d(0,0,0) scale(1.05); }
+    100% { transform: translate3d(5%, -5%, 0) scale(1); }
+  }
+
+  @keyframes fadeUp2026 {
+    0%   { opacity: 0; transform: translateY(24px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin 1s linear infinite; }
+
+  /* Toast stack */
+  .toast-stack {
+    position: fixed; bottom: 24px; right: 24px;
+    display: flex; flex-direction: column; gap: 10px;
+    z-index: 2000; max-width: 380px;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="data.js"></script>
+<script type="text/babel" src="components.jsx"></script>
+<script type="text/babel" src="LoginScreen.jsx"></script>
+<script type="text/babel" src="AppShell.jsx"></script>
+<script type="text/babel" src="ValidacionTab.jsx"></script>
+<script type="text/babel" src="DocumentViewerModal.jsx"></script>
+<script type="text/babel" src="ReportesTab.jsx"></script>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+function App() {
+  const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState("validacion");
+  const [casoAbierto, setCasoAbierto] = useState(null);
+  const [casos, setCasos] = useState(window.MOCK_CASOS);
+  const [toasts, setToasts] = useState([]);
+
+  useEffect(() => { if (window.lucide) window.lucide.createIcons(); });
+
+  const pushToast = (toast) => {
+    const id = Math.random().toString(36).slice(2);
+    setToasts(t => [...t, { id, ...toast }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 4500);
+  };
+
+  const handleValidate = (accion, caso, checks) => {
+    if (accion === "completa") {
+      pushToast({ type: "success", text: `✅ Caso VALIDADO como COMPLETO · ${caso.serial}` });
+      pushToast({ type: "info",    text: `📧 Email → empleado@${caso.empresa.toLowerCase().replace(/[^a-z]/g,"")}.com` });
+      pushToast({ type: "info",    text: `📱 WhatsApp → +57 312 *** ${Math.floor(Math.random()*9000+1000)}` });
+      setCasos(cs => cs.map(c => c.id === caso.id ? { ...c, estado: "COMPLETA" } : c));
+      setCasoAbierto(null);
+    } else if (accion === "incompleta") {
+      pushToast({ type: "warning", text: `⚠️ Caso marcado como INCOMPLETO · ${checks?.length || 0} checks` });
+      setCasos(cs => cs.map(c => c.id === caso.id ? { ...c, estado: "INCOMPLETA", reenvios: c.reenvios + 1 } : c));
+      setCasoAbierto(null);
+    } else if (accion === "solicitar_epicrisis") {
+      pushToast({ type: "info", text: `📋 Solicitud de epicrisis enviada al colaborador` });
+      setCasoAbierto(null);
+    } else if (accion === "enviar_validar") {
+      pushToast({ type: "info", text: `🔍 Caso enviado a validar con la EPS` });
+      setCasos(cs => cs.map(c => c.id === caso.id ? { ...c, estado: "EPS_TRANSCRIPCION" } : c));
+      setCasoAbierto(null);
+    } else if (accion === "extra") {
+      pushToast({ type: "info", text: `📝 Notificación personalizada enviada (IA)` });
+      setCasoAbierto(null);
+    }
+  };
+
+  if (!user) return <LoginScreen onLogin={setUser} />;
+
+  return (
+    <>
+      <AppShell user={user} onLogout={() => setUser(null)} activeTab={activeTab} setActiveTab={setActiveTab}>
+        {activeTab === "validacion" && (
+          <ValidacionTab
+            casos={casos}
+            onOpenCaso={setCasoAbierto}
+            onExport={() => pushToast({ type: "success", text: "📥 Excel exportado · 412 casos" })}
+          />
+        )}
+        {activeTab === "reportes" && <ReportesTab casos={casos} />}
+        {(activeTab === "ia" || activeTab === "exportaciones" || activeTab === "powerbi") && (
+          <GlassPanel radius={20} padding="48px" style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>
+              {activeTab === "ia" ? "🤖" : activeTab === "exportaciones" ? "📦" : "📈"}
+            </div>
+            <div style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700, fontSize: 22, color: "#0F172A" }}>
+              {activeTab === "ia" ? "Validaciones IA" : activeTab === "exportaciones" ? "Exportaciones masivas PDF" : "Power BI · análisis individual"}
+            </div>
+            <p style={{ color: "#94A3B8", fontSize: 13, marginTop: 8 }}>
+              Pestaña fuera del scope de este UI kit. Ver <code style={{ color: "#818CF8" }}>{
+                activeTab === "ia" ? "ValidationResultsTable.jsx" :
+                activeTab === "exportaciones" ? "ExportacionesPDF.jsx" : "PowerBIDashboard.jsx"
+              }</code> en el repo.
+            </p>
+          </GlassPanel>
+        )}
+      </AppShell>
+
+      {casoAbierto ? (
+        <DocumentViewerModal caso={casoAbierto} onClose={() => setCasoAbierto(null)} onValidate={handleValidate} />
+      ) : null}
+
+      <div className="toast-stack">
+        {toasts.map(t => (
+          <Toast key={t.id} type={t.type} onClose={() => setToasts(ts => ts.filter(x => x.id !== t.id))}>{t.text}</Toast>
+        ))}
+      </div>
+    </>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+</script>
+</body>
+</html>

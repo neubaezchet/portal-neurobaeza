@@ -1,0 +1,186 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Inputs & select" subtitle="Hero focus state + states / types / sizes library" viewport="700x380" --><html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"><title>Inputs &amp; select</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  .grid { display: grid; grid-template-columns: 300px 1fr; gap: 26px; align-items: stretch; }
+
+  /* Hero stage */
+  .stage {
+    position: relative;
+    border-radius: 14px;
+    background:
+      radial-gradient(60% 50% at 50% 0%, rgba(14,165,233,0.10), transparent 70%),
+      #0B0B10;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+    padding: 26px 22px 22px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .stage::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent); }
+  .stage-label {
+    position: absolute; top: 10px; left: 14px;
+    font-family: "JetBrains Mono", monospace; font-size: 9px;
+    color: #475569; letter-spacing: 0.4px;
+  }
+  .stage .field-label {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 12px; color: #CBD5E1; font-weight: 500;
+    margin-bottom: -2px;
+  }
+  .callouts {
+    display: flex; gap: 14px; align-items: center; margin-top: 4px;
+    font-family: "JetBrains Mono", monospace; font-size: 9px; color: #475569; letter-spacing: 0.3px;
+  }
+  .callouts b { color: #94A3B8; font-weight: 600; }
+
+  /* ─── Input atom ─── */
+  .inp {
+    position: relative;
+    display: flex; align-items: center;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 11px 14px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    transition: all 200ms cubic-bezier(0.22,1,0.36,1);
+  }
+  .inp input, .inp select {
+    background: transparent; border: none; outline: none;
+    color: #F8FAFC;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 13px; font-weight: 500;
+    flex: 1; min-width: 0;
+    appearance: none;
+  }
+  .inp .lead, .inp .trail {
+    color: #64748B; display: inline-flex; align-items: center;
+  }
+  .inp .lead { margin-right: 10px; }
+  .inp .trail { margin-left: 10px; }
+  .inp i { width: 15px; height: 15px; }
+  .inp .ghost { font-size: 13px; color: #475569; }
+
+  /* States */
+  .inp.focus {
+    border-color: #38BDF8;
+    background: rgba(14,165,233,0.06);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.04),
+      0 0 0 3px rgba(56,189,248,0.22);
+  }
+  .inp.focus .lead { color: #38BDF8; }
+  .inp.error {
+    border-color: rgba(248,113,113,0.55);
+    background: rgba(248,113,113,0.06);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 3px rgba(248,113,113,0.15);
+  }
+  .inp.error .trail { color: #F87171; }
+  .inp.success {
+    border-color: rgba(74,222,128,0.45);
+    background: rgba(74,222,128,0.05);
+  }
+  .inp.success .trail { color: #4ADE80; }
+  .inp.disabled {
+    opacity: 0.45; cursor: not-allowed;
+    background: rgba(255,255,255,0.015);
+  }
+
+  /* Sizes */
+  .inp.sm { padding: 7px 11px; border-radius: 12px; }
+  .inp.sm input { font-size: 12px; }
+  .inp.lg { padding: 14px 18px; border-radius: 20px; }
+  .inp.lg input { font-size: 14px; }
+
+  /* Caret blink — adds professional feel */
+  @keyframes blink { 50% { opacity: 0; } }
+  .caret {
+    width: 1.5px; height: 14px; background: #38BDF8; display: inline-block;
+    margin-left: 1px; animation: blink 1s steps(1) infinite; vertical-align: middle;
+  }
+
+  /* Helper text */
+  .helper {
+    font-size: 10.5px; color: #94A3B8; margin-top: 5px;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .helper.err { color: #F87171; }
+  .helper.ok  { color: #4ADE80; }
+  .helper i { width: 11px; height: 11px; }
+
+  /* ─── Library ─── */
+  .library { display: flex; flex-direction: column; gap: 16px; }
+  .lib-row { display: flex; flex-direction: column; gap: 8px; }
+  .lib-head { display: flex; align-items: center; gap: 10px; }
+  .lib-label { font-size: 10px; font-weight: 700; color: #94A3B8; letter-spacing: 0.14em; text-transform: uppercase; }
+  .lib-rule { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.08), transparent); }
+  .anno { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #475569; letter-spacing: 0.3px; }
+
+  .pair { display: flex; flex-direction: column; gap: 4px; }
+</style>
+</head><body>
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;">
+    <div class="eyebrow">Inputs &amp; select · form fields</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#475569;letter-spacing:0.4px;">5 states · 3 sizes · lead / trail slots</div>
+  </div>
+
+  <div class="grid">
+    <!-- Hero stage: featured focused input -->
+    <div class="stage">
+      <span class="stage-label">FOCUS · sapphire ring</span>
+      <div class="field-label">Contraseña</div>
+      <div class="inp focus">
+        <span class="lead"><i data-lucide="lock"></i></span>
+        <input value="••••••••" />
+        <span class="caret"></span>
+        <span class="trail"><i data-lucide="eye"></i></span>
+      </div>
+      <div class="callouts">
+        <span><b>r</b>16</span>
+        <span><b>h</b>44</span>
+        <span><b>ring</b>3·sapphire/22</span>
+      </div>
+    </div>
+
+    <!-- Library -->
+    <div class="library">
+
+      <!-- States -->
+      <div class="lib-row">
+        <div class="lib-head"><span class="lib-label">States</span><span class="lib-rule"></span><span class="anno">transitions 200ms</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;">
+          <div class="pair"><div class="inp"><span class="lead"><i data-lucide="user"></i></span><input placeholder="Usuario"/></div><span class="anno">default</span></div>
+          <div class="pair"><div class="inp focus"><span class="lead"><i data-lucide="user"></i></span><input value="carolina.lopez"/><span class="caret"></span></div><span class="anno">focus · sapphire ring</span></div>
+          <div class="pair"><div class="inp error"><span class="lead"><i data-lucide="mail"></i></span><input value="correo@incompleto"/><span class="trail"><i data-lucide="alert-circle"></i></span></div><span class="helper err"><i data-lucide="alert-circle"></i>Formato inválido</span></div>
+          <div class="pair"><div class="inp success"><span class="lead"><i data-lucide="mail"></i></span><input value="carolina@empresa.com"/><span class="trail"><i data-lucide="check"></i></span></div><span class="helper ok"><i data-lucide="check"></i>Disponible</span></div>
+        </div>
+      </div>
+
+      <!-- Types -->
+      <div class="lib-row">
+        <div class="lib-head"><span class="lib-label">Types</span><span class="lib-rule"></span><span class="anno">slot icons · suffix actions</span></div>
+        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:8px 14px;">
+          <div class="pair"><div class="inp"><span class="lead"><i data-lucide="search"></i></span><input placeholder="Buscar serial, cédula o nombre…"/><span class="trail" style="font-family:'JetBrains Mono';font-size:10px;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);color:#94A3B8;">⌘K</span></div><span class="anno">search + shortcut hint</span></div>
+          <div class="pair"><div class="inp"><select><option>Todas las empresas</option></select><span class="trail"><i data-lucide="chevron-down"></i></span></div><span class="anno">select · chevron-down</span></div>
+          <div class="pair"><div class="inp" style="padding-right:6px;"><span class="lead"><i data-lucide="calendar"></i></span><input value="12 nov 2026"/><span class="trail" style="background:rgba(14,165,233,0.12);padding:4px 10px;border-radius:8px;color:#38BDF8;font-size:11px;font-weight:600;cursor:pointer;">Hoy</span></div><span class="anno">date · quick action</span></div>
+          <div class="pair"><div class="inp disabled"><span class="lead"><i data-lucide="lock"></i></span><input value="solo lectura" disabled/></div><span class="anno">disabled · readonly</span></div>
+        </div>
+      </div>
+
+      <!-- Sizes -->
+      <div class="lib-row">
+        <div class="lib-head"><span class="lib-label">Sizes</span><span class="lib-rule"></span><span class="anno">sm 32 · md 40 · lg 48</span></div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div class="inp sm" style="flex:1;"><input placeholder="Small"/></div>
+          <div class="inp"    style="flex:1;"><input placeholder="Medium"/></div>
+          <div class="inp lg" style="flex:1;"><input placeholder="Large"/></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>
