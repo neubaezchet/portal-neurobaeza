@@ -98,6 +98,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   const [zoom, setZoom] = useState(100);
   const [pages, setPages] = useState([]);
   const [loadingPdf, setLoadingPdf] = useState(true);
+  const [reloadToken, setReloadToken] = useState(0); // fuerza recarga del PDF tras guardar/editar
   const [accionSeleccionada, setAccionSeleccionada] = useState(null);
   const [checksSeleccionados, setChecksSeleccionados] = useState([]);
   const [mensajePersonalizado, setMensajePersonalizado] = useState('');
@@ -163,9 +164,13 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
 
   // ✅ FUNCIÓN PARA RECARGAR PDF (después de editar)
   const recargarPDFInPlace = useCallback(async (serial) => {
-    // Simplemente limpiar pages y dejar que el useEffect recargue
+    // Limpiar pages e incrementar el token para forzar que el useEffect
+    // de carga vuelva a ejecutarse. El serial NO cambia al guardar, así que
+    // sin este token el spinner se quedaba "cargando" para siempre y los
+    // cambios nunca se reflejaban.
     setPages([]);
     setLoadingPdf(true);
+    setReloadToken(t => t + 1);
     mostrarNotificacion('🔄 Recargando PDF...', 'info');
   }, [mostrarNotificacion]);
 
@@ -1266,7 +1271,7 @@ useEffect(() => {
     return () => {
       abortController.abort();
     };
-  }, [casoSeleccionado?.serial]);
+  }, [casoSeleccionado?.serial, reloadToken]);
 
   // ✅ PRECARGA INTELIGENTE: Descarga próximos PDFs a IndexedDB en background
   useEffect(() => {

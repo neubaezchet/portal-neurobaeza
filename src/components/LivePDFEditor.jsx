@@ -41,6 +41,10 @@ export default function LivePDFEditor({
   
   // Estado de rotación (CSS transform, instantáneo GPU)
   const [rotation, setRotation] = useState(0); // grados: 0, 90, 180, 270
+
+  // Estado de zoom (Ctrl + rueda) — sirve para ver de cerca cómo quedan
+  // los ajustes (contraste, brillo, enfoque, B&N) antes de guardar.
+  const [zoom, setZoom] = useState(1); // 1 = 100%
   
   // Estado del modo crop
   const [cropMode, setCropMode] = useState(initialMode === 'crop');
@@ -103,6 +107,26 @@ export default function LivePDFEditor({
   }, [adjustments.sharpness]);
 
   // ═══════════════════════════════════════════════════════════
+  // ZOOM con Ctrl + rueda del mouse (funciona en TODO el editor:
+  // contraste, brillo, enfoque, B&N, recorte…). Permite acercarse
+  // para confirmar que los cambios se están aplicando.
+  // ═══════════════════════════════════════════════════════════
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const onWheel = (e) => {
+      if (!(e.ctrlKey || e.metaKey)) return; // solo con Ctrl/Cmd
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      setZoom(prev => Math.min(5, Math.max(0.5, Math.round((prev + delta) * 100) / 100)));
+    };
+
+    container.addEventListener('wheel', onWheel, { passive: false });
+    return () => container.removeEventListener('wheel', onWheel);
+  }, []);
+
+  // ═══════════════════════════════════════════════════════════
   // CSS Filter en vivo (GPU acelerado, instantáneo)
   // ═══════════════════════════════════════════════════════════
   const cssFilter = useMemo(() => {
@@ -130,6 +154,7 @@ export default function LivePDFEditor({
     setCropRect(null);
     setCropMode(false);
     setRotation(0);
+    setZoom(1);
   }, []);
 
   // ═══════════════════════════════════════════════════════════
@@ -463,18 +488,36 @@ export default function LivePDFEditor({
       <div className="flex-1 flex overflow-hidden">
         
         {/* IMAGEN PRINCIPAL con filtros CSS en vivo */}
-        <div 
-          className="flex-1 flex items-center justify-center p-4 overflow-auto bg-gray-950"
+        <div
+          className="relative flex-1 flex items-center justify-center p-4 overflow-auto bg-gray-950"
           ref={containerRef}
         >
-          <div 
+          {/* Indicador de zoom (Ctrl + rueda) */}
+          <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2 bg-gray-900/80 text-gray-200 text-xs px-2.5 py-1.5 rounded-lg border border-gray-700 backdrop-blur-sm select-none pointer-events-none">
+            <span className="font-mono">{Math.round(zoom * 100)}%</span>
+            <span className="text-gray-500">Ctrl + rueda para acercar</span>
+          </div>
+          {zoom !== 1 && (
+            <button
+              onClick={() => setZoom(1)}
+              className="absolute bottom-3 right-3 z-10 bg-gray-900/80 hover:bg-gray-700 text-gray-200 text-xs px-2.5 py-1.5 rounded-lg border border-gray-700"
+            >
+              Restablecer zoom
+            </button>
+          )}
+          <div
             className="relative max-w-full max-h-full"
             ref={cropOverlayRef}
             onMouseDown={handleCropMouseDown}
             onMouseMove={handleCropMouseMove}
             onMouseUp={handleCropMouseUp}
             onMouseLeave={handleCropMouseUp}
-            style={{ cursor: cropMode ? 'crosshair' : 'default' }}
+            style={{
+              cursor: cropMode ? 'crosshair' : 'default',
+              transform: zoom !== 1 ? `scale(${zoom})` : undefined,
+              transformOrigin: 'center center',
+              transition: 'transform 0.1s ease',
+            }}
           >
             {/* Imagen con CSS filters + rotación aplicados en vivo */}
             <img

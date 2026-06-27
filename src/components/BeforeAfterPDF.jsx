@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { ChevronRight, ChevronLeft, Upload } from 'lucide-react';
 
 /**
  * Componente de vista antes/después para PDFs
  * Muestra dos versiones del PDF lado a lado o deslizable
  */
-export default function BeforeAfterPDF({ 
-  originalCanvas, 
-  editedCanvas, 
+export default function BeforeAfterPDF({
+  originalCanvas,
+  editedCanvas,
   title = "Comparación",
   onSave,
   onCancel
@@ -15,20 +15,36 @@ export default function BeforeAfterPDF({
   const [sliderPosition, setSliderPosition] = useState(50);
   const [viewMode, setViewMode] = useState('slider'); // 'slider' o 'side-by-side'
 
-  const handleMouseMove = (e) => {
+  // ⚡ PERF: codificar cada canvas a dataURL UNA sola vez (no en cada render).
+  // Antes esto se hacía inline en el JSX, así que el slider re-codificaba ambos
+  // PNG completos en cada movimiento del mouse → lag brutal.
+  const originalURL = useMemo(
+    () => (originalCanvas ? originalCanvas.toDataURL('image/jpeg', 0.92) : null),
+    [originalCanvas]
+  );
+  const editedURL = useMemo(
+    () => (editedCanvas ? editedCanvas.toDataURL('image/jpeg', 0.92) : null),
+    [editedCanvas]
+  );
+
+  // ⚡ PERF: limitar las actualizaciones del slider a 1 por frame (rAF).
+  const rafRef = useRef(null);
+  const handleMouseMove = useCallback((e) => {
     if (viewMode !== 'slider') return;
-    
-    const container = e.currentTarget;
-    const rect = container.getBoundingClientRect();
-    const newPosition = ((e.clientX - rect.left) / rect.width) * 100;
-    
-    if (newPosition >= 0 && newPosition <= 100) {
-      setSliderPosition(newPosition);
-    }
-  };
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clientX = e.clientX;
+    if (rafRef.current) return; // ya hay un frame pendiente
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      const newPosition = ((clientX - rect.left) / rect.width) * 100;
+      if (newPosition >= 0 && newPosition <= 100) {
+        setSliderPosition(newPosition);
+      }
+    });
+  }, [viewMode]);
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur z-[80] flex flex-col">
+    <div className="fixed inset-0 bg-black/90 z-[80] flex flex-col">
       {/* HEADER */}
       <div className="bg-gray-900/95 border-b border-gray-700 p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -91,20 +107,17 @@ export default function BeforeAfterPDF({
             <div className="relative bg-gray-800 rounded-lg overflow-hidden shadow-2xl">
               {/* ORIGINAL (Fondo) */}
               <div className="flex justify-center items-center">
-                <canvas
-                  ref={el => el && originalCanvas && (el.style.display = 'none')}
-                  className="hidden"
-                />
                 <img
-                  src={originalCanvas?.toDataURL('image/png')}
+                  src={originalURL}
                   alt="Original"
                   className="max-w-full max-h-[70vh] object-contain"
+                  draggable={false}
                 />
               </div>
 
               {/* LÍNEA DIVISORA */}
               <div
-                className="absolute top-0 bottom-0 w-1 bg-white/50 shadow-lg group-hover:bg-white/80 transition-all"
+                className="absolute top-0 bottom-0 w-1 bg-white/50 shadow-lg group-hover:bg-white/80 transition-colors"
                 style={{ left: `${sliderPosition}%` }}
               >
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 rounded-full p-2">
@@ -119,9 +132,10 @@ export default function BeforeAfterPDF({
                 style={{ width: `${sliderPosition}%` }}
               >
                 <img
-                  src={editedCanvas?.toDataURL('image/png')}
+                  src={editedURL}
                   alt="Editado"
                   className="max-h-[70vh] object-contain"
+                  draggable={false}
                 />
               </div>
 
@@ -144,9 +158,10 @@ export default function BeforeAfterPDF({
               </div>
               <div className="flex items-center justify-center p-2">
                 <img
-                  src={originalCanvas?.toDataURL('image/png')}
+                  src={originalURL}
                   alt="Original"
                   className="max-w-full max-h-[65vh] object-contain rounded"
+                  draggable={false}
                 />
               </div>
             </div>
@@ -158,9 +173,10 @@ export default function BeforeAfterPDF({
               </div>
               <div className="flex items-center justify-center p-2">
                 <img
-                  src={editedCanvas?.toDataURL('image/png')}
+                  src={editedURL}
                   alt="Editado"
                   className="max-w-full max-h-[65vh] object-contain rounded"
+                  draggable={false}
                 />
               </div>
             </div>
