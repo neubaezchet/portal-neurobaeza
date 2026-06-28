@@ -1521,34 +1521,34 @@ return (
       </div>
     )}
     
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
+    <div className="fixed inset-0 bg-slate-200 z-50 flex flex-col">
       {/* HEADER FULLSCREEN */}
-      <div className="bg-gray-900/95 backdrop-blur border-b border-gray-700 p-3 flex items-center justify-between overflow-x-auto">
+      <div className="bg-white/95 backdrop-blur border-b border-slate-200 p-3 flex items-center justify-between overflow-x-auto">
         <div className="flex items-center gap-2 min-w-0">
-          <button onClick={onClose} className="p-2 hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0">
-            <X className="w-5 h-5 text-white" />
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0">
+            <X className="w-5 h-5 text-slate-700" />
           </button>
-          
+
           {/* ✅ BOTONES DE NAVEGACIÓN ENTRE INCAPACIDADES (RESPONSIVE) */}
-          <div className="flex items-center gap-0.5 px-1.5 py-1 bg-gray-800 rounded-lg border border-gray-700 flex-shrink-0">
+          <div className="flex items-center gap-0.5 px-1.5 py-1 bg-slate-100 rounded-lg border border-slate-200 flex-shrink-0">
             <button
               onClick={irAlAnterior}
               disabled={indiceActual === 0}
-              className="p-1.5 hover:bg-gray-700 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1.5 hover:bg-slate-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               title="Anterior (← o Ctrl+←)"
             >
-              <ChevronLeft className="w-4 h-4 text-white" />
+              <ChevronLeft className="w-4 h-4 text-slate-700" />
             </button>
-            <span className="text-xs font-semibold text-gray-400 px-1.5 min-w-[50px] text-center whitespace-nowrap">
+            <span className="text-xs font-semibold text-slate-500 px-1.5 min-w-[50px] text-center whitespace-nowrap">
               {indiceActual + 1}/{casosLista.length}
             </span>
             <button
               onClick={irAlSiguiente}
               disabled={indiceActual >= casosLista.length - 1}
-              className="p-1.5 hover:bg-gray-700 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1.5 hover:bg-slate-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               title="Siguiente (→ o Ctrl+→)"
             >
-              <ChevronRight className="w-4 h-4 text-white" />
+              <ChevronRight className="w-4 h-4 text-slate-700" />
             </button>
           </div>
           
@@ -1558,16 +1558,16 @@ return (
           >
             <Icon className="w-5 h-5 text-white" />
           </div>
-          <div className="text-white min-w-0">
+          <div className="text-slate-900 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-yellow-300 text-sm truncate">{casoSeleccionado.serial}</span>
+              <span className="font-bold text-amber-600 text-sm truncate">{casoSeleccionado.serial}</span>
               {casoActualizado.intentos_incompletos > 0 && (
                 <span className="text-[10px] bg-orange-500/80 text-white px-1.5 py-0.5 rounded-full font-bold whitespace-nowrap" title={`Enviada como incompleta ${casoActualizado.intentos_incompletos} veces`}>
                   {casoActualizado.intentos_incompletos}
                 </span>
               )}
             </div>
-            <div className="text-xs text-gray-400 truncate">{casoSeleccionado.nombre} • {casoSeleccionado.empresa}</div>
+            <div className="text-xs text-slate-500 truncate">{casoSeleccionado.nombre} • {casoSeleccionado.empresa}</div>
           </div>
         </div>
 
@@ -1576,7 +1576,7 @@ return (
           <button
             onClick={handleEliminarIncapacidad}
             disabled={enviandoValidacion}
-            className="p-2 bg-red-600/20 hover:bg-red-600 rounded-xl text-red-300 hover:text-white transition-all duration-300 border border-red-600/30 hover:border-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 bg-red-600/10 hover:bg-red-600 rounded-xl text-red-600 hover:text-white transition-all duration-300 border border-red-600/30 hover:border-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Eliminar incapacidad permanentemente"
           >
             🗑️
@@ -1585,19 +1585,19 @@ return (
           {/* 🧹 BOTÓN LIMPIAR SISTEMA */}
           <button
             onClick={() => setMostrarModalLimpiar(true)}
-            className="p-2 bg-orange-600/20 hover:bg-orange-600 rounded-xl text-orange-300 hover:text-white transition-all duration-300 border border-orange-600/30 hover:border-orange-500"
+            className="p-2 bg-orange-600/10 hover:bg-orange-600 rounded-xl text-orange-600 hover:text-white transition-all duration-300 border border-orange-600/30 hover:border-orange-500"
             title="Limpiar todo el sistema (Ctrl+N)"
           >
             🧹
           </button>
 
           {/* Separador */}
-          <div className="h-10 w-px bg-gray-600"></div>
+          <div className="h-10 w-px bg-slate-300"></div>
 
           {/* ✂️ Botón Herramientas */}
           <button
             onClick={() => setShowToolsMenu(!showToolsMenu)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-semibold transition-all duration-300"
+            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 font-semibold transition-all duration-300"
             title="Herramientas (Tecla +)"
           >
             <Sliders className="w-4 h-4" />
@@ -1605,7 +1605,7 @@ return (
             <ChevronDown className={`w-4 h-4 transition-transform ${showToolsMenu ? 'rotate-180' : ''}`} />
           </button>
           {/* Separador */}
-          <div className="h-10 w-px bg-gray-600"></div>
+          <div className="h-10 w-px bg-slate-300"></div>
 
           {/* 🔒/🔓 Bloqueo (solo para INCOMPLETAS) */}
           {['INCOMPLETA', 'ILEGIBLE', 'INCOMPLETA_ILEGIBLE'].includes(casoSeleccionado.estado) && (
@@ -1645,10 +1645,10 @@ return (
           )}
 
           {/* Separador */}
-          <div className="h-10 w-px bg-gray-600"></div>
+          <div className="h-10 w-px bg-slate-300"></div>
 
           {/* 🔍 Zoom */}
-          <div className="flex items-center gap-2 bg-gray-800 rounded-xl px-3 py-2 text-white shadow-lg">
+          <div className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-2 text-slate-700 shadow-sm">
             <ZoomOut className="w-4 h-4" />
             <span className="text-sm min-w-[50px] text-center font-semibold">{zoom}%</span>
             <ZoomIn className="w-4 h-4" />
@@ -1662,7 +1662,7 @@ return (
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${
                 hasUnsavedChanges 
                   ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 animate-pulse'
-                  : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500'
+                  : 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500'
               }`}
               title={hasUnsavedChanges ? 'Hay cambios sin guardar - Click para guardar en Drive' : 'Guardar cambios en Drive'}
             >
@@ -1672,7 +1672,7 @@ return (
               </span>
             </button>
           ) : (
-            <div className="flex items-center gap-2 px-4 py-2 bg-green-600/20 border border-green-500/30 rounded-xl text-green-400 font-semibold animate-pulse">
+            <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-xl text-green-700 font-semibold animate-pulse">
               <CheckCircle className="w-4 h-4" />
               <span className="hidden md:inline text-xs">Guardado en Drive</span>
             </div>
@@ -1683,7 +1683,7 @@ return (
             href={casoSeleccionado.drive_link || 'https://drive.google.com'}
             target="_blank" 
             rel="noopener noreferrer"
-            className="p-3 bg-gray-700 hover:bg-gray-600 rounded-xl text-white transition-all duration-300 transform hover:scale-110 shadow-lg" 
+            className="p-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition-all duration-300 transform hover:scale-110 shadow-sm"
             title="📄 Abrir PDF en Google Drive"
           >
             <FileText className="w-5 h-5" />
@@ -1815,11 +1815,11 @@ return (
 {/* VIEWER FULLSCREEN */}
       <div className="flex-1 flex overflow-hidden">
         {/* Panel lateral de miniaturas */}
-        <div className={`${mostrarMiniaturas ? 'w-48' : 'w-12'} bg-gray-900 border-r border-gray-700 overflow-y-auto p-2 transition-all duration-300 flex-shrink-0`}>
-          <div className="sticky top-0 bg-gray-900 py-2 z-10">
+        <div className={`${mostrarMiniaturas ? 'w-48' : 'w-12'} bg-white border-r border-slate-200 overflow-y-auto p-2 transition-all duration-300 flex-shrink-0`}>
+          <div className="sticky top-0 bg-white py-2 z-10">
   <button
     onClick={() => setMostrarMiniaturas(!mostrarMiniaturas)}
-    className="w-full flex items-center justify-between text-white text-xs font-semibold hover:bg-gray-800 p-2 rounded"
+    className="w-full flex items-center justify-between text-slate-700 text-xs font-semibold hover:bg-slate-100 p-2 rounded"
   >
     {mostrarMiniaturas ? '📄 Páginas' : '📄'}
     {mostrarMiniaturas && <ChevronLeft className="w-4 h-4" />}
@@ -1854,7 +1854,7 @@ return (
         }, 0);
       }}
                 className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-                  currentPage === idx ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-700 hover:border-gray-500'
+                  currentPage === idx ? 'border-indigo-600 ring-2 ring-indigo-300' : 'border-slate-200 hover:border-slate-400'
                 }`}
               >
                 {/* Checkbox para eliminar */}
@@ -1876,7 +1876,7 @@ return (
                   className="w-full h-auto transition-transform duration-200"
                   style={{ transform: pageRotations[idx] ? `rotate(${pageRotations[idx]}deg)` : undefined }}
                 />
-                <div className="text-center text-xs text-gray-400 bg-gray-800 p-1">
+                <div className="text-center text-xs text-slate-500 bg-slate-100 p-1">
                   Pág {idx + 1}
                 </div>
               </div>
@@ -1888,14 +1888,14 @@ return (
         {/* Visor principal - SCROLL VERTICAL CON PÁGINAS EN CASCADA */}
         <div 
           ref={containerRef} 
-          className="flex-1 bg-gradient-to-b from-gray-900 to-black overflow-y-auto p-8 scrollbar-hide"
+          className="flex-1 bg-slate-100 overflow-y-auto p-8 scrollbar-hide"
           style={{ scrollBehavior: 'smooth' }}
         >
           {loadingPdf ? (
             <div className="text-center py-20">
-              <RefreshCw className="w-12 h-12 animate-spin mx-auto text-blue-500 mb-4" />
-              <p className="text-white text-lg">Cargando documento PDF...</p>
-              <p className="text-xs text-gray-400 mt-2">Las páginas aparecerán en cascada con scroll</p>
+              <RefreshCw className="w-12 h-12 animate-spin mx-auto text-indigo-600 mb-4" />
+              <p className="text-slate-700 text-lg">Cargando documento PDF...</p>
+              <p className="text-xs text-slate-500 mt-2">Las páginas aparecerán en cascada con scroll</p>
             </div>
           ) : (
             <div className="max-w-4xl mx-auto space-y-8 pb-40">
@@ -1918,7 +1918,7 @@ return (
                     }
                   }}
                   className={`bg-white shadow-2xl transition-all duration-300 ${
-                    currentPage === idx ? 'ring-4 ring-blue-500' : 'opacity-90 hover:opacity-100'
+                    currentPage === idx ? 'ring-4 ring-indigo-500' : 'opacity-90 hover:opacity-100'
                   }`}
                   onClick={() => setCurrentPage(idx)}
                 >
@@ -1935,7 +1935,7 @@ return (
                     }}
                     className="cursor-pointer"
                   />
-                  <div className="bg-gray-800 text-white text-center py-2 text-sm font-semibold">
+                  <div className="bg-slate-100 text-slate-600 text-center py-2 text-sm font-semibold">
                     📄 Página {idx + 1} de {pages.length}
                   </div>
                 </div>
@@ -1947,28 +1947,28 @@ return (
 
       {/* ⭐ TAB HANDLE - DERECHA */}
       <div 
-        className={`fixed right-0 top-[60px] bottom-[60px] w-7 bg-gradient-to-l from-blue-500/10 border-l border-blue-500/30 flex items-center justify-center cursor-pointer z-[80] transition-all hover:w-10 ${showToolsMenu ? 'bg-blue-500/20' : ''}`}
+        className={`fixed right-0 top-[60px] bottom-[60px] w-7 bg-gradient-to-l from-indigo-500/10 border-l border-indigo-500/30 flex items-center justify-center cursor-pointer z-[80] transition-all hover:w-10 ${showToolsMenu ? 'bg-indigo-500/20' : ''}`}
         onClick={() => setShowToolsMenu(!showToolsMenu)}
         title="Herramientas (Tecla +)"
       >
-        <span className="text-blue-400 text-lg transition-transform" style={{transform: showToolsMenu ? 'scaleX(-1)' : 'scaleX(1)'}}>◀</span>
+        <span className="text-indigo-600 text-lg transition-transform" style={{transform: showToolsMenu ? 'scaleX(-1)' : 'scaleX(1)'}}>◀</span>
       </div>
 
       {/* ⭐ SIDEBAR DERECHO - HERRAMIENTAS */}
-      <div className={`fixed right-0 top-[60px] bottom-[60px] w-80 bg-gray-900/95 backdrop-blur border-l border-gray-700 transform transition-transform duration-300 z-[85] overflow-y-auto flex flex-col ${showToolsMenu ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed right-0 top-[60px] bottom-[60px] w-80 bg-white/95 backdrop-blur border-l border-slate-200 transform transition-transform duration-300 z-[85] overflow-y-auto flex flex-col ${showToolsMenu ? 'translate-x-0' : 'translate-x-full'}`}>
         {/* Header */}
-        <div className="bg-blue-600/20 border-b border-gray-700 p-4 flex items-center justify-between flex-shrink-0">
-          <span className="text-white font-bold flex items-center gap-2">🔧 Herramientas</span>
-          <button onClick={() => setShowToolsMenu(false)} className="p-1 hover:bg-gray-800 rounded text-white">✕</button>
+        <div className="bg-indigo-50 border-b border-slate-200 p-4 flex items-center justify-between flex-shrink-0">
+          <span className="text-slate-900 font-bold flex items-center gap-2">🔧 Herramientas</span>
+          <button onClick={() => setShowToolsMenu(false)} className="p-1 hover:bg-slate-100 rounded text-slate-700">✕</button>
         </div>
 
         {/* Contenido */}
         <div className="flex-1 p-4 space-y-4 overflow-y-auto">
           {/* INFORMACIÓN (DESPLEGABLE) */}
-          <div className="border-b border-gray-700 pb-4 mb-4">
-            <button 
+          <div className="border-b border-slate-200 pb-4 mb-4">
+            <button
               onClick={() => setMostrarInfoDesplegable(!mostrarInfoDesplegable)}
-              className="w-full px-4 py-3 bg-gray-800/50 text-white font-semibold text-sm hover:bg-gray-800 flex items-center justify-between transition-colors rounded-t-lg"
+              className="w-full px-4 py-3 bg-slate-50 text-slate-700 font-semibold text-sm hover:bg-slate-100 flex items-center justify-between transition-colors rounded-t-lg"
             >
               <span className="flex items-center gap-2">
                 <User className="w-4 h-4" />
@@ -1978,55 +1978,55 @@ return (
             </button>
             
             {mostrarInfoDesplegable && (
-              <div className="bg-gray-800/30 p-3 space-y-2 rounded-b-lg">
+              <div className="bg-slate-50 p-3 space-y-2 rounded-b-lg">
                 <div>
-                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Nombre</div>
-                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.nombre ? casoActualizado.nombre : 'En proceso'}</div>
+                  <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Nombre</div>
+                  <div className="text-xs text-slate-700 bg-slate-100 px-2 py-1.5 rounded">{casoActualizado.nombre ? casoActualizado.nombre : 'En proceso'}</div>
                 </div>
                 <div>
-                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Cédula</div>
-                  <div className="text-xs text-yellow-300 font-semibold bg-black/30 px-2 py-1.5 rounded">{casoActualizado.cedula ? casoActualizado.cedula : 'En proceso'}</div>
+                  <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Cédula</div>
+                  <div className="text-xs text-amber-600 font-semibold bg-slate-100 px-2 py-1.5 rounded">{casoActualizado.cedula ? casoActualizado.cedula : 'En proceso'}</div>
                 </div>
                 <div>
-                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Teléfono</div>
-                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.telefono_form ? casoActualizado.telefono_form : 'En proceso'}</div>
+                  <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Teléfono</div>
+                  <div className="text-xs text-slate-700 bg-slate-100 px-2 py-1.5 rounded">{casoActualizado.telefono_form ? casoActualizado.telefono_form : 'En proceso'}</div>
                 </div>
                 <div>
-                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Email</div>
-                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded break-all">{casoActualizado.email_form ? casoActualizado.email_form : 'En proceso'}</div>
+                  <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Email</div>
+                  <div className="text-xs text-slate-700 bg-slate-100 px-2 py-1.5 rounded break-all">{casoActualizado.email_form ? casoActualizado.email_form : 'En proceso'}</div>
                 </div>
                 <div>
-                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Empresa</div>
-                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.empresa ? casoActualizado.empresa : 'En proceso'}</div>
+                  <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Empresa</div>
+                  <div className="text-xs text-slate-700 bg-slate-100 px-2 py-1.5 rounded">{casoActualizado.empresa ? casoActualizado.empresa : 'En proceso'}</div>
                 </div>
                 <div>
-                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">EPS</div>
-                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded">{casoActualizado.eps ? casoActualizado.eps : 'No registrada'}</div>
+                  <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">EPS</div>
+                  <div className="text-xs text-slate-700 bg-slate-100 px-2 py-1.5 rounded">{casoActualizado.eps ? casoActualizado.eps : 'No registrada'}</div>
                 </div>
                 <div>
-                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Estado</div>
-                  <div className="flex items-center gap-2 bg-red-600/20 px-2 py-1.5 rounded border border-red-500/30">
+                  <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Estado</div>
+                  <div className="flex items-center gap-2 bg-red-50 px-2 py-1.5 rounded border border-red-200">
                     <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                    <span className="text-xs text-red-300 font-semibold">{casoActualizado.estado === 'DERIVADO_TTHH' ? 'ES POSIBLE FRAUDE' : (casoActualizado.estado ? casoActualizado.estado : 'En proceso')}</span>
+                    <span className="text-xs text-red-600 font-semibold">{casoActualizado.estado === 'DERIVADO_TTHH' ? 'ES POSIBLE FRAUDE' : (casoActualizado.estado ? casoActualizado.estado : 'En proceso')}</span>
                   </div>
                 </div>
                 {casoActualizado.metadata_reenvio?.tiene_reenvios && (
                   <div>
-                    <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Reenvíos</div>
-                    <div className="text-xs text-orange-300 bg-black/30 px-2 py-1.5 rounded">
+                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Reenvíos</div>
+                    <div className="text-xs text-orange-600 bg-slate-100 px-2 py-1.5 rounded">
                       {casoActualizado.metadata_reenvio.total_reenvios} intentos
                     </div>
                   </div>
                 )}
                 <div>
-                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Días</div>
-                  <div className="text-xs text-yellow-300 font-semibold bg-black/30 px-2 py-1.5 rounded">
+                  <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Días</div>
+                  <div className="text-xs text-amber-600 font-semibold bg-slate-100 px-2 py-1.5 rounded">
                     {casoActualizado.dias_incapacidad !== undefined && casoActualizado.dias_incapacidad !== null && casoActualizado.dias_incapacidad !== '' ? casoActualizado.dias_incapacidad : 'En proceso'} días
                   </div>
                 </div>
                 <div>
-                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">Tipo</div>
-                  <div className="text-xs text-gray-200 bg-black/30 px-2 py-1.5 rounded capitalize">
+                  <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Tipo</div>
+                  <div className="text-xs text-slate-700 bg-slate-100 px-2 py-1.5 rounded capitalize">
                     {casoActualizado.tipo ? casoActualizado.tipo.replace('_', ' ') : 'En proceso'}
                   </div>
                 </div>
@@ -2035,103 +2035,103 @@ return (
           </div>
 
           {/* ROTACIÓN */}
-          <div className="border border-gray-700 rounded-lg overflow-hidden">
-            <button className="w-full px-4 py-2 bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 flex items-center justify-between">
+          <div className="border border-slate-200 rounded-lg overflow-hidden">
+            <button className="w-full px-4 py-2 bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 flex items-center justify-between">
               <span>🔄 Rotación</span>
               <span>▼</span>
             </button>
-            <div className="bg-gray-800/50 p-2 space-y-1">
-              <button onClick={() => {rotarPagina(90, false); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">↻ 90° Derecha</button>
-              <button onClick={() => {rotarPagina(-90, false); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">↺ 90° Izquierda</button>
-              <button onClick={() => {rotarPagina(180, false); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">↻ 180°</button>
+            <div className="bg-slate-50 p-2 space-y-1">
+              <button onClick={() => {rotarPagina(90, false); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded disabled:opacity-50">↻ 90° Derecha</button>
+              <button onClick={() => {rotarPagina(-90, false); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded disabled:opacity-50">↺ 90° Izquierda</button>
+              <button onClick={() => {rotarPagina(180, false); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded disabled:opacity-50">↻ 180°</button>
             </div>
           </div>
 
           {/* ✨ EDITOR EN VIVO (abre panel con sliders) */}
-          <div className="border border-gray-700 rounded-lg overflow-hidden">
-            <button className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold text-sm hover:from-purple-700 hover:to-blue-700 flex items-center justify-between">
+          <div className="border border-slate-200 rounded-lg overflow-hidden">
+            <button className="w-full px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold text-sm hover:from-violet-700 hover:to-indigo-700 flex items-center justify-between">
               <span>✨ Editor en Vivo</span>
               <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded">NUEVO</span>
             </button>
-            <div className="bg-gray-800/50 p-2 space-y-1">
-              <button onClick={() => {abrirEditorEnVivo('filters'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-purple-600 text-white text-xs rounded disabled:opacity-50 flex items-center gap-2">🎛️ Abrir Editor Completo</button>
-              <button onClick={() => {abrirEditorEnVivo('brightness'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">☀️ Brillo (en vivo)</button>
-              <button onClick={() => {abrirEditorEnVivo('contrast'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">◈ Contraste (en vivo)</button>
-              <button onClick={() => {abrirEditorEnVivo('sharpen'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">🎯 Enfoque HD (en vivo)</button>
-              <button onClick={() => {abrirEditorEnVivo('grayscale'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded disabled:opacity-50">⚪ Blanco y Negro</button>
+            <div className="bg-slate-50 p-2 space-y-1">
+              <button onClick={() => {abrirEditorEnVivo('filters'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-violet-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50 flex items-center gap-2">🎛️ Abrir Editor Completo</button>
+              <button onClick={() => {abrirEditorEnVivo('brightness'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded disabled:opacity-50">☀️ Brillo (en vivo)</button>
+              <button onClick={() => {abrirEditorEnVivo('contrast'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded disabled:opacity-50">◈ Contraste (en vivo)</button>
+              <button onClick={() => {abrirEditorEnVivo('sharpen'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded disabled:opacity-50">🎯 Enfoque HD (en vivo)</button>
+              <button onClick={() => {abrirEditorEnVivo('grayscale'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded disabled:opacity-50">⚪ Blanco y Negro</button>
             </div>
           </div>
 
           {/* 🚀 MEJORA HD (SERVIDOR) */}
-          <div className="border border-gray-700 rounded-lg overflow-hidden">
+          <div className="border border-slate-200 rounded-lg overflow-hidden">
             <button className="w-full px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold text-sm hover:from-emerald-700 hover:to-teal-700 flex items-center justify-between">
               <span>🚀 Mejora HD (servidor)</span>
               <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded">NUEVO</span>
             </button>
-            <div className="bg-gray-800/50 p-2 space-y-1">
+            <div className="bg-slate-50 p-2 space-y-1">
               <button
                 onClick={() => { mejorarCalidadHD('fast'); setShowToolsMenu(false); }}
                 disabled={enviandoValidacion}
-                className="w-full px-3 py-2 bg-gray-700 hover:bg-emerald-600 text-white text-xs rounded disabled:opacity-50 flex items-center gap-2"
+                className="w-full px-3 py-2 bg-slate-100 hover:bg-emerald-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50 flex items-center gap-2"
               >
                 ⚡ Mejorar a HD (rápido)
               </button>
               <button
                 onClick={() => { mejorarCalidadHD('hd'); setShowToolsMenu(false); }}
                 disabled={enviandoValidacion}
-                className="w-full px-3 py-2 bg-gray-700 hover:bg-purple-600 text-white text-xs rounded disabled:opacity-50 flex items-center gap-2"
+                className="w-full px-3 py-2 bg-slate-100 hover:bg-violet-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50 flex items-center gap-2"
               >
                 🤖 Mejorar a HD (IA máxima)
               </button>
-              <p className="text-[10px] text-gray-500 px-1 pt-1">
+              <p className="text-[10px] text-slate-500 px-1 pt-1">
                 Endereza, quita ruido y mejora nitidez. El modo IA es más lento.
               </p>
             </div>
           </div>
 
           {/* ✂️ RECORTE */}
-          <div className="border border-gray-700 rounded-lg overflow-hidden">
+          <div className="border border-slate-200 rounded-lg overflow-hidden">
             <button className="w-full px-4 py-2 bg-orange-600 text-white font-semibold text-sm hover:bg-orange-700 flex items-center justify-between">
               <span>✂️ Recorte</span>
               <span>▼</span>
             </button>
-            <div className="bg-gray-800/50 p-2 space-y-1">
-              <button onClick={() => {abrirEditorEnVivo('crop'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-orange-600 text-white text-xs rounded disabled:opacity-50">✂️ Recorte manual (dibujar)</button>
-              <button onClick={() => {abrirEditorEnVivo('crop'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-orange-600 text-white text-xs rounded disabled:opacity-50">📐 Auto-recorte (quitar bordes)</button>
+            <div className="bg-slate-50 p-2 space-y-1">
+              <button onClick={() => {abrirEditorEnVivo('crop'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-orange-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50">✂️ Recorte manual (dibujar)</button>
+              <button onClick={() => {abrirEditorEnVivo('crop'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-orange-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50">📐 Auto-recorte (quitar bordes)</button>
             </div>
           </div>
 
           {/* CAMBIAR TIPO */}
-          <div className="border border-amber-700/30 rounded-lg overflow-hidden">
-            <button className="w-full px-4 py-2 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 font-semibold text-sm flex items-center justify-between transition-colors">
+          <div className="border border-amber-200 rounded-lg overflow-hidden">
+            <button className="w-full px-4 py-2 bg-amber-600/10 hover:bg-amber-600/20 text-amber-700 font-semibold text-sm flex items-center justify-between transition-colors">
               <span className="flex items-center gap-2">
                 🔄 Cambiar Tipo
               </span>
               <span>▼</span>
             </button>
-            <div className="bg-gray-800/50 p-2 space-y-1">
-              <button onClick={() => {handleCambiarTipo('maternity'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-amber-600 text-white text-xs rounded disabled:opacity-50">👶 Maternidad</button>
-              <button onClick={() => {handleCambiarTipo('paternity'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-amber-600 text-white text-xs rounded disabled:opacity-50">👨‍👦 Paternidad</button>
-              <button onClick={() => {handleCambiarTipo('general'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-amber-600 text-white text-xs rounded disabled:opacity-50">🏥 Enfermedad General</button>
-              <button onClick={() => {handleCambiarTipo('traffic'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-amber-600 text-white text-xs rounded disabled:opacity-50">🚗 Accidente Tránsito</button>
-              <button onClick={() => {handleCambiarTipo('labor'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-amber-600 text-white text-xs rounded disabled:opacity-50">🏭 Accidente Laboral</button>
-              <hr className="border-gray-700 my-1" />
-              <button onClick={() => {handleCambiarTipo('certificado_hospitalizacion'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-purple-600 text-white text-xs rounded disabled:opacity-50">🏥 Certificado Hospitalización</button>
-              <button onClick={() => {handleCambiarTipo('prelicencia'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-gray-700 hover:bg-cyan-600 text-white text-xs rounded disabled:opacity-50">📋 Prelicencia</button>
+            <div className="bg-slate-50 p-2 space-y-1">
+              <button onClick={() => {handleCambiarTipo('maternity'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-amber-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50">👶 Maternidad</button>
+              <button onClick={() => {handleCambiarTipo('paternity'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-amber-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50">👨‍👦 Paternidad</button>
+              <button onClick={() => {handleCambiarTipo('general'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-amber-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50">🏥 Enfermedad General</button>
+              <button onClick={() => {handleCambiarTipo('traffic'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-amber-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50">🚗 Accidente Tránsito</button>
+              <button onClick={() => {handleCambiarTipo('labor'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-amber-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50">🏭 Accidente Laboral</button>
+              <hr className="border-slate-200 my-1" />
+              <button onClick={() => {handleCambiarTipo('certificado_hospitalizacion'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-violet-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50">🏥 Certificado Hospitalización</button>
+              <button onClick={() => {handleCambiarTipo('prelicencia'); setShowToolsMenu(false);}} disabled={enviandoValidacion} className="w-full px-3 py-2 bg-slate-100 hover:bg-cyan-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50">📋 Prelicencia</button>
             </div>
           </div>
 
           {/* ELIMINAR PÁGINAS */}
-          <div className="border border-red-700/30 rounded-lg overflow-hidden">
-            <button className="w-full px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-300 font-semibold text-sm flex items-center justify-between transition-colors">
+          <div className="border border-red-200 rounded-lg overflow-hidden">
+            <button className="w-full px-4 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-700 font-semibold text-sm flex items-center justify-between transition-colors">
               <span className="flex items-center gap-2">
                 🗑️ Eliminar Páginas
               </span>
               <span>▼</span>
             </button>
-            <div className="bg-gray-800/50 p-3">
-              <div className="text-xs text-gray-300 mb-2">
-                Seleccionadas: <strong className="text-white">{paginasSeleccionadas.length}/{pages.length}</strong>
+            <div className="bg-slate-50 p-3">
+              <div className="text-xs text-slate-600 mb-2">
+                Seleccionadas: <strong className="text-slate-900">{paginasSeleccionadas.length}/{pages.length}</strong>
               </div>
               <button
                 onClick={eliminarPaginasSeleccionadas}
@@ -2144,9 +2144,9 @@ return (
           </div>
 
           {/* INFO */}
-          <div className="border border-red-700/30 rounded-lg bg-red-900/10 p-3">
-            <h4 className="text-red-300 font-semibold text-xs mb-2">📋 Atajos</h4>
-            <ul className="text-xs text-red-200 space-y-1">
+          <div className="border border-red-200 rounded-lg bg-red-50 p-3">
+            <h4 className="text-red-700 font-semibold text-xs mb-2">📋 Atajos</h4>
+            <ul className="text-xs text-red-600 space-y-1">
               <li>+ = Abrir/Cerrar</li>
               <li>R = Rotar</li>
               <li>Q = Calidad</li>
@@ -2159,7 +2159,7 @@ return (
       </div>
 
       {/* FOOTER CON BOTONES DE VALIDACIÓN - SIEMPRE VISIBLE (FIJO) */}
-      <div className="bg-gray-900/98 backdrop-blur-xl border-t-2 border-gray-700 p-4 flex-shrink-0 fixed bottom-0 left-0 right-0 z-50 shadow-2xl">
+      <div className="bg-white/98 backdrop-blur-xl border-t-2 border-slate-200 p-4 flex-shrink-0 fixed bottom-0 left-0 right-0 z-50 shadow-2xl">
         {/* BOTONES DE VALIDACIÓN */}
         <div className="flex justify-center gap-2 flex-wrap">
           <button 
@@ -2208,7 +2208,7 @@ return (
                   }
                 }}
                 disabled={enviandoValidacion}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50 ring-2 ring-green-400 ring-offset-2 ring-offset-gray-900"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50 ring-2 ring-green-400 ring-offset-2 ring-offset-white"
                 style={{backgroundColor: '#059669'}}>
                 <CheckCircle className="w-4 h-4" />
                 ✅ Validada Verdadera
@@ -2220,7 +2220,7 @@ return (
                   }
                 }}
                 disabled={enviandoValidacion}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50 ring-2 ring-red-400 ring-offset-2 ring-offset-gray-900"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50 ring-2 ring-red-400 ring-offset-2 ring-offset-white"
                 style={{backgroundColor: '#b91c1c'}}>
                 <XCircle className="w-4 h-4" />
                 🚫 Falsa Validada
@@ -2335,7 +2335,7 @@ return (
                   multiple
                   accept="image/*,.pdf,application/pdf"
                   onChange={(e) => setAdjuntos(Array.from(e.target.files))}
-                  className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white file:font-semibold hover:file:bg-blue-700 cursor-pointer"
+                  className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-600 file:text-white file:font-semibold hover:file:bg-indigo-700 cursor-pointer"
                 />
                 {adjuntos.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -2507,7 +2507,7 @@ return (
                     handleValidar(casoSeleccionado.serial, 'solicitar_epicrisis');
                   }}
                   disabled={enviandoValidacion}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                 >
                   {enviandoValidacion ? (
                     <>
@@ -2528,7 +2528,7 @@ return (
                     handleValidar(casoSeleccionado.serial, 'enviar_validar');
                   }}
                   disabled={enviandoValidacion}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                 >
                   {enviandoValidacion ? (
                     <>
@@ -2561,12 +2561,12 @@ return (
       {accionSeleccionada === 'extra' && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl">
-            <div className="sticky top-0 bg-purple-600 text-white p-4 rounded-t-xl flex items-center justify-between">
+            <div className="sticky top-0 bg-violet-600 text-white p-4 rounded-t-xl flex items-center justify-between">
               <h3 className="text-xl font-bold flex items-center gap-2">
                 <Edit3 className="w-6 h-6" />
                 📝 Notificación Personalizada (IA)
               </h3>
-              <button onClick={() => setAccionSeleccionada(null)} className="p-1 hover:bg-purple-700 rounded">
+              <button onClick={() => setAccionSeleccionada(null)} className="p-1 hover:bg-violet-700 rounded">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -2602,7 +2602,7 @@ return (
                   type="file"
                   multiple
                   onChange={(e) => setAdjuntos(Array.from(e.target.files))}
-                  className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-600 file:text-white file:font-semibold hover:file:bg-purple-700 cursor-pointer"
+                  className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-violet-600 file:text-white file:font-semibold hover:file:bg-violet-700 cursor-pointer"
                 />
                 {adjuntos.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -2625,7 +2625,7 @@ return (
                 <button
                   onClick={() => handleNotificarLibre(casoSeleccionado.serial)}
                   disabled={enviandoValidacion || !mensajePersonalizado.trim()}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                 >
                   {enviandoValidacion ? (
                     <>
@@ -2658,23 +2658,23 @@ return (
       {/* 🧹 MODAL LIMPIAR SISTEMA */}
       {mostraModalLimpiar && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur flex items-center justify-center z-[9999]">
-          <div className="bg-gray-900 rounded-xl border border-red-500/50 p-8 max-w-md w-full mx-4">
+          <div className="bg-white rounded-xl border border-red-200 p-8 max-w-md w-full mx-4 shadow-2xl">
             <div className="flex items-center gap-3 mb-6">
               <div className="text-4xl">🧹</div>
               <div>
-                <h2 className="text-2xl font-bold text-white">Limpiar Sistema</h2>
-                <p className="text-xs text-gray-400">Ingresa contraseña para continuar</p>
+                <h2 className="text-2xl font-bold text-slate-900">Limpiar Sistema</h2>
+                <p className="text-xs text-slate-500">Ingresa contraseña para continuar</p>
               </div>
             </div>
 
-            <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-6">
-              <p className="text-sm text-red-300">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-red-700">
                 <strong>⚠️ ADVERTENCIA:</strong> Esta acción eliminará TODOS los casos del sistema.
               </p>
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Contraseña</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Contraseña</label>
               <input
                 type="password"
                 value={contraseniaLimpiar}
@@ -2687,7 +2687,7 @@ return (
                   }
                 }}
                 placeholder="Ingresa la contraseña..."
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
+                className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:border-red-500"
                 autoFocus
               />
             </div>
@@ -2706,14 +2706,14 @@ return (
                   setContraseniaLimpiar('');
                 }}
                 disabled={limpiarEnProgreso}
-                className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold disabled:opacity-50 transition-colors"
+                className="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold disabled:opacity-50 transition-colors"
               >
                 ❌ Cancelar
               </button>
             </div>
 
-            <p className="text-xs text-gray-500 mt-4 text-center">
-              Atajo: <kbd className="px-2 py-1 bg-gray-800 rounded text-gray-300">Ctrl + N</kbd>
+            <p className="text-xs text-slate-500 mt-4 text-center">
+              Atajo: <kbd className="px-2 py-1 bg-slate-100 rounded text-slate-600">Ctrl + N</kbd>
             </p>
           </div>
         </div>
@@ -2810,9 +2810,9 @@ function AppContent({ authUser, onLogout }) {
   const isSuperOrAdmin = ['superadmin', 'admin'].includes(authUser?.rol);
 
   const TAB_CONFIG = [
-    { id: 'validacion',    permKey: 'validador',     label: '✅ Validación de Casos',      borderColor: 'border-blue-500',   textColor: 'text-blue-400' },
-    { id: 'reportes',      permKey: 'reportes',      label: '📊 Reportes y Tablas Vivas',  borderColor: 'border-blue-500',   textColor: 'text-blue-400' },
-    { id: 'exportaciones', permKey: 'exportaciones',  label: '📦 Exportaciones PDF',        borderColor: 'border-blue-500',   textColor: 'text-blue-400' },
+    { id: 'validacion',    permKey: 'validador',     label: '✅ Validación de Casos',      borderColor: 'border-indigo-600', textColor: 'text-indigo-600' },
+    { id: 'reportes',      permKey: 'reportes',      label: '📊 Reportes y Tablas Vivas',  borderColor: 'border-indigo-600', textColor: 'text-indigo-600' },
+    { id: 'exportaciones', permKey: 'exportaciones',  label: '📦 Exportaciones PDF',        borderColor: 'border-indigo-600', textColor: 'text-indigo-600' },
     { id: 'powerbi',       permKey: 'powerbi',       label: '📈 Power BI',                 borderColor: 'border-yellow-500', textColor: 'text-yellow-400' },
     { id: 'plano-incapacidades', permKey: 'reportes', label: '📋 Plano Incapacidades', borderColor: 'border-indigo-500', textColor: 'text-indigo-400' },
   ];
@@ -2906,15 +2906,15 @@ function AppContent({ authUser, onLogout }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+      <div className="min-h-screen bg-slate-50 text-slate-900">
         <div className="max-w-7xl mx-auto p-4 space-y-6">
           {/* Header — con branding tenant si está configurado */}
           <div
-            className="rounded-2xl p-6 shadow-2xl"
+            className="rounded-2xl p-6 shadow-2xl text-white"
             style={tenantTheme.loaded ? {
               background: `linear-gradient(135deg, ${tenantTheme.primary}, ${tenantTheme.secondary})`,
             } : {
-              background: 'linear-gradient(135deg, #2563EB, #7C3AED)',
+              background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 60%, #A78BFA 100%)',
             }}
           >
             <div className="flex items-center justify-between">
@@ -2971,7 +2971,7 @@ function AppContent({ authUser, onLogout }) {
           </div>
 
           {/* ⭐ TABS SELECTOR — filtrado por permisos del usuario */}
-          <div className="flex gap-2 border-b-2 border-gray-700">
+          <div className="flex gap-2 border-b-2 border-slate-200">
             {tabsPermitidas.map(tab => (
               <button
                 key={tab.id}
@@ -2979,14 +2979,14 @@ function AppContent({ authUser, onLogout }) {
                 className={`px-4 py-3 font-semibold transition-colors ${
                   tabActual === tab.id
                     ? `border-b-2 ${tab.borderColor} ${tab.textColor}`
-                    : 'text-gray-400 hover:text-gray-300'
+                    : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
                 {tab.label}
               </button>
             ))}
             {tabsPermitidas.length === 0 && (
-              <span className="px-4 py-3 text-gray-500 text-sm">Sin permisos asignados — contacte al administrador</span>
+              <span className="px-4 py-3 text-slate-500 text-sm">Sin permisos asignados — contacte al administrador</span>
             )}
           </div>
 
@@ -2996,20 +2996,20 @@ function AppContent({ authUser, onLogout }) {
               {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Object.entries(stats).map(([key, value]) => (
-            <div key={key} className="bg-gray-800/50 backdrop-blur rounded-xl p-4 border border-gray-700">
-              <div className="text-2xl font-bold">{value || 0}</div>
-              <div className="text-sm text-gray-400 capitalize">{key.replace(/_/g, ' ')}</div>
+            <div key={key} className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+              <div className="text-2xl font-bold text-slate-900">{value || 0}</div>
+              <div className="text-sm text-slate-500 capitalize">{key.replace(/_/g, ' ')}</div>
             </div>
           ))}
         </div>
 
         {/* Filtros */}
-        <div className="bg-gray-800/50 backdrop-blur rounded-xl p-4 border border-gray-700 space-y-3">
+        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <select
               value={filtros.empresa}
               onChange={(e) => handleFiltroChange('empresa', e.target.value)}
-              className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+              className="bg-white border border-slate-200 text-slate-900 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500"
             >
               <option value="all">Todas las empresas</option>
               {empresas.map(emp => (
@@ -3020,7 +3020,7 @@ function AppContent({ authUser, onLogout }) {
             <select
               value={filtros.estado}
               onChange={(e) => handleFiltroChange('estado', e.target.value)}
-              className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+              className="bg-white border border-slate-200 text-slate-900 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500"
             >
               <option value="all">Todos los estados</option>
               {Object.keys(STATUS_MAP).map(key => (
@@ -3033,7 +3033,7 @@ function AppContent({ authUser, onLogout }) {
               placeholder="Buscar serial, cédula, nombre o +5 (≥5 días)..."
               value={filtros.q}
               onChange={(e) => handleFiltroChange('q', e.target.value)}
-              className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+              className="bg-white border border-slate-200 text-slate-900 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500"
             />
 
             <button
@@ -3056,15 +3056,15 @@ function AppContent({ authUser, onLogout }) {
         </div>
 
         {/* Lista de Casos */}
-        <div className="bg-gray-800/50 backdrop-blur rounded-xl border border-gray-700 overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
+              <RefreshCw className="w-8 h-8 animate-spin text-indigo-600" />
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-900/50">
+                <thead className="bg-slate-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-semibold">Serial</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">Nombre</th>
@@ -3083,12 +3083,12 @@ function AppContent({ authUser, onLogout }) {
                     const Icon = statusInfo.icon;
                     const tieneReenvios = caso.total_reenvios > 0;
                     return (
-                      <tr key={caso.id} className={`border-t border-gray-700 hover:bg-gray-700/50 transition-colors ${
-                        tieneReenvios ? 'bg-rose-950/20' : ''
+                      <tr key={caso.id} className={`border-t border-slate-200 hover:bg-slate-100 transition-colors ${
+                        tieneReenvios ? 'bg-rose-50' : ''
                       }`}>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm text-yellow-300">{caso.serial}</span>
+                            <span className="font-mono text-sm text-amber-600">{caso.serial}</span>
                             {/* Badge de reenvíos: muestra cuántas veces se ha enviado como incompleta */}
                             {tieneReenvios && (
                               <span 
@@ -3100,7 +3100,7 @@ function AppContent({ authUser, onLogout }) {
                             )}
                             {caso.bloquea_nueva && (
                               <span 
-                                className="text-xs px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full border border-red-500"
+                                className="text-xs px-2 py-0.5 bg-red-500/20 text-red-600 rounded-full border border-red-300"
                                 title="Este caso está bloqueando al empleado"
                               >
                                 🔒
@@ -3109,7 +3109,7 @@ function AppContent({ authUser, onLogout }) {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm">{caso.nombre}</td>
-                        <td className="px-4 py-3 text-sm text-gray-400">{caso.empresa}</td>
+                        <td className="px-4 py-3 text-sm text-slate-500">{caso.empresa}</td>
                         <td className="px-4 py-3">
                           <span 
                             className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold"
@@ -3119,7 +3119,7 @@ function AppContent({ authUser, onLogout }) {
                             {statusInfo.label}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-400">
+                        <td className="px-4 py-3 text-sm text-slate-500">
                           {new Date(caso.created_at).toLocaleDateString('es-CO')}
                         </td>
                         <td className="px-4 py-3">
@@ -3133,7 +3133,7 @@ function AppContent({ authUser, onLogout }) {
                               }
                               setIndiceActual(casos.indexOf(caso));
                             }}
-                            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                           >
                             Ver Documento
                           </button>
@@ -3147,11 +3147,11 @@ function AppContent({ authUser, onLogout }) {
           )}
 
           {/* Paginación */}
-          <div className="bg-gray-900/50 px-4 py-3 flex items-center justify-between border-t border-gray-700">
+          <div className="bg-slate-50 px-4 py-3 flex items-center justify-between border-t border-slate-200">
             <button
               onClick={() => handlePageChange(filtros.page - 1)}
               disabled={filtros.page === 1}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               Anterior
             </button>
@@ -3161,7 +3161,7 @@ function AppContent({ authUser, onLogout }) {
             <button
               onClick={() => handlePageChange(filtros.page + 1)}
               disabled={filtros.page >= totalPages}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               Siguiente
             </button>

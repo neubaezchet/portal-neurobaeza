@@ -30,11 +30,11 @@ export default function LoginPage({ onLogin }) {
         gyroControls: false,
         minHeight: 200.00,
         minWidth: 200.00,
-        highlightColor: 0x0ea5e9, /* Sapphire 500 */
-        midtoneColor: 0x050507,   /* Obsidian 900 */
-        lowlightColor: 0x0B0B10,  /* Obsidian 800 */
-        baseColor: 0x000000,
-        blurFactor: 0.90,
+        highlightColor: 0xA5B4FC, /* Indigo 300 */
+        midtoneColor: 0xC7D2FE,   /* Indigo 200 */
+        lowlightColor: 0xEEF2FF,  /* Indigo 50 */
+        baseColor: 0xFFFFFF,      /* White */
+        blurFactor: 0.60,
         speed: 2.50,
       });
     }
@@ -129,11 +129,11 @@ export default function LoginPage({ onLogin }) {
       <div className="relative w-full max-w-md" style={{ zIndex: 1 }}>
         {/* Logo / Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600/20 rounded-2xl mb-4 border border-blue-500/30">
-            <Lock className="w-8 h-8 text-blue-400" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-50 rounded-2xl mb-4 border border-indigo-200">
+            <Lock className="w-8 h-8 text-indigo-600" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Portal Incapacidades</h1>
-          <p className="text-slate-400 text-sm mt-1">Sistema de Validación</p>
+          <h1 className="text-2xl font-bold text-slate-900">Portal Incapacidades</h1>
+          <p className="text-slate-500 text-sm mt-1">Sistema de Validación</p>
         </div>
 
         {/* Card */}
@@ -142,35 +142,35 @@ export default function LoginPage({ onLogin }) {
           {/* === LOGIN MODE === */}
           {mode === 'login' && (
             <>
-              <h2 className="text-lg font-semibold text-white mb-6">Iniciar Sesión</h2>
+              <h2 className="text-lg font-semibold text-slate-900 mb-6">Iniciar Sesión</h2>
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <label className="block text-sm text-slate-300 mb-1.5">Usuario</label>
+                  <label className="block text-sm text-slate-700 mb-1.5">Usuario</label>
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="input-2026 w-full px-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all"
+                    className="input-2026 w-full px-5 py-4 rounded-2026 bg-white/80 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     placeholder="Tu nombre de usuario"
                     required
                     autoFocus
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-slate-300 mb-1.5">Contraseña</label>
+                  <label className="block text-sm text-slate-700 mb-1.5">Contraseña</label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="input-2026 w-full px-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all pr-12"
+                      className="input-2026 w-full px-5 py-4 rounded-2026 bg-white/80 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all pr-12"
                       placeholder="••••••••"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition"
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -178,7 +178,7 @@ export default function LoginPage({ onLogin }) {
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                     <AlertCircle size={16} />
                     {error}
                   </div>
@@ -187,7 +187,7 @@ export default function LoginPage({ onLogin }) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 bg-sapphire-600 hover:bg-sapphire-500 disabled:bg-sapphire-600/50 text-white font-bold rounded-2026 transition-all duration-300 shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)] border border-sapphire-400/30 flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white font-bold rounded-2026 transition-all duration-300 shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] border border-indigo-400/30 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : null}
                   {loading ? 'Ingresando...' : 'Iniciar Sesión'}
@@ -197,7 +197,7 @@ export default function LoginPage({ onLogin }) {
               <div className="mt-6 text-center">
                 <button
                   onClick={() => { setMode('forgot'); setError(''); setSuccess(''); }}
-                  className="text-sm text-blue-400 hover:text-blue-300 transition"
+                  className="text-sm text-indigo-600 hover:text-indigo-700 transition"
                 >
                   ¿Olvidaste tu contraseña?
                 </button>
@@ -210,22 +210,22 @@ export default function LoginPage({ onLogin }) {
             <>
               <button
                 onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
-                className="flex items-center gap-1 text-sm text-slate-400 hover:text-white transition mb-4"
+                className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition mb-4"
               >
                 <ArrowLeft size={16} /> Volver al login
               </button>
-              <h2 className="text-lg font-semibold text-white mb-2">Recuperar Contraseña</h2>
-              <p className="text-sm text-slate-400 mb-6">Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.</p>
+              <h2 className="text-lg font-semibold text-slate-900 mb-2">Recuperar Contraseña</h2>
+              <p className="text-sm text-slate-500 mb-6">Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.</p>
               <form onSubmit={handleForgot} className="space-y-4">
                 <div>
-                  <label className="block text-sm text-slate-300 mb-1.5">Correo electrónico</label>
+                  <label className="block text-sm text-slate-700 mb-1.5">Correo electrónico</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="input-2026 w-full pl-12 pr-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all"
+                      className="input-2026 w-full pl-12 pr-5 py-4 rounded-2026 bg-white/80 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                       placeholder="tu@correo.com"
                       required
                       autoFocus
@@ -234,13 +234,13 @@ export default function LoginPage({ onLogin }) {
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                     <AlertCircle size={16} />
                     {error}
                   </div>
                 )}
                 {success && (
-                  <div className="flex items-center gap-2 text-green-400 text-sm bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-2 text-green-700 text-sm bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                     <CheckCircle size={16} />
                     {success}
                   </div>
@@ -249,7 +249,7 @@ export default function LoginPage({ onLogin }) {
                 <button
                   type="submit"
                   disabled={loading || success}
-                  className="w-full py-4 bg-sapphire-600 hover:bg-sapphire-500 disabled:bg-sapphire-600/50 text-white font-bold rounded-2026 transition-all duration-300 shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)] border border-sapphire-400/30 flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white font-bold rounded-2026 transition-all duration-300 shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] border border-indigo-400/30 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : <Mail size={18} />}
                   {loading ? 'Enviando...' : 'Enviar enlace de recuperación'}
@@ -261,41 +261,41 @@ export default function LoginPage({ onLogin }) {
           {/* === RESET PASSWORD MODE === */}
           {mode === 'reset' && (
             <>
-              <h2 className="text-lg font-semibold text-white mb-2">Nueva Contraseña</h2>
-              <p className="text-sm text-slate-400 mb-6">Escribe tu nueva contraseña.</p>
+              <h2 className="text-lg font-semibold text-slate-900 mb-2">Nueva Contraseña</h2>
+              <p className="text-sm text-slate-500 mb-6">Escribe tu nueva contraseña.</p>
               <form onSubmit={handleReset} className="space-y-4">
                 <div>
-                  <label className="block text-sm text-slate-300 mb-1.5">Nueva contraseña</label>
+                  <label className="block text-sm text-slate-700 mb-1.5">Nueva contraseña</label>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="input-2026 w-full px-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all"
+                    className="input-2026 w-full px-5 py-4 rounded-2026 bg-white/80 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     placeholder="Mínimo 6 caracteres"
                     required
                     autoFocus
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-slate-300 mb-1.5">Confirmar contraseña</label>
+                  <label className="block text-sm text-slate-700 mb-1.5">Confirmar contraseña</label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="input-2026 w-full px-5 py-4 rounded-2026 text-white placeholder-slate-400 focus:outline-none transition-all"
+                    className="input-2026 w-full px-5 py-4 rounded-2026 bg-white/80 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     placeholder="Repite la contraseña"
                     required
                   />
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                     <AlertCircle size={16} />
                     {error}
                   </div>
                 )}
                 {success && (
-                  <div className="flex items-center gap-2 text-green-400 text-sm bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-2 text-green-700 text-sm bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                     <CheckCircle size={16} />
                     {success}
                   </div>
@@ -304,7 +304,7 @@ export default function LoginPage({ onLogin }) {
                 <button
                   type="submit"
                   disabled={loading || success}
-                  className="w-full py-4 bg-sapphire-600 hover:bg-sapphire-500 disabled:bg-sapphire-600/50 text-white font-bold rounded-2026 transition-all duration-300 shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)] border border-sapphire-400/30 flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white font-bold rounded-2026 transition-all duration-300 shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] border border-indigo-400/30 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : <Lock size={18} />}
                   {loading ? 'Guardando...' : 'Restablecer Contraseña'}

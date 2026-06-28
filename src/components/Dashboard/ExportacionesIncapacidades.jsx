@@ -179,7 +179,7 @@ const ExportacionesIncapacidades = ({ empresas }) => {
   const renderTabla = () => {
     if (datos.length === 0) {
       return (
-        <div className="text-center py-8 text-gray-400">
+        <div className="text-center py-8 text-slate-500">
           {loading ? (
             <>
               <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -197,7 +197,7 @@ const ExportacionesIncapacidades = ({ empresas }) => {
     return (
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-900 sticky top-0">
+          <thead className="bg-slate-50 sticky top-0">
             <tr>
               {columnasVisibles.map(col => (
                 <th key={col.id} className="px-4 py-2 text-left whitespace-nowrap">
@@ -208,14 +208,14 @@ const ExportacionesIncapacidades = ({ empresas }) => {
           </thead>
           <tbody>
             {datos.map((d, idx) => (
-              <tr key={idx} className="border-t border-gray-700 hover:bg-gray-800/50">
+              <tr key={idx} className="border-t border-slate-200 hover:bg-slate-100">
                 {columnasVisibles.map(col => (
                   <td key={col.id} className="px-4 py-2 text-xs">
                     {col.id === 'fecha_radicacion' ? (d.fecha_radicacion ? new Date(d.fecha_radicacion).toLocaleDateString('es-CO') : '-') :
                      col.id === 'fecha_inicio' ? (d.fecha_inicio ? new Date(d.fecha_inicio).toLocaleDateString('es-CO') : '-') :
                      col.id === 'fecha_fin' ? (d.fecha_fin ? new Date(d.fecha_fin).toLocaleDateString('es-CO') : '-') :
                      col.id === 'fecha_expedicion' ? (d.fecha_expedicion ? new Date(d.fecha_expedicion).toLocaleDateString('es-CO') : '-') :
-                     col.id === 'texto_plano' ? <pre className="whitespace-pre-wrap text-xs font-mono bg-gray-900 p-2 rounded">{d.texto_plano || ''}</pre> :
+                     col.id === 'texto_plano' ? <pre className="whitespace-pre-wrap text-xs font-mono bg-slate-100 p-2 rounded">{d.texto_plano || ''}</pre> :
                      d[col.id] || '-'}
                   </td>
                 ))}
@@ -230,16 +230,16 @@ const ExportacionesIncapacidades = ({ empresas }) => {
   return (
     <div className="space-y-4">
       {/* FILTROS */}
-      <div className="bg-gray-800/50 backdrop-blur rounded-xl p-6 border border-gray-700">
+      <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <Filter className="w-5 h-5 text-blue-400" />
+          <Filter className="w-5 h-5 text-indigo-600" />
           Filtros de Búsqueda
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Fecha Inicio */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               <Calendar className="inline w-4 h-4 mr-1" />
               Fecha Inicio
             </label>
@@ -247,13 +247,13 @@ const ExportacionesIncapacidades = ({ empresas }) => {
               type="date"
               value={filtros.fecha_inicio}
               onChange={(e) => setFiltros(prev => ({ ...prev, fecha_inicio: e.target.value }))}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
           {/* Fecha Fin */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               <Calendar className="inline w-4 h-4 mr-1" />
               Fecha Fin
             </label>
@@ -261,17 +261,17 @@ const ExportacionesIncapacidades = ({ empresas }) => {
               type="date"
               value={filtros.fecha_fin}
               onChange={(e) => setFiltros(prev => ({ ...prev, fecha_fin: e.target.value }))}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
           {/* Empresa */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Empresa</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Empresa</label>
             <select
               value={filtros.empresa}
               onChange={(e) => setFiltros(prev => ({ ...prev, empresa: e.target.value }))}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500"
             >
               <option value="all">Todas las empresas</option>
               {empresas.map(emp => (
@@ -282,11 +282,11 @@ const ExportacionesIncapacidades = ({ empresas }) => {
 
           {/* Estado */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Estado</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Estado</label>
             <select
               value={filtros.estado}
               onChange={(e) => setFiltros(prev => ({ ...prev, estado: e.target.value }))}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500"
             >
               <option value="all">Todos los estados</option>
               <option value="COMPLETA">Validadas</option>
@@ -302,7 +302,7 @@ const ExportacionesIncapacidades = ({ empresas }) => {
           <button
             onClick={cargarDatos}
             disabled={!filtros.fecha_inicio || !filtros.fecha_fin || loading}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-6 py-2 rounded-lg font-semibold transition"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50 px-6 py-2 rounded-lg font-semibold transition"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Filter className="w-4 h-4" />}
             Actualizar Datos
@@ -310,7 +310,7 @@ const ExportacionesIncapacidades = ({ empresas }) => {
 
           <button
             onClick={() => setShowColumnSettings(!showColumnSettings)}
-            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-lg font-semibold transition"
+            className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-6 py-2 rounded-lg font-semibold transition"
           >
             <Settings2 className="w-4 h-4" />
             Configurar Columnas
@@ -319,7 +319,7 @@ const ExportacionesIncapacidades = ({ empresas }) => {
           <button
             onClick={exportarExcel}
             disabled={datos.length === 0}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 px-6 py-2 rounded-lg font-semibold transition"
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 px-6 py-2 rounded-lg font-semibold transition"
           >
             <Download className="w-4 h-4" />
             Descargar Excel ({datos.length} registros)
@@ -329,43 +329,43 @@ const ExportacionesIncapacidades = ({ empresas }) => {
 
       {/* MODAL DE CONFIGURACIÓN DE COLUMNAS */}
       {showColumnSettings && (
-        <div className="bg-gray-800/70 backdrop-blur rounded-xl p-6 border border-purple-500/50">
+        <div className="bg-white rounded-xl p-6 border border-violet-200 shadow-sm">
           <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <Settings2 className="w-5 h-5 text-purple-400" />
+            <Settings2 className="w-5 h-5 text-violet-600" />
             Personalizar Columnas
           </h3>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* COLUMNAS ACTIVAS */}
             <div>
-              <h4 className="font-semibold text-green-400 mb-3 flex items-center gap-2">
+              <h4 className="font-semibold text-green-700 mb-3 flex items-center gap-2">
                 <Eye className="w-4 h-4" />
                 Columnas Visibles ({columnasActivas.length})
               </h4>
-              <div className="space-y-2 bg-gray-900/50 p-4 rounded-lg max-h-80 overflow-y-auto">
+              <div className="space-y-2 bg-slate-50 p-4 rounded-lg max-h-80 overflow-y-auto">
                 {columnasActivas.map((colId, idx) => {
                   const col = columnasDisponibles.find(c => c.id === colId);
                   return (
-                    <div key={colId} className="flex items-center gap-2 bg-gray-800 p-2 rounded hover:bg-gray-700 transition group">
-                      <span className="text-gray-500 text-sm">::</span>
+                    <div key={colId} className="flex items-center gap-2 bg-slate-100 p-2 rounded hover:bg-slate-200 transition group">
+                      <span className="text-slate-500 text-sm">::</span>
                       <span className="flex-1 text-sm">{col?.label}</span>
                       <button
                         onClick={() => moverColumnaArriba(idx)}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-xs bg-blue-600 rounded"
+                        className="opacity-0 group-hover:opacity-100 p-1 text-xs bg-indigo-600 text-white rounded"
                         title="Mover arriba"
                       >
                         ↑
                       </button>
                       <button
                         onClick={() => moverColumnaAbajo(idx)}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-xs bg-blue-600 rounded"
+                        className="opacity-0 group-hover:opacity-100 p-1 text-xs bg-indigo-600 text-white rounded"
                         title="Mover abajo"
                       >
                         ↓
                       </button>
                       <button
                         onClick={() => quitarColumna(colId)}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-xs bg-red-600 rounded"
+                        className="opacity-0 group-hover:opacity-100 p-1 text-xs bg-red-600 text-white rounded"
                         title="Eliminar"
                       >
                         ✕
@@ -378,19 +378,19 @@ const ExportacionesIncapacidades = ({ empresas }) => {
 
             {/* COLUMNAS DISPONIBLES */}
             <div>
-              <h4 className="font-semibold text-gray-400 mb-3 flex items-center gap-2">
+              <h4 className="font-semibold text-slate-500 mb-3 flex items-center gap-2">
                 <EyeOff className="w-4 h-4" />
                 Columnas No Mostradas
               </h4>
-              <div className="space-y-2 bg-gray-900/50 p-4 rounded-lg max-h-80 overflow-y-auto">
+              <div className="space-y-2 bg-slate-50 p-4 rounded-lg max-h-80 overflow-y-auto">
                 {columnasDisponibles
                   .filter(c => !columnasActivas.includes(c.id))
                   .map(col => (
-                    <div key={col.id} className="flex items-center gap-2 bg-gray-800 p-2 rounded hover:bg-gray-700 transition">
+                    <div key={col.id} className="flex items-center gap-2 bg-slate-100 p-2 rounded hover:bg-slate-200 transition">
                       <span className="flex-1 text-sm">{col.label}</span>
                       <button
                         onClick={() => agregarColumna(col.id)}
-                        className="p-1 text-xs bg-green-600 rounded hover:bg-green-700"
+                        className="p-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
                         title="Agregar"
                       >
                         ✓
@@ -405,13 +405,13 @@ const ExportacionesIncapacidades = ({ empresas }) => {
           <div className="flex gap-3 justify-end">
             <button
               onClick={() => setShowColumnSettings(false)}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition"
             >
               Cancelar
             </button>
             <button
               onClick={guardarConfiguracionColumnas}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition"
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition"
             >
               <Check className="w-4 h-4" />
               Guardar como Predeterminado
@@ -421,16 +421,16 @@ const ExportacionesIncapacidades = ({ empresas }) => {
       )}
 
       {/* PREVIEW TABLA */}
-      <div className="bg-gray-800/50 backdrop-blur rounded-xl border border-gray-700 overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="max-h-[600px] overflow-y-auto">
           {renderTabla()}
         </div>
       </div>
 
       {/* INFO */}
-      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 text-blue-200 text-sm">
+      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-indigo-800 text-sm">
         <p className="font-semibold mb-2">📊 Columnas actualmente visibles: {columnasActivas.length}</p>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-slate-500">
           🎨 Usa la tuerca ⚙️ para arrastar columnas, agregar/quitar campos, y guardar tu configuración personalizada.
         </p>
       </div>

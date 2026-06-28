@@ -104,7 +104,7 @@ export function ExportModal({ isOpen, onClose, empresas = [] }) {
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4">
       <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* HEADER */}
-        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 flex items-center justify-between border-b-4 border-blue-700">
+        <div className="sticky top-0 bg-gradient-to-r from-indigo-600 to-violet-600 text-white p-6 flex items-center justify-between border-b-4 border-indigo-700">
           <div>
             <h2 className="text-2xl font-bold flex items-center gap-3">
               <Download className="w-6 h-6" />
@@ -122,7 +122,7 @@ export function ExportModal({ isOpen, onClose, empresas = [] }) {
 
         <div className="p-6 space-y-6">
           {/* PRESETS */}
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-200">
+          <div className="bg-gradient-to-r from-indigo-50 to-violet-50 rounded-xl p-4 border border-indigo-200">
             <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
               <Zap className="w-5 h-5 text-yellow-500" />
               ⚡ Reportes Rápidos
@@ -132,7 +132,7 @@ export function ExportModal({ isOpen, onClose, empresas = [] }) {
                 <button
                   key={preset.id}
                   onClick={() => aplicarPreset(preset)}
-                  className="px-3 py-2 bg-white border border-blue-300 hover:bg-blue-50 rounded-lg text-sm font-medium text-gray-700 transition-colors text-left"
+                  className="px-3 py-2 bg-white border border-indigo-200 hover:bg-indigo-50 rounded-lg text-sm font-medium text-gray-700 transition-colors text-left"
                   title={preset.description}
                 >
                   {preset.label}
@@ -150,7 +150,7 @@ export function ExportModal({ isOpen, onClose, empresas = [] }) {
                 <select
                   value={filtros.periodo}
                   onChange={(e) => setFiltros(prev => ({ ...prev, periodo: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
                   {Object.entries(PERIODOS).map(([key, val]) => (
                     <option key={key} value={key}>{val.label}</option>
@@ -164,7 +164,7 @@ export function ExportModal({ isOpen, onClose, empresas = [] }) {
                 <select
                   value={filtros.empresa}
                   onChange={(e) => setFiltros(prev => ({ ...prev, empresa: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="all">✅ Todas</option>
                   {empresas.map(emp => (
@@ -183,7 +183,7 @@ export function ExportModal({ isOpen, onClose, empresas = [] }) {
                         type="checkbox"
                         checked={filtros.estados.includes(key)}
                         onChange={() => toggleEstado(key)}
-                        className="w-4 h-4 text-blue-600 rounded"
+                        className="w-4 h-4 text-indigo-600 rounded"
                       />
                       <span className="text-sm text-gray-700">{info.label}</span>
                     </label>
@@ -201,7 +201,7 @@ export function ExportModal({ isOpen, onClose, empresas = [] }) {
                         type="checkbox"
                         checked={filtros.tipos.includes(tipo.key)}
                         onChange={() => toggleTipo(tipo.key)}
-                        className="w-4 h-4 text-blue-600 rounded"
+                        className="w-4 h-4 text-indigo-600 rounded"
                       />
                       <span className="text-sm text-gray-700">{tipo.label}</span>
                     </label>
@@ -221,8 +221,8 @@ export function ExportModal({ isOpen, onClose, empresas = [] }) {
                       onClick={() => setExportFormat(fmt.key)}
                       className={`flex-1 px-3 py-2 rounded-lg font-medium text-sm transition-colors ${
                         exportFormat === fmt.key
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-white border border-gray-300 text-gray-700 hover:border-blue-500'
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-white border border-gray-300 text-gray-700 hover:border-indigo-500'
                       }`}
                     >
                       {fmt.icon} {fmt.label}
@@ -246,7 +246,7 @@ export function ExportModal({ isOpen, onClose, empresas = [] }) {
               <button
                 onClick={handleCargarPreview}
                 disabled={cargandoPreview}
-                className="w-full px-4 py-3 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full px-4 py-3 bg-slate-600 hover:bg-slate-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <Eye className="w-5 h-5" />
                 {cargandoPreview ? 'Cargando...' : 'Ver Preview'}

@@ -30,8 +30,8 @@ export function TableViva({ empresa = 'all', periodo = 'mes_actual' }) {
   if (cargando && !datos) {
     return (
       <div className="flex items-center justify-center py-12">
-        <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
-        <span className="ml-2 text-gray-400">Cargando tabla viva...</span>
+        <RefreshCw className="w-8 h-8 animate-spin text-indigo-600" />
+        <span className="ml-2 text-slate-500">Cargando tabla viva...</span>
       </div>
     );
   }
@@ -44,7 +44,7 @@ export function TableViva({ empresa = 'all', periodo = 'mes_actual' }) {
   return (
     <div className="space-y-6">
       {/* HEADER */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl p-6 shadow-lg">
+      <div className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl p-6 shadow-lg">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold flex items-center gap-2">
@@ -58,7 +58,7 @@ export function TableViva({ empresa = 'all', periodo = 'mes_actual' }) {
           <div className="flex items-center gap-3">
             <div className="text-right">
               <div className="text-sm text-blue-100">{tiempoDesdeActualizacion(ultimaActualizacion)}</div>
-              <div className={`w-2 h-2 rounded-full mt-1 ${autoRefresh ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`}></div>
+              <div className={`w-2 h-2 rounded-full mt-1 ${autoRefresh ? 'bg-green-400 animate-pulse' : 'bg-white/40'}`}></div>
             </div>
             
             <button
@@ -74,7 +74,7 @@ export function TableViva({ empresa = 'all', periodo = 'mes_actual' }) {
               className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                 autoRefresh
                   ? 'bg-white/20 text-white hover:bg-white/30'
-                  : 'bg-gray-600/50 text-gray-300 hover:bg-gray-600/70'
+                  : 'bg-white/10 text-white/70 hover:bg-white/20'
               }`}
             >
               {autoRefresh ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -85,9 +85,9 @@ export function TableViva({ empresa = 'all', periodo = 'mes_actual' }) {
 
       {/* TARJETAS DE ESTADÍSTICAS */}
       <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
-        <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-          <div className="text-2xl font-bold text-white">{total}</div>
-          <div className="text-xs text-gray-400 mt-1">📊 Total</div>
+        <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+          <div className="text-2xl font-bold text-slate-900">{total}</div>
+          <div className="text-xs text-slate-500 mt-1">📊 Total</div>
         </div>
 
         {Object.entries(datos.estadisticas || {}).map(([estado, cantidad]) => {
@@ -99,13 +99,13 @@ export function TableViva({ empresa = 'all', periodo = 'mes_actual' }) {
           return (
             <div
               key={estado}
-              className="bg-gray-800/50 rounded-lg p-4 border"
+              className="bg-white rounded-lg p-4 border shadow-sm"
               style={{ borderColor: info.color + '50' }}
             >
               <div className="text-lg font-bold" style={{ color: info.color }}>
                 {cantidad}
               </div>
-              <div className="text-xs text-gray-400 mt-1">{info.label}</div>
+              <div className="text-xs text-slate-500 mt-1">{info.label}</div>
               <div className="text-xs mt-1 font-semibold" style={{ color: info.color + '99' }}>
                 {porcentaje}%
               </div>
@@ -115,8 +115,8 @@ export function TableViva({ empresa = 'all', periodo = 'mes_actual' }) {
       </div>
 
       {/* GRÁFICO DE BARRAS */}
-      <div className="bg-gray-800/50 backdrop-blur rounded-xl p-6 border border-gray-700">
-        <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+      <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+        <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
           <TrendingUp className="w-5 h-5" />
           📈 Distribución de Estados
         </h3>
@@ -131,12 +131,12 @@ export function TableViva({ empresa = 'all', periodo = 'mes_actual' }) {
             return (
               <div key={estado}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-300">{info.label}</span>
-                  <span className="text-sm font-bold text-gray-400">
+                  <span className="text-sm text-slate-700">{info.label}</span>
+                  <span className="text-sm font-bold text-slate-500">
                     {cantidad} ({porcentaje}%)
                   </span>
                 </div>
-                <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-300"
                     style={{
@@ -152,38 +152,38 @@ export function TableViva({ empresa = 'all', periodo = 'mes_actual' }) {
       </div>
 
       {/* TABLA DE ÚLTIMOS CASOS */}
-      <div className="bg-gray-800/50 backdrop-blur rounded-xl border border-gray-700 overflow-hidden">
-        <div className="bg-gray-900/50 px-6 py-4 border-b border-gray-700">
-          <h3 className="font-bold text-white">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+          <h3 className="font-bold text-slate-900">
             📋 Últimos Casos ({datos.casos?.length || 0})
           </h3>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-900/50 border-b border-gray-700">
+            <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">Cédula</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">Empleado</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">Empresa</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">Tipo</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">Estado</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">F. Inicio</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">F. Fin</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">F. Envío</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">Hora Envío</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300 uppercase">Días</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600 uppercase">Cédula</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600 uppercase">Empleado</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600 uppercase">Empresa</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600 uppercase">Tipo</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600 uppercase">Estado</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600 uppercase">F. Inicio</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600 uppercase">F. Fin</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600 uppercase">F. Envío</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600 uppercase">Hora Envío</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600 uppercase">Días</th>
               </tr>
             </thead>
             <tbody>
               {(datos.ultimos_casos || []).slice(0, 20).map((caso, idx) => {
                 const info = ESTADOS_MAP[caso.estado] || { color: '#9ca3af', label: caso.estado };
                 return (
-                  <tr key={idx} className="border-t border-gray-700 hover:bg-gray-700/30 transition-colors">
-                    <td className="px-6 py-3 font-mono text-xs text-yellow-300">{caso.cedula}</td>
-                    <td className="px-6 py-3 text-sm text-gray-300">{caso.empleado}</td>
-                    <td className="px-6 py-3 text-sm text-gray-400">{caso.empresa}</td>
-                    <td className="px-6 py-3 text-xs text-gray-400">{caso.tipo}</td>
+                  <tr key={idx} className="border-t border-slate-200 hover:bg-slate-100 transition-colors">
+                    <td className="px-6 py-3 font-mono text-xs text-amber-600">{caso.cedula}</td>
+                    <td className="px-6 py-3 text-sm text-slate-700">{caso.empleado}</td>
+                    <td className="px-6 py-3 text-sm text-slate-500">{caso.empresa}</td>
+                    <td className="px-6 py-3 text-xs text-slate-500">{caso.tipo}</td>
                     <td className="px-6 py-3">
                       <span
                         className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold"
@@ -192,11 +192,11 @@ export function TableViva({ empresa = 'all', periodo = 'mes_actual' }) {
                         {info.label}
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-xs text-gray-500">{caso.fecha_inicio}</td>
-                    <td className="px-6 py-3 text-xs text-gray-500">{caso.fecha_fin}</td>
-                    <td className="px-6 py-3 text-xs text-gray-500">{caso.fecha_envio}</td>
-                    <td className="px-6 py-3 text-xs text-gray-500">{caso.hora_envio}</td>
-                    <td className="px-6 py-3 text-xs text-gray-500 font-bold">{caso.dias}</td>
+                    <td className="px-6 py-3 text-xs text-slate-500">{caso.fecha_inicio}</td>
+                    <td className="px-6 py-3 text-xs text-slate-500">{caso.fecha_fin}</td>
+                    <td className="px-6 py-3 text-xs text-slate-500">{caso.fecha_envio}</td>
+                    <td className="px-6 py-3 text-xs text-slate-500">{caso.hora_envio}</td>
+                    <td className="px-6 py-3 text-xs text-slate-500 font-bold">{caso.dias}</td>
                   </tr>
                 );
               })}
@@ -205,7 +205,7 @@ export function TableViva({ empresa = 'all', periodo = 'mes_actual' }) {
         </div>
 
         {(datos.casos?.length || 0) > 20 && (
-          <div className="bg-gray-900/30 px-6 py-3 text-center text-xs text-gray-500">
+          <div className="bg-slate-50 px-6 py-3 text-center text-xs text-slate-500">
             Mostrando 20 de {datos.casos.length} registros
           </div>
         )}

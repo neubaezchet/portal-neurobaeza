@@ -356,7 +356,7 @@ const ValidationResultsTable = ({ cedula, onRefresh }) => {
       <div className="flex justify-center items-center p-12">
         <div className="text-center">
           <div className="inline-block animate-spin mb-4">
-            <RefreshCw className="w-8 h-8 text-blue-500" />
+            <RefreshCw className="w-8 h-8 text-indigo-600" />
           </div>
           <p className="text-gray-600">Cargando validaciones...</p>
         </div>
@@ -381,7 +381,7 @@ const ValidationResultsTable = ({ cedula, onRefresh }) => {
               cargarValidaciones();
               cargarResumen();
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
             disabled={loading}
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -402,7 +402,7 @@ const ValidationResultsTable = ({ cedula, onRefresh }) => {
       {resumen && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <div className="text-center">
-            <p className="text-2xl font-bold text-blue-600">{resumen.total_validaciones}</p>
+            <p className="text-2xl font-bold text-indigo-600">{resumen.total_validaciones}</p>
             <p className="text-xs text-gray-600">Total</p>
           </div>
           <div className="text-center">
@@ -418,7 +418,7 @@ const ValidationResultsTable = ({ cedula, onRefresh }) => {
             <p className="text-xs text-gray-600">Para Revisar</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-purple-600">{Math.round((resumen.tasa_aceptacion || 0) * 100)}%</p>
+            <p className="text-2xl font-bold text-violet-600">{Math.round((resumen.tasa_aceptacion || 0) * 100)}%</p>
             <p className="text-xs text-gray-600">Tasa Aceptación</p>
           </div>
         </div>
@@ -431,7 +431,7 @@ const ValidationResultsTable = ({ cedula, onRefresh }) => {
           <select
             value={filtroDecision}
             onChange={(e) => setFiltroDecision(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="TODOS">Todas las Decisiones</option>
             <option value="ACEPTAR">✅ Aceptadas</option>
@@ -504,7 +504,7 @@ const ValidationResultsTable = ({ cedula, onRefresh }) => {
                     onClick={() => setCurrentPage(page)}
                     className={`px-3 py-1 rounded-lg transition ${
                       currentPage === page
-                        ? 'bg-blue-500 text-white font-semibold'
+                        ? 'bg-indigo-600 text-white font-semibold'
                         : 'border border-gray-300 hover:bg-gray-100'
                     }`}
                   >

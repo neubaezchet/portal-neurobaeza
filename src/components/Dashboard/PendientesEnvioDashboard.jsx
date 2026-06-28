@@ -69,62 +69,62 @@ function PendientesEnvioDashboard() {
 
       {loading && pendientes.length === 0 && (
          <div className="flex items-center justify-center py-12">
-            <span className="ml-2 text-gray-400 animate-pulse">Cargando cola resiliente...</span>
+            <span className="ml-2 text-slate-500 animate-pulse">Cargando cola resiliente...</span>
          </div>
       )}
 
-      <div className="bg-gray-800/50 backdrop-blur rounded-xl border border-gray-700 overflow-hidden">
-        <div className="bg-gray-900/50 px-6 py-4 border-b border-gray-700 flex justify-between items-center">
-          <h3 className="font-bold text-white">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+          <h3 className="font-bold text-slate-900">
             📋 Registros Pendientes ({pendientes.length})
           </h3>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-900/50 border-b border-gray-700">
+            <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300">ID</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300">Sistema</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300">Destino / Archivo</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300 text-center">Intentos</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300">Último Error</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300">Estado</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-300">Fecha Creación</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600">ID</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600">Sistema</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600">Destino / Archivo</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600 text-center">Intentos</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600">Último Error</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600">Estado</th>
+                <th className="px-6 py-3 text-left font-semibold text-slate-600">Fecha Creación</th>
               </tr>
             </thead>
             <tbody>
               {pendientes.length === 0 && !loading && !error && (
-                <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">✅ No hay envíos pendientes en la cola</td></tr>
+                <tr><td colSpan={7} className="px-6 py-8 text-center text-slate-500">✅ No hay envíos pendientes en la cola</td></tr>
               )}
               {pendientes.map(p => {
                 const destino = p.tipo === 'notificacion' ? 
                   (p.payload?.email || p.payload?.whatsapp || p.payload?.tipo_notificacion || 'Notificación pendiente') : 
                   (p.payload?.nombre_archivo || 'Google Drive Upload');
                 
-                const statusColor = p.procesado ? 'text-green-400 bg-green-400/10' : 
-                                   (p.intentos >= 10 ? 'text-red-400 bg-red-400/10' : 'text-yellow-400 bg-yellow-400/10');
+                const statusColor = p.procesado ? 'text-green-700 bg-green-50' :
+                                   (p.intentos >= 10 ? 'text-red-700 bg-red-50' : 'text-yellow-700 bg-yellow-50');
                 
                 const statusLabel = p.procesado ? 'Completado' : 
                                    (p.intentos >= 10 ? 'Fallido (Límite)' : 'Pendiente Reintento');
 
                 return (
-                  <tr key={p.id} className="border-t border-gray-700 hover:bg-gray-700/30 transition-colors">
-                    <td className="px-6 py-3 font-mono text-xs text-gray-500">#{p.id}</td>
-                    <td className="px-6 py-3 text-sm text-gray-300 uppercase font-bold">{p.tipo}</td>
-                    <td className="px-6 py-3 text-sm text-gray-300 max-w-[200px] truncate" title={destino}>{destino}</td>
+                  <tr key={p.id} className="border-t border-slate-200 hover:bg-slate-100 transition-colors">
+                    <td className="px-6 py-3 font-mono text-xs text-slate-500">#{p.id}</td>
+                    <td className="px-6 py-3 text-sm text-slate-700 uppercase font-bold">{p.tipo}</td>
+                    <td className="px-6 py-3 text-sm text-slate-700 max-w-[200px] truncate" title={destino}>{destino}</td>
                     <td className="px-6 py-3 text-sm font-mono text-center">
-                      <span className={`px-2 py-1 rounded-full text-xs ${p.intentos > 0 ? 'bg-orange-500/20 text-orange-400' : 'bg-gray-700 text-gray-300'}`}>
+                      <span className={`px-2 py-1 rounded-full text-xs ${p.intentos > 0 ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-600'}`}>
                         {p.intentos}/10
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-xs text-red-400 max-w-[250px] truncate" title={p.ultimo_error}>{p.ultimo_error || '-'}</td>
+                    <td className="px-6 py-3 text-xs text-red-600 max-w-[250px] truncate" title={p.ultimo_error}>{p.ultimo_error || '-'}</td>
                     <td className="px-6 py-3">
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
                         {statusLabel}
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-xs text-gray-500">
+                    <td className="px-6 py-3 text-xs text-slate-500">
                       {p.creado_en ? new Date(p.creado_en).toLocaleString('es-CO') : '-'}
                     </td>
                   </tr>

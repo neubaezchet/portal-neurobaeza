@@ -32,16 +32,16 @@ const PERIODOS = [
 ];
 
 const ESTADO_COLORS = {
-  NUEVO:              { bg: 'bg-blue-500/20', text: 'text-blue-400', dot: 'bg-blue-500' },
-  EN_REVISION:        { bg: 'bg-cyan-500/20', text: 'text-cyan-400', dot: 'bg-cyan-500' },
-  INCOMPLETA:         { bg: 'bg-red-500/20', text: 'text-red-400', dot: 'bg-red-500' },
-  ILEGIBLE:           { bg: 'bg-orange-500/20', text: 'text-orange-400', dot: 'bg-orange-500' },
-  INCOMPLETA_ILEGIBLE:{ bg: 'bg-red-600/20', text: 'text-red-500', dot: 'bg-red-600' },
-  EPS_TRANSCRIPCION:  { bg: 'bg-yellow-500/20', text: 'text-yellow-400', dot: 'bg-yellow-500' },
-  DERIVADO_TTHH:      { bg: 'bg-red-600/20', text: 'text-red-400', dot: 'bg-red-600' },
-  CAUSA_EXTRA:        { bg: 'bg-pink-500/20', text: 'text-pink-400', dot: 'bg-pink-500' },
-  COMPLETA:           { bg: 'bg-green-500/20', text: 'text-green-400', dot: 'bg-green-500' },
-  EN_RADICACION:      { bg: 'bg-teal-500/20', text: 'text-teal-400', dot: 'bg-teal-500' },
+  NUEVO:              { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' },
+  EN_REVISION:        { bg: 'bg-cyan-100', text: 'text-cyan-700', dot: 'bg-cyan-500' },
+  INCOMPLETA:         { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500' },
+  ILEGIBLE:           { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500' },
+  INCOMPLETA_ILEGIBLE:{ bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-600' },
+  EPS_TRANSCRIPCION:  { bg: 'bg-yellow-100', text: 'text-yellow-700', dot: 'bg-yellow-500' },
+  DERIVADO_TTHH:      { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-600' },
+  CAUSA_EXTRA:        { bg: 'bg-pink-100', text: 'text-pink-700', dot: 'bg-pink-500' },
+  COMPLETA:           { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' },
+  EN_RADICACION:      { bg: 'bg-teal-100', text: 'text-teal-700', dot: 'bg-teal-500' },
 };
 
 const ESTADO_LABELS = {
@@ -139,26 +139,26 @@ function SortableTable({ data, columns, title, exportFilename, maxHeight = '500p
   };
 
   return (
-    <div className="bg-gray-800/60 backdrop-blur rounded-xl border border-gray-700 overflow-hidden">
-      <div className="bg-gray-900/70 px-4 py-3 border-b border-gray-700 flex items-center justify-between gap-3">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <h3 className="font-bold text-white text-sm">{title}</h3>
-          <span className="text-[10px] bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full">
+          <h3 className="font-bold text-slate-900 text-sm">{title}</h3>
+          <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
             {sortedData.length} registros
           </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500" />
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar..."
-              className="pl-8 pr-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white placeholder-gray-500 w-48 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 w-48 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+              <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
                 <X className="w-3 h-3" />
               </button>
             )}
@@ -174,34 +174,34 @@ function SortableTable({ data, columns, title, exportFilename, maxHeight = '500p
 
       <div className="overflow-auto" style={{ maxHeight }}>
         <table className="w-full text-xs">
-          <thead className="bg-gray-900/80 sticky top-0 z-10">
+          <thead className="bg-slate-50 sticky top-0 z-10">
             <tr>
               {columns.map(col => (
                 <th
                   key={col.key}
                   onClick={() => toggleSort(col.key)}
-                  className="px-3 py-2.5 text-left font-semibold text-gray-400 cursor-pointer hover:text-white select-none whitespace-nowrap"
+                  className="px-3 py-2.5 text-left font-semibold text-slate-600 cursor-pointer hover:text-slate-900 select-none whitespace-nowrap"
                   style={{ minWidth: col.width || 'auto' }}
                 >
                   <span className="flex items-center gap-1">
                     {col.label}
-                    <ArrowUpDown className={`w-3 h-3 ${sortKey === col.key ? 'text-blue-400' : 'text-gray-600'}`} />
+                    <ArrowUpDown className={`w-3 h-3 ${sortKey === col.key ? 'text-indigo-600' : 'text-slate-400'}`} />
                   </span>
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-700/50">
+          <tbody className="divide-y divide-slate-200">
             {sortedData.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={columns.length} className="px-4 py-8 text-center text-slate-500">
                   Sin datos para mostrar
                 </td>
               </tr>
             ) : sortedData.map((row, idx) => (
-              <tr key={idx} className={`hover:bg-gray-700/30 transition-colors ${rowClassName ? rowClassName(row) : ''}`}>
+              <tr key={idx} className={`hover:bg-slate-100 transition-colors ${rowClassName ? rowClassName(row) : ''}`}>
                 {columns.map(col => (
-                  <td key={col.key} className="px-3 py-2 text-gray-300 whitespace-nowrap">
+                  <td key={col.key} className="px-3 py-2 text-slate-700 whitespace-nowrap">
                     {col.render ? col.render(row) : String(col.accessor(row) ?? '—')}
                   </td>
                 ))}
@@ -225,7 +225,7 @@ function SubTabs({ tabs, active, onChange, color = 'blue' }) {
     amber: 'bg-amber-600 shadow-amber-500/20',
   };
   return (
-    <div className="flex items-center gap-1 bg-gray-900/60 p-1 rounded-lg border border-gray-700/50 w-fit">
+    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 w-fit">
       {tabs.map(t => (
         <button
           key={t.id}
@@ -233,7 +233,7 @@ function SubTabs({ tabs, active, onChange, color = 'blue' }) {
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all whitespace-nowrap ${
             active === t.id
               ? `${colors[color] || colors.blue} text-white shadow-lg`
-              : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200'
           }`}
         >
           {t.icon} {t.label}
@@ -251,22 +251,22 @@ function SubTabs({ tabs, active, onChange, color = 'blue' }) {
 // ═══════════════════════════════════════════════════════════
 function KPICard({ label, value, icon, color = 'blue', sub }) {
   const colors = {
-    blue:   'from-blue-600/20 to-blue-800/20 border-blue-500/30',
-    green:  'from-green-600/20 to-green-800/20 border-green-500/30',
-    red:    'from-red-600/20 to-red-800/20 border-red-500/30',
-    yellow: 'from-yellow-600/20 to-yellow-800/20 border-yellow-500/30',
-    purple: 'from-purple-600/20 to-purple-800/20 border-purple-500/30',
-    orange: 'from-orange-600/20 to-orange-800/20 border-orange-500/30',
-    cyan:   'from-cyan-600/20 to-cyan-800/20 border-cyan-500/30',
+    blue:   'from-blue-50 to-blue-100 border-blue-200',
+    green:  'from-green-50 to-green-100 border-green-200',
+    red:    'from-red-50 to-red-100 border-red-200',
+    yellow: 'from-yellow-50 to-yellow-100 border-yellow-200',
+    purple: 'from-violet-50 to-violet-100 border-violet-200',
+    orange: 'from-orange-50 to-orange-100 border-orange-200',
+    cyan:   'from-cyan-50 to-cyan-100 border-cyan-200',
   };
   return (
     <div className={`bg-gradient-to-br ${colors[color] || colors.blue} border rounded-xl p-4`}>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-gray-400 text-[10px] font-semibold uppercase tracking-wider">{label}</span>
+        <span className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider">{label}</span>
         <span className="text-lg">{icon}</span>
       </div>
-      <div className="text-2xl font-black text-white">{value}</div>
-      {sub && <div className="text-[10px] text-gray-400 mt-1">{sub}</div>}
+      <div className="text-2xl font-black text-slate-900">{value}</div>
+      {sub && <div className="text-[10px] text-slate-500 mt-1">{sub}</div>}
     </div>
   );
 }
@@ -331,10 +331,10 @@ export default function ReportsDashboard({ empresas = [] }) {
   // ═══════════════════════════════════════════════════════════
   const COLS_TH = useMemo(() => [
     { key: 'serial', label: 'LLAVE', width: '100px', accessor: r => r.serial, render: r => (
-      <span className="font-mono text-yellow-400 font-bold uppercase">{r.serial}</span>
+      <span className="font-mono text-amber-600 font-bold uppercase">{r.serial}</span>
     )},
     { key: 'cedula', label: 'CÉDULA', width: '110px', accessor: r => r.cedula, render: r => (
-      <span className="font-mono text-blue-300 uppercase">{r.cedula}</span>
+      <span className="font-mono text-blue-700 uppercase">{r.cedula}</span>
     )},
     { key: 'nombre', label: 'NOMBRES Y APELLIDOS', width: '180px', accessor: r => r.nombre, render: r => (
       <span className="uppercase">{r.nombre}</span>
@@ -346,7 +346,7 @@ export default function ReportsDashboard({ empresas = [] }) {
     { key: 'fecha_fin', label: 'F. FIN', accessor: r => r.fecha_fin, render: r => r.fecha_fin ? <span className="uppercase">{r.fecha_fin}</span> : '—' },
     { key: 'hora_envio', label: 'HORA ENVÍO', accessor: r => r.hora_envio, render: r => r.hora_envio || '—' },
     { key: 'dias_incapacidad', label: 'DÍAS INC.', accessor: r => r.dias_incapacidad, render: r => (
-      <span className="font-bold text-white">{r.dias_incapacidad ?? '—'}</span>
+      <span className="font-bold text-slate-900">{r.dias_incapacidad ?? '—'}</span>
     )},
     { key: 'estado', label: 'ESTADO', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
     { key: 'observacion', label: 'OBSERVACIÓN / MOTIVO', width: '280px', accessor: r => r.observacion, render: r => {
@@ -354,29 +354,29 @@ export default function ReportsDashboard({ empresas = [] }) {
       const faltantes = r.docs_faltantes || [];
       const ilegibles = r.docs_ilegibles || [];
       const sinKactus = r.subido_kactus === false;
-      if (!obs && faltantes.length === 0 && ilegibles.length === 0 && !sinKactus) return <span className="text-gray-500">—</span>;
+      if (!obs && faltantes.length === 0 && ilegibles.length === 0 && !sinKactus) return <span className="text-slate-500">—</span>;
       return (
         <div className="max-w-[280px]">
-          {obs && <span className="text-gray-300 text-[10px] block uppercase" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{obs}</span>}
+          {obs && <span className="text-slate-700 text-[10px] block uppercase" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{obs}</span>}
           {faltantes.length > 0 && (
             <div className="flex flex-wrap gap-0.5 mt-0.5">
-              {faltantes.map((d,i) => <span key={i} className="px-1 py-0.5 bg-red-500/20 text-red-400 rounded text-[8px] uppercase">📄 {d}</span>)}
+              {faltantes.map((d,i) => <span key={i} className="px-1 py-0.5 bg-red-100 text-red-700 rounded text-[8px] uppercase">📄 {d}</span>)}
             </div>
           )}
           {ilegibles.length > 0 && (
             <div className="flex flex-wrap gap-0.5 mt-0.5">
-              {ilegibles.map((d,i) => <span key={i} className="px-1 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[8px] uppercase">⚠️ {d} ILEGIBLE</span>)}
+              {ilegibles.map((d,i) => <span key={i} className="px-1 py-0.5 bg-orange-100 text-orange-700 rounded text-[8px] uppercase">⚠️ {d} ILEGIBLE</span>)}
             </div>
           )}
-          {sinKactus && <span className="px-1 py-0.5 bg-pink-500/15 text-pink-400 rounded text-[8px] mt-0.5 inline-block uppercase">SIN SUBIR EN KACTUS</span>}
+          {sinKactus && <span className="px-1 py-0.5 bg-pink-100 text-pink-700 rounded text-[8px] mt-0.5 inline-block uppercase">SIN SUBIR EN KACTUS</span>}
         </div>
       );
     }},
     { key: 'drive', label: 'DRIVE', width: '60px', accessor: r => r.drive_link || '', render: r => {
-      if (!r.drive_link) return <span className="text-gray-600">—</span>;
+      if (!r.drive_link) return <span className="text-slate-400">—</span>;
       return (
         <a href={r.drive_link} target="_blank" rel="noopener noreferrer"
-          className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition">
+          className="flex items-center gap-1 text-indigo-600 hover:text-indigo-700 transition">
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
       );
@@ -387,35 +387,35 @@ export default function ReportsDashboard({ empresas = [] }) {
   //  TALENTO HUMANO — 180 Días (solo alertas, todo en rojo)
   // ═══════════════════════════════════════════════════════════
   const COLS_TH_180 = useMemo(() => [
-    { key: 'cedula', label: 'Cédula', accessor: r => r.cedula, render: r => <span className="font-mono text-red-300">{r.cedula}</span> },
-    { key: 'nombre', label: 'Nombres y Apellidos', width: '180px', accessor: r => r.nombre, render: r => <span className="text-red-200 font-bold">{r.nombre}</span> },
+    { key: 'cedula', label: 'Cédula', accessor: r => r.cedula, render: r => <span className="font-mono text-red-700">{r.cedula}</span> },
+    { key: 'nombre', label: 'Nombres y Apellidos', width: '180px', accessor: r => r.nombre, render: r => <span className="text-red-700 font-bold">{r.nombre}</span> },
     { key: 'empresa', label: 'Empresa', accessor: r => r.empresa },
     { key: 'dias_prorroga', label: 'Días Prórroga', accessor: r => r.dias_prorroga || r.max_cadena_dias || 0, render: r => {
       const d = r.dias_prorroga || r.max_cadena_dias || 0;
-      return <span className="font-black text-lg text-red-400">{d}d</span>;
+      return <span className="font-black text-lg text-red-600">{d}d</span>;
     }},
     { key: 'alerta', label: 'Alerta', accessor: r => {
       if (r.supero_180) return 'SUPERÓ 180';
       if (r.cerca_limite_180) return 'CERCA 180';
       return 'EN RIESGO';
     }, render: r => {
-      if (r.supero_180) return <span className="px-2 py-1 bg-red-500/30 text-red-300 rounded text-[10px] font-bold animate-pulse">⛔ SUPERÓ 180</span>;
-      if (r.cerca_limite_180) return <span className="px-2 py-1 bg-orange-500/20 text-orange-400 rounded text-[10px] font-bold">🔴 CERCA LÍMITE</span>;
-      return <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-[10px] font-bold">🟡 EN RIESGO</span>;
+      if (r.supero_180) return <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold animate-pulse">⛔ SUPERÓ 180</span>;
+      if (r.cerca_limite_180) return <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-[10px] font-bold">🔴 CERCA LÍMITE</span>;
+      return <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-[10px] font-bold">🟡 EN RIESGO</span>;
     }},
     { key: 'huecos', label: 'Huecos', width: '200px', accessor: r => r.huecos_detectados || 0, render: r => {
       const h = r.huecos_detectados || 0;
-      if (h === 0) return <span className="text-gray-600">—</span>;
+      if (h === 0) return <span className="text-slate-400">—</span>;
       const infos = r.huecos_info || [];
       return (
         <div className="flex flex-col gap-0.5">
-          <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-[9px] font-bold w-fit">⚠️ {h} hueco{h > 1 ? 's' : ''}</span>
+          <span className="px-2 py-0.5 bg-violet-100 text-violet-700 rounded-full text-[9px] font-bold w-fit">⚠️ {h} hueco{h > 1 ? 's' : ''}</span>
           {infos.map((hi, i) => (
-            <div key={i} className="text-[8px] text-purple-300/80 leading-tight">
-              <span className="text-pink-400 font-mono">{hi.fecha_desde || '?'}</span>
-              <span className="text-gray-500"> → </span>
-              <span className="text-pink-400 font-mono">{hi.fecha_hasta || '?'}</span>
-              <span className="text-gray-500 ml-1">({hi.dias_hueco}d)</span>
+            <div key={i} className="text-[8px] text-violet-700/80 leading-tight">
+              <span className="text-pink-600 font-mono">{hi.fecha_desde || '?'}</span>
+              <span className="text-slate-500"> → </span>
+              <span className="text-pink-600 font-mono">{hi.fecha_hasta || '?'}</span>
+              <span className="text-slate-500 ml-1">({hi.dias_hueco}d)</span>
             </div>
           ))}
         </div>
@@ -427,8 +427,8 @@ export default function ReportsDashboard({ empresas = [] }) {
       return '';
     }, render: r => {
       const alertas = r.alertas_180 || [];
-      if (alertas.length === 0) return <span className="text-gray-500">—</span>;
-      return <span className="text-red-300 text-[10px] leading-tight block max-w-[300px]">{alertas[0].mensaje}</span>;
+      if (alertas.length === 0) return <span className="text-slate-500">—</span>;
+      return <span className="text-red-700 text-[10px] leading-tight block max-w-[300px]">{alertas[0].mensaje}</span>;
     }},
   ], []);
 
@@ -438,46 +438,46 @@ export default function ReportsDashboard({ empresas = [] }) {
   //  estado, diagnóstico principal, CIE-10
   // ═══════════════════════════════════════════════════════════
   const COLS_SST = useMemo(() => [
-    { key: 'serial', label: 'LLAVE', width: '100px', accessor: r => r.serial, render: r => <span className="font-mono text-yellow-400 uppercase">{r.serial}</span> },
-    { key: 'cedula', label: 'CÉDULA', width: '110px', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300 uppercase">{r.cedula}</span> },
+    { key: 'serial', label: 'LLAVE', width: '100px', accessor: r => r.serial, render: r => <span className="font-mono text-amber-600 uppercase">{r.serial}</span> },
+    { key: 'cedula', label: 'CÉDULA', width: '110px', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-700 uppercase">{r.cedula}</span> },
     { key: 'nombre', label: 'NOMBRES Y APELLIDOS', width: '180px', accessor: r => r.nombre, render: r => <span className="uppercase">{r.nombre}</span> },
     { key: 'empresa', label: 'EMPRESA', accessor: r => r.empresa, render: r => <span className="uppercase">{r.empresa}</span> },
     { key: 'tipo', label: 'TIPO INCAPACIDAD', accessor: r => r.tipo, render: r => (
-      <span className="px-1.5 py-0.5 bg-gray-700 text-gray-300 rounded text-[10px] uppercase">{(r.tipo || '').replace(/_/g, ' ')}</span>
+      <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] uppercase">{(r.tipo || '').replace(/_/g, ' ')}</span>
     )},
     { key: 'es_prorroga', label: 'PRÓRROGA', accessor: r => r.es_prorroga ? 'SÍ' : 'NO', render: r => {
-      if (!r.es_prorroga) return <span className="text-gray-500 font-bold uppercase">NO</span>;
+      if (!r.es_prorroga) return <span className="text-slate-500 font-bold uppercase">NO</span>;
       const conf = r.prorroga_confianza;
-      const color = conf === 'alta' ? 'bg-red-500/20 text-red-400' : conf === 'media' ? 'bg-orange-500/20 text-orange-400' : 'bg-yellow-500/20 text-yellow-400';
+      const color = conf === 'alta' ? 'bg-red-100 text-red-700' : conf === 'media' ? 'bg-orange-100 text-orange-700' : 'bg-yellow-100 text-yellow-700';
       return (
         <div className="flex flex-col items-start gap-0.5">
           <span className={`px-1.5 py-0.5 ${color} rounded text-[10px] font-black uppercase`}>SÍ</span>
-          {r.prorroga_caso_original && <span className="text-[8px] text-gray-500 uppercase">← {r.prorroga_caso_original}</span>}
+          {r.prorroga_caso_original && <span className="text-[8px] text-slate-500 uppercase">← {r.prorroga_caso_original}</span>}
         </div>
       );
     }},
     { key: 'dias_incapacidad', label: 'DÍAS INC.', accessor: r => r.dias_incapacidad, render: r => {
       const v = r.dias_validacion;
-      if (v && !v.valido) return <span className="font-bold text-yellow-400" title={v.mensaje || 'Días atípicos'}>{r.dias_incapacidad} ⚠</span>;
+      if (v && !v.valido) return <span className="font-bold text-amber-600" title={v.mensaje || 'Días atípicos'}>{r.dias_incapacidad} ⚠</span>;
       return <span className="font-bold uppercase">{r.dias_incapacidad ?? '—'}</span>;
     }},
     { key: 'estado', label: 'ESTADO', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
     { key: 'diagnostico', label: 'DIAGNÓSTICO / MOTIVO PRÓRROGA', width: '220px', accessor: r => r.diagnostico, render: r => (
       <div className="max-w-[220px]">
         {r.diagnostico === 'EN PROCESO'
-          ? <span className="text-pink-400 text-[10px] italic uppercase">EN PROCESO</span>
-          : <span className="text-gray-300 text-[10px] block truncate uppercase" title={r.diagnostico}>{r.diagnostico || '—'}</span>
+          ? <span className="text-pink-600 text-[10px] italic uppercase">EN PROCESO</span>
+          : <span className="text-slate-700 text-[10px] block truncate uppercase" title={r.diagnostico}>{r.diagnostico || '—'}</span>
         }
-        {r.prorroga_explicacion && <span className="text-[8px] text-purple-400 block truncate uppercase" title={r.prorroga_explicacion}>↳ {r.prorroga_explicacion}</span>}
+        {r.prorroga_explicacion && <span className="text-[8px] text-violet-700 block truncate uppercase" title={r.prorroga_explicacion}>↳ {r.prorroga_explicacion}</span>}
       </div>
     )},
     { key: 'codigo_cie10', label: 'CIE-10', accessor: r => r.codigo_cie10, render: r => {
-      if (r.codigo_cie10 === 'EN PROCESO') return <span className="text-pink-400 text-[10px] italic uppercase">EN PROCESO</span>;
-      if (!r.codigo_cie10) return <span className="text-gray-500">—</span>;
+      if (r.codigo_cie10 === 'EN PROCESO') return <span className="text-pink-600 text-[10px] italic uppercase">EN PROCESO</span>;
+      if (!r.codigo_cie10) return <span className="text-slate-500">—</span>;
       return (
         <div className="flex flex-col">
-          <span className="font-mono text-purple-300 text-[10px] uppercase">{r.codigo_cie10}</span>
-          {r.cie10_descripcion && r.cie10_descripcion !== 'EN PROCESO' && <span className="text-[8px] text-gray-500 truncate max-w-[120px] uppercase" title={r.cie10_descripcion}>{r.cie10_descripcion}</span>}
+          <span className="font-mono text-violet-700 text-[10px] uppercase">{r.codigo_cie10}</span>
+          {r.cie10_descripcion && r.cie10_descripcion !== 'EN PROCESO' && <span className="text-[8px] text-slate-500 truncate max-w-[120px] uppercase" title={r.cie10_descripcion}>{r.cie10_descripcion}</span>}
         </div>
       );
     }},
@@ -492,25 +492,25 @@ export default function ReportsDashboard({ empresas = [] }) {
   // ═══════════════════════════════════════════════════════════
   const COLS_SST_180 = useMemo(() => [
     { key: 'tipo', label: 'Tipo Alerta', width: '160px', accessor: r => r.tipo, render: r => {
-      const colors = { LIMITE_180_SUPERADO: 'bg-red-500/30 text-red-300', ALERTA_CRITICA: 'bg-orange-500/20 text-orange-400', ALERTA_TEMPRANA: 'bg-yellow-500/20 text-yellow-400', PRORROGA_CORTADA: 'bg-purple-500/20 text-purple-400' };
+      const colors = { LIMITE_180_SUPERADO: 'bg-red-100 text-red-700', ALERTA_CRITICA: 'bg-orange-100 text-orange-700', ALERTA_TEMPRANA: 'bg-yellow-100 text-yellow-700', PRORROGA_CORTADA: 'bg-violet-100 text-violet-700' };
       const icons = { LIMITE_180_SUPERADO: '⛔', ALERTA_CRITICA: '🔴', ALERTA_TEMPRANA: '🟡', PRORROGA_CORTADA: '⚠️' };
-      return <span className={`px-2 py-1 rounded text-[10px] font-bold ${colors[r.tipo] || 'bg-gray-700'}`}>{icons[r.tipo] || '⚪'} {(r.tipo || '').replace(/_/g, ' ')}</span>;
+      return <span className={`px-2 py-1 rounded text-[10px] font-bold ${colors[r.tipo] || 'bg-slate-100 text-slate-600'}`}>{icons[r.tipo] || '⚪'} {(r.tipo || '').replace(/_/g, ' ')}</span>;
     }},
     { key: 'severidad', label: 'Severidad', accessor: r => r.severidad, render: r => {
-      const c = { critica: 'text-red-400', alta: 'text-orange-400', media: 'text-yellow-400' };
+      const c = { critica: 'text-red-600', alta: 'text-orange-400', media: 'text-amber-600' };
       return <span className={`font-bold uppercase text-[10px] ${c[r.severidad] || ''}`}>{r.severidad}</span>;
     }},
-    { key: 'dias_acumulados', label: 'Días Acum.', accessor: r => r.dias_acumulados, render: r => <span className="font-black text-lg text-red-400">{r.dias_acumulados}</span> },
+    { key: 'dias_acumulados', label: 'Días Acum.', accessor: r => r.dias_acumulados, render: r => <span className="font-black text-lg text-red-600">{r.dias_acumulados}</span> },
     { key: 'dias_restantes', label: 'Restantes', accessor: r => r.dias_restantes, render: r => {
-      if (r.tipo === 'PRORROGA_CORTADA') return <span className="font-bold text-purple-400">{r.dias_hueco || '?'}d hueco</span>;
-      return r.dias_restantes != null ? <span className="font-bold text-yellow-400">{r.dias_restantes}d</span> : <span className="text-red-400 font-bold">EXCEDIDO</span>;
+      if (r.tipo === 'PRORROGA_CORTADA') return <span className="font-bold text-violet-700">{r.dias_hueco || '?'}d hueco</span>;
+      return r.dias_restantes != null ? <span className="font-bold text-amber-600">{r.dias_restantes}d</span> : <span className="text-red-600 font-bold">EXCEDIDO</span>;
     }},
-    { key: 'mensaje', label: 'Detalle', width: '350px', accessor: r => r.mensaje, render: r => <span className="text-gray-300 text-[10px] leading-tight block max-w-[350px]">{r.mensaje}</span> },
-    { key: 'normativa', label: 'Normativa', width: '250px', accessor: r => r.normativa, render: r => r.normativa ? <span className="text-gray-500 text-[9px] italic block max-w-[250px]">{r.normativa}</span> : '—' },
+    { key: 'mensaje', label: 'Detalle', width: '350px', accessor: r => r.mensaje, render: r => <span className="text-slate-700 text-[10px] leading-tight block max-w-[350px]">{r.mensaje}</span> },
+    { key: 'normativa', label: 'Normativa', width: '250px', accessor: r => r.normativa, render: r => r.normativa ? <span className="text-slate-500 text-[9px] italic block max-w-[250px]">{r.normativa}</span> : '—' },
     { key: 'codigos', label: 'CIE-10', accessor: r => (r.codigos_involucrados || []).join(', '), render: r => {
       const codes = r.codigos_involucrados || [];
-      if (codes.length === 0) return <span className="text-gray-500">—</span>;
-      return <div className="flex flex-wrap gap-0.5">{codes.map((c,i) => <span key={i} className="px-1 py-0.5 bg-purple-500/20 text-purple-300 rounded text-[8px] font-mono">{c}</span>)}</div>;
+      if (codes.length === 0) return <span className="text-slate-500">—</span>;
+      return <div className="flex flex-wrap gap-0.5">{codes.map((c,i) => <span key={i} className="px-1 py-0.5 bg-violet-100 text-violet-700 rounded text-[8px] font-mono">{c}</span>)}</div>;
     }},
   ], []);
 
@@ -520,20 +520,20 @@ export default function ReportsDashboard({ empresas = [] }) {
   //  días Kactus, estado, prórroga, nº incapacidad
   // ═══════════════════════════════════════════════════════════
   const COLS_NOMINA = useMemo(() => [
-    { key: 'serial', label: 'LLAVE', width: '100px', accessor: r => r.serial, render: r => <span className="font-mono text-yellow-400 uppercase">{r.serial}</span> },
-    { key: 'cedula', label: 'CÉDULA', width: '110px', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300 uppercase">{r.cedula}</span> },
+    { key: 'serial', label: 'LLAVE', width: '100px', accessor: r => r.serial, render: r => <span className="font-mono text-amber-600 uppercase">{r.serial}</span> },
+    { key: 'cedula', label: 'CÉDULA', width: '110px', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-700 uppercase">{r.cedula}</span> },
     { key: 'nombre', label: 'NOMBRES Y APELLIDOS', width: '180px', accessor: r => r.nombre, render: r => <span className="uppercase">{r.nombre}</span> },
     { key: 'empresa', label: 'EMPRESA', accessor: r => r.empresa, render: r => <span className="uppercase">{r.empresa}</span> },
     { key: 'eps', label: 'EPS', accessor: r => r.eps, render: r => <span className="uppercase">{r.eps}</span> },
-    { key: 'tipo', label: 'TIPO', accessor: r => r.tipo, render: r => <span className="text-gray-400 uppercase">{(r.tipo || '').replace(/_/g, ' ')}</span> },
+    { key: 'tipo', label: 'TIPO', accessor: r => r.tipo, render: r => <span className="text-slate-500 uppercase">{(r.tipo || '').replace(/_/g, ' ')}</span> },
     { key: 'numero_incapacidad', label: 'Nº INCAPACIDAD', accessor: r => r.numero_incapacidad },
     { key: 'fecha_inicio', label: 'F. INICIO', accessor: r => r.fecha_inicio, render: r => r.fecha_inicio || '—' },
     { key: 'fecha_fin', label: 'F. FIN', accessor: r => r.fecha_fin, render: r => r.fecha_fin || '—' },
     { key: 'hora_envio', label: 'HORA ENVÍO', accessor: r => r.hora_envio, render: r => r.hora_envio || '—' },
-    { key: 'dias_incapacidad', label: 'DÍAS', accessor: r => r.dias_incapacidad, render: r => <span className="font-bold text-white">{r.dias_incapacidad ?? '—'}</span> },
+    { key: 'dias_incapacidad', label: 'DÍAS', accessor: r => r.dias_incapacidad, render: r => <span className="font-bold text-slate-900">{r.dias_incapacidad ?? '—'}</span> },
     { key: 'es_prorroga', label: 'PRÓRROGA', accessor: r => r.es_prorroga ? 'SÍ' : 'NO', render: r => r.es_prorroga
-      ? <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[10px] font-bold uppercase">SÍ</span>
-      : <span className="text-gray-500 uppercase">NO</span>
+      ? <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-[10px] font-bold uppercase">SÍ</span>
+      : <span className="text-slate-500 uppercase">NO</span>
     },
     { key: 'estado', label: 'ESTADO', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
     { key: 'centro_costo', label: 'CENTRO COSTO', accessor: r => r.centro_costo, render: r => <span className="uppercase">{r.centro_costo || '—'}</span> },
@@ -545,14 +545,14 @@ export default function ReportsDashboard({ empresas = [] }) {
   // ═══════════════════════════════════════════════════════════
   const COLS_INDICADORES = useMemo(() => [
     { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
-    { key: 'cantidad', label: 'Cantidad', accessor: r => r.cantidad, render: r => <span className="font-black text-white text-base">{r.cantidad}</span> },
+    { key: 'cantidad', label: 'Cantidad', accessor: r => r.cantidad, render: r => <span className="font-black text-slate-900 text-base">{r.cantidad}</span> },
     { key: 'porcentaje', label: '%', accessor: r => r.porcentaje,
       render: r => (
         <div className="flex items-center gap-2">
-          <div className="w-20 bg-gray-700 rounded-full h-2 overflow-hidden">
-            <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${r.porcentaje}%` }} />
+          <div className="w-20 bg-slate-200 rounded-full h-2 overflow-hidden">
+            <div className="h-full rounded-full bg-indigo-600 transition-all" style={{ width: `${r.porcentaje}%` }} />
           </div>
-          <span className="text-gray-300 text-[10px] font-mono">{r.porcentaje}%</span>
+          <span className="text-slate-700 text-[10px] font-mono">{r.porcentaje}%</span>
         </div>
       )
     },
@@ -560,7 +560,7 @@ export default function ReportsDashboard({ empresas = [] }) {
     { key: 'dias_promedio_portal', label: 'Prom. Días Portal', accessor: r => r.dias_promedio_portal,
       render: r => {
         const d = r.dias_promedio_portal || 0;
-        return <span className={`font-bold ${d > 15 ? 'text-red-400' : d > 7 ? 'text-yellow-400' : 'text-green-400'}`}>{d}d</span>;
+        return <span className={`font-bold ${d > 15 ? 'text-red-600' : d > 7 ? 'text-amber-600' : 'text-green-600'}`}>{d}d</span>;
       }
     },
   ], []);
@@ -579,15 +579,15 @@ export default function ReportsDashboard({ empresas = [] }) {
   if (loading && !data) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
-        <span className="ml-3 text-gray-400">Cargando dashboard...</span>
+        <RefreshCw className="w-8 h-8 animate-spin text-indigo-600" />
+        <span className="ml-3 text-slate-500">Cargando dashboard...</span>
       </div>
     );
   }
 
   if (error && !data) {
     return (
-      <div className="bg-red-900/30 border border-red-500/50 rounded-xl p-6 text-red-400">
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-700">
         <p className="font-bold">Error cargando dashboard</p>
         <p className="text-sm mt-1">{error}</p>
         <button onClick={() => fetchData()} className="mt-3 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg">
@@ -602,13 +602,13 @@ export default function ReportsDashboard({ empresas = [] }) {
   return (
     <div className="space-y-4">
       {/* ═══ HEADER ═══ */}
-      <div className="bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 border border-gray-700 rounded-xl p-5">
+      <div className="bg-gradient-to-r from-indigo-50 via-violet-50 to-pink-50 border border-slate-200 rounded-xl p-5">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-xl font-black text-white flex items-center gap-2">
-              <BarChart3 className="w-6 h-6 text-blue-400" /> Dashboard de Reportes
+            <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+              <BarChart3 className="w-6 h-6 text-indigo-600" /> Dashboard de Reportes
             </h2>
-            <p className="text-gray-400 text-xs mt-1">
+            <p className="text-slate-500 text-xs mt-1">
               {data?.fecha_inicio && data?.fecha_fin
                 ? `${formatFecha(data.fecha_inicio)} → ${formatFecha(data.fecha_fin)}`
                 : 'Cargando período...'}
@@ -617,33 +617,33 @@ export default function ReportsDashboard({ empresas = [] }) {
           
           <div className="flex items-center gap-2 flex-wrap">
             <select value={empresa} onChange={e => setEmpresa(e.target.value)}
-              className="px-3 py-1.5 bg-gray-800 border border-gray-600 rounded-lg text-xs text-white">
+              className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900">
               <option value="all">Todas empresas</option>
               {empresas.map((e,i) => <option key={i} value={e}>{e}</option>)}
             </select>
             
             <select value={periodo} onChange={e => setPeriodo(e.target.value)}
-              className="px-3 py-1.5 bg-gray-800 border border-gray-600 rounded-lg text-xs text-white">
+              className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900">
               {PERIODOS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
             </select>
             
             {periodo === 'personalizado' && (
               <div className="flex items-center gap-1.5">
                 <input type="date" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)}
-                  className="px-2 py-1.5 bg-gray-800 border border-gray-600 rounded-lg text-xs text-white" />
-                <span className="text-gray-500 text-xs">a</span>
+                  className="px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900" />
+                <span className="text-slate-400 text-xs">a</span>
                 <input type="date" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)}
-                  className="px-2 py-1.5 bg-gray-800 border border-gray-600 rounded-lg text-xs text-white" />
+                  className="px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900" />
               </div>
             )}
             
             <button onClick={() => setAutoRefresh(!autoRefresh)}
-              className={`p-2 rounded-lg transition-colors ${autoRefresh ? 'bg-green-600/30 text-green-400' : 'bg-gray-700 text-gray-500'}`}
+              className={`p-2 rounded-lg transition-colors ${autoRefresh ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}
               title={autoRefresh ? 'Auto-refresh ON (30s)' : 'Auto-refresh OFF'}>
               {autoRefresh ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
             </button>
             
-            <button onClick={() => fetchData()} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition-colors">
+            <button onClick={() => fetchData()} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 transition-colors">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
             
@@ -654,14 +654,14 @@ export default function ReportsDashboard({ empresas = [] }) {
             
             <button
               onClick={() => setShowEmailConfig(true)}
-              className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs text-gray-300 hover:text-white transition flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs text-slate-700 hover:text-slate-900 transition flex items-center gap-1.5"
               title="Configurar correos de alertas 180 días"
             >
               📧 Config Alertas
             </button>
             
             {lastUpdate && (
-              <span className="text-[10px] text-gray-500">{lastUpdate.toLocaleTimeString('es-CO')}</span>
+              <span className="text-[10px] text-slate-400">{lastUpdate.toLocaleTimeString('es-CO')}</span>
             )}
           </div>
         </div>
@@ -680,15 +680,15 @@ export default function ReportsDashboard({ empresas = [] }) {
       </div>
 
       {/* ═══ MAIN TABS ═══ */}
-      <div className="flex items-center gap-1 bg-gray-800/60 p-1 rounded-xl border border-gray-700 overflow-x-auto">
+      <div className="flex items-center gap-1 bg-white shadow-sm p-1 rounded-xl border border-slate-200 overflow-x-auto">
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
               tab === t.id
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             {t.icon} {t.label}
@@ -707,9 +707,9 @@ export default function ReportsDashboard({ empresas = [] }) {
       {/* ═══════════════════════════════════════════════════════════ */}
       {tab === 'resumen' && data && (
         <div className="space-y-4">
-          <div className="bg-gray-800/60 backdrop-blur rounded-xl p-5 border border-gray-700">
-            <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-blue-400" /> Distribución de Estados
+          <div className="bg-white shadow-sm rounded-xl p-5 border border-slate-200">
+            <h3 className="font-bold text-slate-900 text-sm mb-4 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-indigo-600" /> Distribución de Estados
             </h3>
             <div className="space-y-3">
               {(data.indicadores || []).map(ind => {
@@ -718,9 +718,9 @@ export default function ReportsDashboard({ empresas = [] }) {
                   <div key={ind.estado}>
                     <div className="flex items-center justify-between mb-1">
                       <span className={`text-xs font-semibold ${c.text}`}>{ESTADO_LABELS[ind.estado] || ind.estado}</span>
-                      <span className="text-xs text-gray-400 font-mono">{ind.cantidad} ({ind.porcentaje}%)</span>
+                      <span className="text-xs text-slate-500 font-mono">{ind.cantidad} ({ind.porcentaje}%)</span>
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                    <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
                       <div className={`h-full rounded-full ${c.dot} transition-all duration-500`} style={{ width: `${ind.porcentaje}%` }} />
                     </div>
                   </div>
@@ -733,13 +733,13 @@ export default function ReportsDashboard({ empresas = [] }) {
             <SortableTable
               data={(data.tabla_principal || []).slice(0, 15)}
               columns={[
-                { key: 'serial', label: 'Llave', accessor: r => r.serial, render: r => <span className="font-mono text-yellow-400">{r.serial}</span> },
+                { key: 'serial', label: 'Llave', accessor: r => r.serial, render: r => <span className="font-mono text-amber-600">{r.serial}</span> },
                 { key: 'nombre', label: 'Nombre', accessor: r => r.nombre },
                 { key: 'estado', label: 'Estado', accessor: r => r.estado, render: r => <EstadoBadge estado={r.estado} /> },
                 { key: 'dias_incapacidad', label: 'Días', accessor: r => r.dias_incapacidad },
                 { key: 'dias_en_portal', label: 'Portal', accessor: r => r.dias_en_portal, render: r => {
                   const d = r.dias_en_portal || 0;
-                  return <span className={d > 15 ? 'text-red-400 font-bold' : d > 7 ? 'text-yellow-400' : 'text-green-400'}>{d}d</span>;
+                  return <span className={d > 15 ? 'text-red-600 font-bold' : d > 7 ? 'text-amber-600' : 'text-green-600'}>{d}d</span>;
                 }},
               ]}
               title="📋 Últimos Casos"
@@ -750,11 +750,11 @@ export default function ReportsDashboard({ empresas = [] }) {
             <SortableTable
               data={(data.frecuencia || []).filter(f => f.total_incapacidades >= 2).slice(0, 15)}
               columns={[
-                { key: 'cedula', label: 'Cédula', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-300">{r.cedula}</span> },
+                { key: 'cedula', label: 'Cédula', accessor: r => r.cedula, render: r => <span className="font-mono text-blue-700">{r.cedula}</span> },
                 { key: 'nombre', label: 'Nombre', accessor: r => r.nombre },
-                { key: 'total_incapacidades', label: 'Inc.', accessor: r => r.total_incapacidades, render: r => <span className={`font-black ${r.total_incapacidades >= 5 ? 'text-red-400' : r.total_incapacidades >= 3 ? 'text-orange-400' : 'text-white'}`}>{r.total_incapacidades}</span> },
+                { key: 'total_incapacidades', label: 'Inc.', accessor: r => r.total_incapacidades, render: r => <span className={`font-black ${r.total_incapacidades >= 5 ? 'text-red-600' : r.total_incapacidades >= 3 ? 'text-orange-600' : 'text-slate-900'}`}>{r.total_incapacidades}</span> },
                 { key: 'total_dias_portal', label: 'Días', accessor: r => r.total_dias_portal },
-                { key: 'reincidente', label: '', accessor: r => r.es_reincidente, render: r => r.es_reincidente ? <span className="text-red-400 text-[10px] font-bold">⚠ REIN.</span> : null },
+                { key: 'reincidente', label: '', accessor: r => r.es_reincidente, render: r => r.es_reincidente ? <span className="text-red-600 text-[10px] font-bold">⚠ REIN.</span> : null },
               ]}
               title="🔄 Top Reincidentes (2+)"
               exportFilename="reincidentes"
@@ -780,7 +780,7 @@ export default function ReportsDashboard({ empresas = [] }) {
               onChange={setSubTab}
               color="blue"
             />
-            <span className="text-[10px] text-gray-500 italic">
+            <span className="text-[10px] text-slate-500 italic">
               👔 Vista para Talento Humano — Links redireccionan al Drive
             </span>
           </div>
@@ -801,16 +801,16 @@ export default function ReportsDashboard({ empresas = [] }) {
 
           {subTab === '180' && (
             <div className="space-y-3">
-              <div className="bg-red-900/20 border border-red-800/50 rounded-xl p-4">
-                <h3 className="text-red-400 font-bold text-sm mb-1">⛔ Empleados cerca o por encima de 180 días</h3>
-                <p className="text-gray-400 text-[10px]">
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <h3 className="text-red-600 font-bold text-sm mb-1">⛔ Empleados cerca o por encima de 180 días</h3>
+                <p className="text-slate-500 text-[10px]">
                   Solo se muestran empleados con cadenas de prórroga ≥120 días o con alertas activas. Todos resaltados en rojo.
                 </p>
               </div>
               {frecuencia180.length === 0 ? (
-                <div className="bg-green-900/20 border border-green-700/50 rounded-xl p-8 text-center">
-                  <span className="text-green-400 text-4xl block mb-2">✅</span>
-                  <span className="text-green-400 font-bold">Sin empleados cerca de 180 días</span>
+                <div className="bg-green-50 border border-green-200 rounded-xl p-8 text-center">
+                  <span className="text-green-600 text-4xl block mb-2">✅</span>
+                  <span className="text-green-600 font-bold">Sin empleados cerca de 180 días</span>
                 </div>
               ) : (
                 <SortableTable
@@ -843,7 +843,7 @@ export default function ReportsDashboard({ empresas = [] }) {
               onChange={setSubTab}
               color="emerald"
             />
-            <span className="text-[10px] text-gray-500 italic">
+            <span className="text-[10px] text-slate-500 italic">
               🛡️ Vista para Seguridad y Salud — Diagnósticos, prórrogas, CIE-10
             </span>
           </div>
@@ -860,18 +860,18 @@ export default function ReportsDashboard({ empresas = [] }) {
 
           {subTab === '180' && (
             <div className="space-y-3">
-              <div className="bg-red-900/20 border border-red-800/50 rounded-xl p-4">
-                <h3 className="text-red-400 font-bold text-sm mb-1">⛔ Alertas Ley 776/2002 — Control de 180 Días</h3>
-                <p className="text-gray-400 text-[10px] leading-relaxed">
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <h3 className="text-red-600 font-bold text-sm mb-1">⛔ Alertas Ley 776/2002 — Control de 180 Días</h3>
+                <p className="text-slate-500 text-[10px] leading-relaxed">
                   La EPS cubre hasta 180 días. Del día 181 al 540, el Fondo de Pensiones asume al 50% (con concepto favorable).
                   Detección automática por correlación CIE-10. Las cadenas se cortan si pasan 30+ días sin incapacidad.
                 </p>
               </div>
               {(data.alertas_180 || []).length === 0 ? (
-                <div className="bg-green-900/20 border border-green-700/50 rounded-xl p-8 text-center">
-                  <span className="text-green-400 text-4xl block mb-2">✅</span>
-                  <span className="text-green-400 font-bold">Sin alertas de 180 días</span>
-                  <p className="text-gray-500 text-xs mt-1">Ningún empleado se acerca al límite de incapacidad temporal de la EPS</p>
+                <div className="bg-green-50 border border-green-200 rounded-xl p-8 text-center">
+                  <span className="text-green-600 text-4xl block mb-2">✅</span>
+                  <span className="text-green-600 font-bold">Sin alertas de 180 días</span>
+                  <p className="text-slate-500 text-xs mt-1">Ningún empleado se acerca al límite de incapacidad temporal de la EPS</p>
                 </div>
               ) : (
                 <SortableTable
@@ -914,8 +914,8 @@ export default function ReportsDashboard({ empresas = [] }) {
       )}
 
       {/* ═══ FOOTER ═══ */}
-      <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-3 text-center">
-        <span className="text-gray-500 text-[10px]">
+      <div className="bg-white shadow-sm border border-slate-200 rounded-xl p-3 text-center">
+        <span className="text-slate-500 text-[10px]">
           Dashboard 2026 — Auto-refresh {autoRefresh ? '✅ activo (30s)' : '⏸ pausado'}
           {' '} — Exportar cada sección como Excel
           {lastUpdate && ` — Última: ${lastUpdate.toLocaleTimeString('es-CO')}`}

@@ -42,7 +42,7 @@ export default function ProgressBar({
         {/* Progress Bar */}
         <div className="w-full bg-gray-200 rounded-full h-2 mb-4 overflow-hidden">
           <div
-            className="bg-blue-500 h-full transition-all duration-300"
+            className="bg-indigo-600 h-full transition-all duration-300"
             style={{ width: `${displayProgress}%` }}
           />
         </div>
