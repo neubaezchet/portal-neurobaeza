@@ -315,11 +315,11 @@ export default function ExportacionesPDF({ empresas = [] }) {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600/20 via-purple-600/20 to-pink-600/20 border border-gray-700 rounded-xl p-5">
-        <h2 className="text-xl font-black text-white flex items-center gap-2">
-          <Package className="w-6 h-6 text-indigo-400" /> Exportación Masiva de PDFs
+      <div className="bg-gradient-to-r from-indigo-50 via-violet-50 to-pink-50 border border-slate-200 rounded-xl p-5">
+        <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+          <Package className="w-6 h-6 text-indigo-600" /> Exportación Masiva de PDFs
         </h2>
-        <p className="text-gray-400 text-xs mt-1">
+        <p className="text-slate-500 text-xs mt-1">
           El sistema elige automáticamente: ZIP directo (≤1 mes) o carpeta Drive temporal (más de 1 mes o cédulas). Máximo 1 año.
         </p>
       </div>
@@ -329,7 +329,7 @@ export default function ExportacionesPDF({ empresas = [] }) {
         <button
           onClick={() => { setTab('exportar'); setError(null); }}
           className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-            tab === 'exportar' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+            tab === 'exportar' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
           }`}
         >
           📦 Exportar PDFs
@@ -337,7 +337,7 @@ export default function ExportacionesPDF({ empresas = [] }) {
         <button
           onClick={() => { setTab('historico'); setError(null); }}
           className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-            tab === 'historico' ? 'bg-amber-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+            tab === 'historico' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
           }`}
         >
           📁 Navegar Drive
@@ -349,14 +349,14 @@ export default function ExportacionesPDF({ empresas = [] }) {
       {/* ═══════════════════════════════════════════════════ */}
       {tab === 'exportar' && (
         <>
-          <div className="bg-gray-800/60 backdrop-blur rounded-xl border border-gray-700 p-5 space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <Search className="w-4 h-4 text-blue-400" /> Filtros de Exportación
             </h3>
 
             {/* Tipo de filtro fecha */}
             <div>
-              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2 block">Filtro por Fecha</label>
+              <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-2 block">Filtro por Fecha</label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {FILTROS_FECHA.map(f => (
                   <button
@@ -364,12 +364,12 @@ export default function ExportacionesPDF({ empresas = [] }) {
                     onClick={() => setFiltroFecha(f.value)}
                     className={`p-3 rounded-lg border text-left transition-all ${
                       filtroFecha === f.value
-                        ? 'border-indigo-500 bg-indigo-500/20 ring-1 ring-indigo-500/50'
-                        : 'border-gray-700 bg-gray-900/50 hover:bg-gray-700/50'
+                        ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500/50'
+                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
                     }`}
                   >
-                    <div className="text-xs font-bold text-white">{f.label}</div>
-                    <div className="text-[10px] text-gray-400 mt-0.5">{f.desc}</div>
+                    <div className="text-xs font-bold text-slate-900">{f.label}</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">{f.desc}</div>
                   </button>
                 ))}
               </div>
@@ -379,51 +379,51 @@ export default function ExportacionesPDF({ empresas = [] }) {
             <div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">Desde *</label>
+                  <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1 block">Desde *</label>
                   <input type="date" value={fechaDesde} onChange={e => { setFechaDesde(e.target.value); setPreview(null); setDriveResult(null); }}
-                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:ring-1 focus:ring-indigo-500" />
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-1 focus:ring-indigo-500" />
                 </div>
                 <div>
-                  <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">Hasta *</label>
+                  <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1 block">Hasta *</label>
                   <input type="date" value={fechaHasta} onChange={e => { setFechaHasta(e.target.value); setPreview(null); setDriveResult(null); }}
-                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:ring-1 focus:ring-indigo-500" />
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-1 focus:ring-indigo-500" />
                 </div>
               </div>
 
               {/* Indicador de rango + modo automático */}
               {fechaDesde && fechaHasta && !fechasInvalidas && (
                 <div className="mt-2 space-y-1">
-                  <div className={`text-[10px] font-bold flex items-center gap-1 ${rangoExcedido ? 'text-red-400' : 'text-gray-500'}`}>
+                  <div className={`text-[10px] font-bold flex items-center gap-1 ${rangoExcedido ? 'text-red-600' : 'text-slate-500'}`}>
                     <Calendar className="w-3 h-3" />
                     {rangoActual} días seleccionados
-                    {rangoExcedido && <span className="text-red-400 ml-1">— ⚠️ Máximo permitido: {MAX_DAYS} días (1 año)</span>}
+                    {rangoExcedido && <span className="text-red-600 ml-1">— ⚠️ Máximo permitido: {MAX_DAYS} días (1 año)</span>}
                   </div>
                   {!rangoExcedido && (
-                    <div className={`text-[10px] font-bold flex items-center gap-1 ${modoAuto === 'zip' ? 'text-indigo-400' : 'text-amber-400'}`}>
+                    <div className={`text-[10px] font-bold flex items-center gap-1 ${modoAuto === 'zip' ? 'text-indigo-600' : 'text-amber-600'}`}>
                       {modoAuto === 'zip' ? '📦' : '📁'} Modo: {modoLabel}
                     </div>
                   )}
                 </div>
               )}
               {fechasInvalidas && (
-                <div className="mt-2 text-[10px] text-red-400 font-bold">⚠️ La fecha "Hasta" debe ser posterior a "Desde"</div>
+                <div className="mt-2 text-[10px] text-red-600 font-bold">⚠️ La fecha "Hasta" debe ser posterior a "Desde"</div>
               )}
             </div>
 
             {/* Empresa y Tipo */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">Empresa</label>
+                <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1 block">Empresa</label>
                 <select value={empresa} onChange={e => setEmpresa(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:ring-1 focus:ring-indigo-500">
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-1 focus:ring-indigo-500">
                   <option value="all">Todas las empresas</option>
                   {empresas.map((e, i) => <option key={i} value={e}>{e}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">Tipo de Incapacidad</label>
+                <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1 block">Tipo de Incapacidad</label>
                 <select value={tipo} onChange={e => setTipo(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:ring-1 focus:ring-indigo-500">
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-1 focus:ring-indigo-500">
                   {TIPOS_INCAPACIDAD.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </div>
@@ -431,7 +431,7 @@ export default function ExportacionesPDF({ empresas = [] }) {
 
             {/* Cédulas */}
             <div>
-              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">
+              <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1 block">
                 Cédulas Específicas (opcional — activa modo Drive)
               </label>
               <textarea
@@ -439,24 +439,24 @@ export default function ExportacionesPDF({ empresas = [] }) {
                 onChange={e => { setCedulas(e.target.value); setPreview(null); setDriveResult(null); }}
                 placeholder="Separa con comas: 1085043374, 39017565&#10;Si pones cédulas, se creará carpeta temporal en Drive."
                 rows={2}
-                className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-indigo-500 resize-none font-mono"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-gray-600 focus:ring-1 focus:ring-indigo-500 resize-none font-mono"
               />
               {tieneCedulas && (
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[10px] text-amber-400 font-bold">
+                  <span className="text-[10px] text-amber-600 font-bold">
                     📁 {cedulas.split(',').filter(c => c.trim()).length} cédulas → se usará carpeta Drive temporal
                   </span>
-                  <button onClick={() => setCedulas('')} className="text-gray-500 hover:text-white"><X className="w-3 h-3" /></button>
+                  <button onClick={() => setCedulas('')} className="text-slate-500 hover:text-slate-700"><X className="w-3 h-3" /></button>
                 </div>
               )}
             </div>
 
             {/* Botones */}
-            <div className="flex items-center gap-3 pt-2 border-t border-gray-700">
+            <div className="flex items-center gap-3 pt-2 border-t border-slate-200">
               <button
                 onClick={handlePreview}
                 disabled={previewing || loading || rangoExcedido || fechasInvalidas}
-                className="flex items-center gap-2 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {previewing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                 Vista Previa
@@ -485,36 +485,36 @@ export default function ExportacionesPDF({ empresas = [] }) {
               )}
 
               {progreso && !error && (
-                <span className="text-xs text-green-400 font-bold">{progreso}</span>
+                <span className="text-xs text-green-600 font-bold">{progreso}</span>
               )}
             </div>
           </div>
 
           {/* ═══ RESULTADO CARPETA DRIVE ═══ */}
           {driveResult && (
-            <div className="bg-amber-900/20 border border-amber-500/50 rounded-xl p-5 space-y-4">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <FolderOpen className="w-4 h-4 text-amber-400" /> Carpeta Temporal Creada
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <FolderOpen className="w-4 h-4 text-amber-600" /> Carpeta Temporal Creada
               </h3>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-black text-green-400">{driveResult.total_copiados}</div>
-                  <div className="text-[10px] text-gray-400 uppercase">PDFs Copiados</div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-black text-green-600">{driveResult.total_copiados}</div>
+                  <div className="text-[10px] text-slate-500 uppercase">PDFs Copiados</div>
                 </div>
-                <div className="bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-black text-white">{driveResult.total_con_pdf}</div>
-                  <div className="text-[10px] text-gray-400 uppercase">Total con PDF</div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-black text-slate-900">{driveResult.total_con_pdf}</div>
+                  <div className="text-[10px] text-slate-500 uppercase">Total con PDF</div>
                 </div>
                 {driveResult.total_errores > 0 && (
-                  <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-black text-red-400">{driveResult.total_errores}</div>
-                    <div className="text-[10px] text-gray-400 uppercase">Errores</div>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-black text-red-600">{driveResult.total_errores}</div>
+                    <div className="text-[10px] text-slate-500 uppercase">Errores</div>
                   </div>
                 )}
-                <div className="bg-amber-900/30 border border-amber-700/50 rounded-lg p-3 text-center">
-                  <div className="text-lg font-black text-amber-400 flex items-center justify-center gap-1"><Clock className="w-4 h-4" /> 24h</div>
-                  <div className="text-[10px] text-gray-400 uppercase">Se elimina en</div>
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-center">
+                  <div className="text-lg font-black text-amber-600 flex items-center justify-center gap-1"><Clock className="w-4 h-4" /> 24h</div>
+                  <div className="text-[10px] text-slate-500 uppercase">Se elimina en</div>
                 </div>
               </div>
 
@@ -528,101 +528,101 @@ export default function ExportacionesPDF({ empresas = [] }) {
                 Abrir Carpeta en Google Drive
               </a>
 
-              <div className="bg-gray-900/60 border border-gray-700 rounded-lg p-3">
-                <p className="text-amber-400 text-xs font-bold mb-1">📋 Cómo descargar:</p>
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                <p className="text-amber-600 text-xs font-bold mb-1">📋 Cómo descargar:</p>
                 <ol className="text-[10px] text-amber-300/80 space-y-0.5 list-decimal pl-4">
                   <li>Haz clic en "Abrir Carpeta en Google Drive"</li>
                   <li>Selecciona todos los archivos (Ctrl+A)</li>
                   <li>Click derecho → Descargar</li>
                   <li>Google Drive generará un ZIP automáticamente</li>
                 </ol>
-                <p className="text-[10px] text-red-400 font-bold mt-2">⚠️ La carpeta se eliminará automáticamente en 24 horas. Los archivos originales no se tocan.</p>
+                <p className="text-[10px] text-red-600 font-bold mt-2">⚠️ La carpeta se eliminará automáticamente en 24 horas. Los archivos originales no se tocan.</p>
               </div>
             </div>
           )}
 
           {/* ═══ PREVIEW (muestra datos + indicador modo) ═══ */}
           {preview && !driveResult && (
-            <div className="bg-gray-800/60 backdrop-blur rounded-xl border border-gray-700 overflow-hidden">
-              <div className="bg-gray-900/70 px-4 py-3 border-b border-gray-700 flex items-center justify-between">
-                <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-indigo-400" /> Vista Previa
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-indigo-600" /> Vista Previa
                 </h3>
                 <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
-                  modoAuto === 'zip' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-amber-500/20 text-amber-400'
+                  modoAuto === 'zip' ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-700'
                 }`}>
                   {modoAuto === 'zip' ? '📦 ZIP directo' : '📁 Carpeta Drive (24h)'}
                 </span>
               </div>
               <div className="p-4 space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                  <div className="bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-black text-white">{preview.total_casos}</div>
-                    <div className="text-[10px] text-gray-400 uppercase">Total Casos</div>
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-black text-slate-900">{preview.total_casos}</div>
+                    <div className="text-[10px] text-slate-500 uppercase">Total Casos</div>
                   </div>
-                  <div className="bg-green-900/30 border border-green-700/50 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-black text-green-400">{preview.con_pdf}</div>
-                    <div className="text-[10px] text-gray-400 uppercase">Con PDF</div>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-black text-green-600">{preview.con_pdf}</div>
+                    <div className="text-[10px] text-slate-500 uppercase">Con PDF</div>
                   </div>
-                  <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-black text-red-400">{preview.sin_pdf}</div>
-                    <div className="text-[10px] text-gray-400 uppercase">Sin PDF</div>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-black text-red-600">{preview.sin_pdf}</div>
+                    <div className="text-[10px] text-slate-500 uppercase">Sin PDF</div>
                   </div>
-                  <div className="bg-indigo-900/30 border border-indigo-700/50 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-black text-indigo-400">{preview.se_descargarian}</div>
-                    <div className="text-[10px] text-gray-400 uppercase">Se Exportarán</div>
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-black text-indigo-600">{preview.se_descargarian}</div>
+                    <div className="text-[10px] text-slate-500 uppercase">Se Exportarán</div>
                   </div>
-                  <div className="bg-purple-900/30 border border-purple-700/50 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-black text-purple-400">{preview.dias_rango || rangoActual}</div>
-                    <div className="text-[10px] text-gray-400 uppercase">Días</div>
+                  <div className="bg-violet-50 border border-violet-200 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-black text-violet-600">{preview.dias_rango || rangoActual}</div>
+                    <div className="text-[10px] text-slate-500 uppercase">Días</div>
                   </div>
                 </div>
 
                 {/* Info modo ZIP */}
                 {modoAuto === 'zip' && preview.total_lotes > 1 && (
-                  <div className="bg-indigo-900/30 border border-indigo-600/50 rounded-lg p-3 text-indigo-300 text-xs">
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 text-indigo-700 text-xs">
                     📦 Se necesitan <span className="font-black text-indigo-200">{preview.total_lotes} lotes</span> de {preview.lote_size} PDFs.
                     Se descargan automáticamente y se unen en un ZIP.
-                    <span className="text-indigo-400 font-bold"> No cierres la pestaña.</span>
+                    <span className="text-indigo-600 font-bold"> No cierres la pestaña.</span>
                   </div>
                 )}
 
                 {/* Info modo Drive */}
                 {modoAuto === 'drive' && (
-                  <div className="bg-amber-900/30 border border-amber-600/50 rounded-lg p-3 text-amber-300 text-xs">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-amber-700 text-xs">
                     📁 Se creará una <span className="font-black text-amber-200">carpeta temporal en Google Drive</span> con copias de los {preview.con_pdf} PDFs.
-                    Podrás descargarlos desde Drive. <span className="text-amber-400 font-bold">La carpeta se elimina en 24 horas.</span>
-                    {tieneCedulas && <span className="block mt-1 text-amber-400">🔍 Búsqueda por cédulas → modo Drive automático.</span>}
+                    Podrás descargarlos desde Drive. <span className="text-amber-600 font-bold">La carpeta se elimina en 24 horas.</span>
+                    {tieneCedulas && <span className="block mt-1 text-amber-600">🔍 Búsqueda por cédulas → modo Drive automático.</span>}
                   </div>
                 )}
 
                 {/* Muestra */}
                 {preview.muestra?.length > 0 && (
                   <div>
-                    <h4 className="text-xs text-gray-400 font-semibold mb-2">Muestra (primeros 10):</h4>
+                    <h4 className="text-xs text-slate-500 font-semibold mb-2">Muestra (primeros 10):</h4>
                     <div className="overflow-auto max-h-52">
                       <table className="w-full text-xs">
-                        <thead className="bg-gray-900/80 sticky top-0">
+                        <thead className="bg-slate-50 sticky top-0">
                           <tr>
-                            <th className="px-3 py-2 text-left text-gray-400">Cédula</th>
-                            <th className="px-3 py-2 text-left text-gray-400">Nombre</th>
-                            <th className="px-3 py-2 text-left text-gray-400">Empresa</th>
-                            <th className="px-3 py-2 text-left text-gray-400">Tipo</th>
-                            <th className="px-3 py-2 text-left text-gray-400">F. Incap.</th>
-                            <th className="px-3 py-2 text-left text-gray-400">Subida</th>
-                            <th className="px-3 py-2 text-left text-gray-400">PDF</th>
+                            <th className="px-3 py-2 text-left text-slate-500">Cédula</th>
+                            <th className="px-3 py-2 text-left text-slate-500">Nombre</th>
+                            <th className="px-3 py-2 text-left text-slate-500">Empresa</th>
+                            <th className="px-3 py-2 text-left text-slate-500">Tipo</th>
+                            <th className="px-3 py-2 text-left text-slate-500">F. Incap.</th>
+                            <th className="px-3 py-2 text-left text-slate-500">Subida</th>
+                            <th className="px-3 py-2 text-left text-slate-500">PDF</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-700/50">
                           {preview.muestra.map((c, i) => (
-                            <tr key={i} className="hover:bg-gray-700/30">
-                              <td className="px-3 py-2 font-mono text-blue-300">{c.cedula}</td>
-                              <td className="px-3 py-2 text-gray-300">{c.nombre}</td>
-                              <td className="px-3 py-2 text-gray-400">{c.empresa}</td>
-                              <td className="px-3 py-2 text-gray-400">{(c.tipo || '').replace(/_/g, ' ')}</td>
-                              <td className="px-3 py-2 text-gray-400">{c.fecha_inicio || '—'}</td>
-                              <td className="px-3 py-2 text-gray-400">{c.created_at || '—'}</td>
-                              <td className="px-3 py-2">{c.tiene_pdf ? <span className="text-green-400">✅</span> : <span className="text-red-400">❌</span>}</td>
+                            <tr key={i} className="hover:bg-slate-100">
+                              <td className="px-3 py-2 font-mono text-blue-700">{c.cedula}</td>
+                              <td className="px-3 py-2 text-slate-700">{c.nombre}</td>
+                              <td className="px-3 py-2 text-slate-500">{c.empresa}</td>
+                              <td className="px-3 py-2 text-slate-500">{(c.tipo || '').replace(/_/g, ' ')}</td>
+                              <td className="px-3 py-2 text-slate-500">{c.fecha_inicio || '—'}</td>
+                              <td className="px-3 py-2 text-slate-500">{c.created_at || '—'}</td>
+                              <td className="px-3 py-2">{c.tiene_pdf ? <span className="text-green-600">✅</span> : <span className="text-red-600">❌</span>}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -640,29 +640,29 @@ export default function ExportacionesPDF({ empresas = [] }) {
       {/* TAB: NAVEGAR DRIVE (histórico por año/mes)        */}
       {/* ═══════════════════════════════════════════════════ */}
       {tab === 'historico' && (
-        <div className="bg-gray-800/60 backdrop-blur rounded-xl border border-gray-700 p-5 space-y-4">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <FolderOpen className="w-4 h-4 text-amber-400" /> Navegar Carpetas de Google Drive
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <FolderOpen className="w-4 h-4 text-amber-600" /> Navegar Carpetas de Google Drive
           </h3>
-          <p className="text-[10px] text-gray-400">
+          <p className="text-[10px] text-slate-500">
             Selecciona un rango de fechas (máximo 1 año) para ver las carpetas permanentes en Google Drive organizadas por empresa y quincena.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">Desde *</label>
+              <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1 block">Desde *</label>
               <input type="date" value={fechaDesdeHist} onChange={e => { setFechaDesdeHist(e.target.value); setHistoricoData(null); }}
-                className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:ring-1 focus:ring-amber-500" />
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-1 focus:ring-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">Hasta *</label>
+              <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1 block">Hasta *</label>
               <input type="date" value={fechaHastaHist} onChange={e => { setFechaHastaHist(e.target.value); setHistoricoData(null); }}
-                className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:ring-1 focus:ring-amber-500" />
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-1 focus:ring-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1 block">Empresa</label>
+              <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1 block">Empresa</label>
               <select value={empresaHistorico} onChange={e => setEmpresaHistorico(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:ring-1 focus:ring-amber-500">
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-1 focus:ring-amber-500">
                 <option value="all">Todas las empresas</option>
                 {empresas.map((e, i) => <option key={i} value={e}>{e}</option>)}
               </select>
@@ -674,9 +674,9 @@ export default function ExportacionesPDF({ empresas = [] }) {
             const dHist = daysBetween(fechaDesdeHist, fechaHastaHist);
             const excedido = dHist > MAX_DAYS;
             return (
-              <div className={`text-[10px] font-bold flex items-center gap-1 ${excedido ? 'text-red-400' : 'text-gray-500'}`}>
+              <div className={`text-[10px] font-bold flex items-center gap-1 ${excedido ? 'text-red-600' : 'text-slate-500'}`}>
                 <Calendar className="w-3 h-3" /> {dHist} días seleccionados
-                {excedido && <span className="text-red-400 ml-1">— ⚠️ Máximo permitido: {MAX_DAYS} días (1 año)</span>}
+                {excedido && <span className="text-red-600 ml-1">— ⚠️ Máximo permitido: {MAX_DAYS} días (1 año)</span>}
               </div>
             );
           })()}
@@ -693,35 +693,35 @@ export default function ExportacionesPDF({ empresas = [] }) {
           {historicoData && (
             <div className="space-y-3 mt-2">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-black text-white">{historicoData.total_casos_bd}</div>
-                  <div className="text-[10px] text-gray-400 uppercase">Casos en BD</div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-black text-slate-900">{historicoData.total_casos_bd}</div>
+                  <div className="text-[10px] text-slate-500 uppercase">Casos en BD</div>
                 </div>
-                <div className="bg-green-900/30 border border-green-700/50 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-black text-green-400">{historicoData.con_pdf_bd}</div>
-                  <div className="text-[10px] text-gray-400 uppercase">Con PDF</div>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-black text-green-600">{historicoData.con_pdf_bd}</div>
+                  <div className="text-[10px] text-slate-500 uppercase">Con PDF</div>
                 </div>
-                <div className="bg-amber-900/30 border border-amber-700/50 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-black text-amber-400">{historicoData.total_carpetas}</div>
-                  <div className="text-[10px] text-gray-400 uppercase">Carpetas</div>
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-black text-amber-600">{historicoData.total_carpetas}</div>
+                  <div className="text-[10px] text-slate-500 uppercase">Carpetas</div>
                 </div>
-                <div className="bg-purple-900/30 border border-purple-700/50 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-black text-purple-400">{historicoData.total_items_drive}</div>
-                  <div className="text-[10px] text-gray-400 uppercase">Items Drive</div>
+                <div className="bg-violet-50 border border-violet-200 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-black text-violet-600">{historicoData.total_items_drive}</div>
+                  <div className="text-[10px] text-slate-500 uppercase">Items Drive</div>
                 </div>
               </div>
 
-              <div className="text-[10px] text-gray-500 font-bold">
+              <div className="text-[10px] text-slate-500 font-bold">
                 📅 {historicoData.rango || ''}
                 {historicoData.empresa !== 'all' && ` — ${historicoData.empresa}`}
               </div>
 
               <div className="space-y-2">
                 {historicoData.carpetas.map((c, i) => (
-                  <div key={i} className="bg-gray-900/60 border border-gray-700 rounded-lg p-4 flex items-center justify-between hover:border-amber-500/50 transition-colors">
+                  <div key={i} className="bg-slate-50 border border-slate-200 rounded-lg p-4 flex items-center justify-between hover:border-amber-500/50 transition-colors">
                     <div>
-                      <div className="text-sm font-bold text-white">{c.label || c.empresa}</div>
-                      <div className="text-[10px] text-gray-400">{c.items} elementos</div>
+                      <div className="text-sm font-bold text-slate-900">{c.label || c.empresa}</div>
+                      <div className="text-[10px] text-slate-500">{c.items} elementos</div>
                     </div>
                     <a href={c.link} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition-colors">
@@ -737,25 +737,25 @@ export default function ExportacionesPDF({ empresas = [] }) {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-900/30 border border-red-500/50 rounded-xl p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-red-400 font-bold text-sm">Error</p>
-            <p className="text-red-300 text-xs mt-1">{error}</p>
+            <p className="text-red-600 font-bold text-sm">Error</p>
+            <p className="text-red-700 text-xs mt-1">{error}</p>
           </div>
         </div>
       )}
 
       {/* Info */}
-      <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-4">
-        <h4 className="text-xs font-bold text-gray-300 mb-2">ℹ️ ¿Cómo funciona?</h4>
-        <ul className="text-[10px] text-gray-500 space-y-1 list-disc pl-4">
-          <li><span className="text-indigo-400 font-bold">≤ 1 mes (31 días)</span> sin cédulas → <span className="text-white font-bold">ZIP directo</span>. Se descarga en lotes de 500 y se une en un solo archivo.</li>
-          <li><span className="text-amber-400 font-bold">&gt; 1 mes</span> o <span className="text-amber-400 font-bold">cédulas específicas</span> → <span className="text-white font-bold">Carpeta temporal en Drive</span>. Se crean copias de los PDFs. La carpeta se elimina automáticamente en 24 horas.</li>
-          <li><span className="text-red-400 font-bold">&gt; 1 año (365 días)</span> → No permitido. El máximo es 1 año.</li>
-          <li><span className="text-gray-400 font-bold">Navegar Drive:</span> accede directamente a las carpetas permanentes organizadas por empresa/año/quincena.</li>
-          <li>Los archivos originales <span className="text-green-400 font-bold">nunca se tocan</span>. Las exportaciones son copias.</li>
-          <li>Nombre de archivo: <span className="font-mono text-gray-400">empresa_cédula_nombre_fecha.pdf</span></li>
+      <div className="bg-white shadow-sm border border-slate-200 rounded-xl p-4">
+        <h4 className="text-xs font-bold text-slate-700 mb-2">ℹ️ ¿Cómo funciona?</h4>
+        <ul className="text-[10px] text-slate-500 space-y-1 list-disc pl-4">
+          <li><span className="text-indigo-600 font-bold">≤ 1 mes (31 días)</span> sin cédulas → <span className="text-slate-900 font-bold">ZIP directo</span>. Se descarga en lotes de 500 y se une en un solo archivo.</li>
+          <li><span className="text-amber-600 font-bold">&gt; 1 mes</span> o <span className="text-amber-600 font-bold">cédulas específicas</span> → <span className="text-slate-900 font-bold">Carpeta temporal en Drive</span>. Se crean copias de los PDFs. La carpeta se elimina automáticamente en 24 horas.</li>
+          <li><span className="text-red-600 font-bold">&gt; 1 año (365 días)</span> → No permitido. El máximo es 1 año.</li>
+          <li><span className="text-slate-500 font-bold">Navegar Drive:</span> accede directamente a las carpetas permanentes organizadas por empresa/año/quincena.</li>
+          <li>Los archivos originales <span className="text-green-600 font-bold">nunca se tocan</span>. Las exportaciones son copias.</li>
+          <li>Nombre de archivo: <span className="font-mono text-slate-500">empresa_cédula_nombre_fecha.pdf</span></li>
         </ul>
       </div>
     </div>

@@ -12,11 +12,13 @@ import {
 } from 'lucide-react';
 import ReportsDashboard from './components/Dashboard/ReportsDashboard';
 import PlanoIncapacidades from './components/Dashboard/PlanoIncapacidades';
+import EstadoRadicacion from './components/Dashboard/EstadoRadicacion';
 import ExportacionesPDF from './components/Dashboard/ExportacionesPDF';
 import PowerBIDashboard from './components/Dashboard/PowerBIDashboard';
 import BeforeAfterPDF from './components/BeforeAfterPDF';
 import LivePDFEditor from './components/LivePDFEditor';
 import LoginPage from './components/LoginPage';
+import DemoBanner from './components/DemoBanner';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 // pdfUtils imports removidos — rotación ahora usa CSS + pdf-lib dinámico en guardarPDFEnDrive
 // Legacy cache imports (reemplazado por pdfSmartLoader)
@@ -2815,6 +2817,7 @@ function AppContent({ authUser, onLogout }) {
     { id: 'exportaciones', permKey: 'exportaciones',  label: '📦 Exportaciones PDF',        borderColor: 'border-indigo-600', textColor: 'text-indigo-600' },
     { id: 'powerbi',       permKey: 'powerbi',       label: '📈 Power BI',                 borderColor: 'border-yellow-500', textColor: 'text-yellow-400' },
     { id: 'plano-incapacidades', permKey: 'reportes', label: '📋 Plano Incapacidades', borderColor: 'border-indigo-500', textColor: 'text-indigo-400' },
+    { id: 'estado-radicacion',   permKey: 'reportes', label: '📡 Estado de Radicación', borderColor: 'border-indigo-500', textColor: 'text-indigo-400' },
   ];
 
   const tabsPermitidas = TAB_CONFIG.filter(t => isSuperOrAdmin || userPermisos[t.permKey]);
@@ -2906,6 +2909,10 @@ function AppContent({ authUser, onLogout }) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Banner de demo — solo visible para tenant admins en modo demo */}
+      {authUser?.es_tenant_admin && authUser?.company_id && (
+        <DemoBanner companyId={authUser.company_id} />
+      )}
       <div className="min-h-screen bg-slate-50 text-slate-900">
         <div className="max-w-7xl mx-auto p-4 space-y-6">
           {/* Header — con branding tenant si está configurado */}
@@ -3188,6 +3195,11 @@ function AppContent({ authUser, onLogout }) {
           {/* ⭐ TAB 7: PLANO INCAPACIDADES */}
           {tabActual === 'plano-incapacidades' && (
             <PlanoIncapacidades empresas={empresas} />
+          )}
+
+          {/* ⭐ TAB 8: ESTADO DE RADICACIÓN (browser-use) */}
+          {tabActual === 'estado-radicacion' && (
+            <EstadoRadicacion />
           )}
         </div>
 
