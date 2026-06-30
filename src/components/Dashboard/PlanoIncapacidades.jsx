@@ -165,18 +165,6 @@ function CeldaOcr({ valor, required, aproximable, bloqueante, children }) {
   );
 }
 
-// ── Checks de campo para una fila + manifests ─────────────────────────────────
-function useCampoCheck(row, manifests, planoKey) {
-  const manifest = manifests[row.eps_key];
-  if (!manifest) return { required: false, aproximable: false, bloqueante: false };
-  const requiredFields = (manifest.ocr || [])
-    .map(f => MANIFEST_OCR_A_PLANO[f])
-    .filter(Boolean);
-  const required   = requiredFields.includes(planoKey);
-  const aproximable = required && CAMPOS_APROXIMABLES.has(planoKey);
-  const bloqueante  = required && CAMPOS_NO_APROXIMAR.has(planoKey);
-  return { required, aproximable, bloqueante };
-}
 
 // ═══════════════════════════════════════════════════════════
 // SORTABLE TABLE
