@@ -3,6 +3,7 @@ import {
   Search, RefreshCw, Download, CheckCircle, XCircle, Clock,
   AlertCircle, Loader2, Copy, Check, ChevronRight,
   Activity, FileSpreadsheet, X, FileText, Building2, Calendar,
+  Paperclip, Trash2, Upload, KeyRound, ShieldCheck,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
@@ -112,8 +113,15 @@ export default function EstadoRadicacion() {
   const [filtroEps, setFiltroEps]     = useState('');
   const [copiados, setCopiados]       = useState(new Set());
   const [ultimaAct, setUltimaAct]     = useState(null);
-  const [itemDetalle, setItemDetalle] = useState(null); // item seleccionado para el modal de detalle
+  const [itemDetalle, setItemDetalle] = useState(null);
   const intervalRef = useRef(null);
+
+  // ── Credenciales / soportes ──
+  const [configs, setConfigs]               = useState([]);
+  const [loadingConfigs, setLoadingConfigs] = useState(false);
+  const [subiendoSoporte, setSubiendoSoporte] = useState({});
+  const [errorConfigs, setErrorConfigs]     = useState(null);
+  const fileInputRefs = useRef({});
 
   const getToken = () => localStorage.getItem('portal_token') || '';
 
@@ -139,6 +147,65 @@ export default function EstadoRadicacion() {
     intervalRef.current = setInterval(() => cargarDatos(true), 15000);
     return () => clearInterval(intervalRef.current);
   }, [cargarDatos]);
+
+  const cargarConfigs = useCallback(async () => {
+    setLoadingConfigs(true);
+    setErrorConfigs(null);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/bots/todos`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setConfigs(data.configs || []);
+    } catch (e) {
+      setErrorConfigs('No se pudieron cargar las configuraciones.');
+    } finally {
+      setLoadingConfigs(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (subTab === 'credenciales') cargarConfigs();
+  }, [subTab, cargarConfigs]);
+
+  const subirSoporte = async (config, file) => {
+    const key = config.id;
+    setSubiendoSoporte(p => ({ ...p, [key]: true }));
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(
+        `${API_BASE_URL}/admin/empresas/${encodeURIComponent(config.nombre_empresa)}/bots/${encodeURIComponent(config.bot_nombre)}/soporte`,
+        { method: 'POST', headers: { Authorization: `Bearer ${getToken()}` }, body: fd },
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await cargarConfigs();
+    } catch (e) {
+      alert('Error al subir el soporte: ' + e.message);
+    } finally {
+      setSubiendoSoporte(p => ({ ...p, [key]: false }));
+      if (fileInputRefs.current[key]) fileInputRefs.current[key].value = '';
+    }
+  };
+
+  const quitarSoporte = async (config) => {
+    if (!window.confirm(`¿Quitar el soporte de ${EPS_NOMBRES[config.bot_nombre] || config.bot_nombre} (${config.nombre_empresa})?`)) return;
+    const key = config.id;
+    setSubiendoSoporte(p => ({ ...p, [key]: true }));
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/admin/empresas/${encodeURIComponent(config.nombre_empresa)}/bots/${encodeURIComponent(config.bot_nombre)}/soporte`,
+        { method: 'DELETE', headers: { Authorization: `Bearer ${getToken()}` } },
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await cargarConfigs();
+    } catch (e) {
+      alert('Error al quitar el soporte: ' + e.message);
+    } finally {
+      setSubiendoSoporte(p => ({ ...p, [key]: false }));
+    }
+  };
 
   // ─── Filtrado ───────────────────────────────────────────────────────────────
 
@@ -254,8 +321,9 @@ export default function EstadoRadicacion() {
         {/* Sub-tabs */}
         <div className="flex border-b border-slate-100">
           {[
-            { id: 'bandeja', label: '🔔 Bandeja de Notificaciones' },
-            { id: 'reporte', label: '📊 Reporte Excel' },
+            { id: 'bandeja',      label: '🔔 Bandeja de Notificaciones' },
+            { id: 'reporte',      label: '📊 Reporte Excel' },
+            { id: 'credenciales', label: '🔐 Credenciales' },
           ].map(t => (
             <button
               key={t.id}
@@ -271,8 +339,8 @@ export default function EstadoRadicacion() {
           ))}
         </div>
 
-        {/* Búsqueda + filtros */}
-        <div className="p-4 flex flex-wrap gap-3">
+        {/* Búsqueda + filtros — oculto en tab credenciales */}
+        <div className={`p-4 flex flex-wrap gap-3 ${subTab === 'credenciales' ? 'hidden' : ''}`}>
           <div className="relative flex-1 min-w-[220px]">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -559,6 +627,125 @@ export default function EstadoRadicacion() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* ────────────────────────────────────────────────────────────────────────
+          SUB-TAB: CREDENCIALES / SOPORTES
+      ──────────────────────────────────────────────────────────────────────── */}
+      {subTab === 'credenciales' && (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          {/* Cabecera de la sección */}
+          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <KeyRound size={16} className="text-indigo-600" />
+              <span className="font-semibold text-slate-800">Soportes por EPS / ARL</span>
+              <span className="text-xs text-slate-400 ml-1">· adjunto automático al radicar</span>
+            </div>
+            <button
+              onClick={cargarConfigs}
+              disabled={loadingConfigs}
+              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              <RefreshCw size={14} className={loadingConfigs ? 'animate-spin' : ''} />
+              Actualizar
+            </button>
+          </div>
+
+          {loadingConfigs ? (
+            <div className="flex items-center justify-center py-16 text-slate-400">
+              <Loader2 size={22} className="animate-spin mr-2" /> Cargando configuraciones...
+            </div>
+          ) : errorConfigs ? (
+            <div className="flex items-center justify-center py-16 text-red-500 gap-2">
+              <AlertCircle size={18} /> {errorConfigs}
+            </div>
+          ) : configs.length === 0 ? (
+            <div className="flex items-center justify-center py-16 text-slate-400 gap-2">
+              <ShieldCheck size={18} /> No hay configuraciones de bots registradas.
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {configs.map(cfg => {
+                const key = cfg.id;
+                const busy = !!subiendoSoporte[key];
+                const epsNombre = EPS_NOMBRES[cfg.bot_nombre] || cfg.bot_nombre;
+                return (
+                  <div key={key} className="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+
+                    {/* Indicador soporte */}
+                    <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${cfg.tiene_soporte ? 'bg-green-500' : 'bg-slate-300'}`} title={cfg.tiene_soporte ? 'Con soporte' : 'Sin soporte'} />
+
+                    {/* Info empresa + EPS */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-slate-800 text-sm">{cfg.nombre_empresa}</span>
+                        <span className="text-xs px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full font-medium">{epsNombre}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cfg.estado === 'activo' ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                          {cfg.estado}
+                        </span>
+                      </div>
+                      {cfg.tiene_soporte ? (
+                        <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-500">
+                          <Paperclip size={11} />
+                          <span className="truncate max-w-[280px]">{cfg.soporte_nombre}</span>
+                          {cfg.soporte_actualizado_en && (
+                            <span className="text-slate-400">· {fmtCorta(cfg.soporte_actualizado_en)}</span>
+                          )}
+                          {cfg.soporte_drive_url && (
+                            <a
+                              href={cfg.soporte_drive_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-indigo-500 hover:underline ml-1"
+                              onClick={e => e.stopPropagation()}
+                            >
+                              Ver
+                            </a>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="mt-0.5 text-xs text-slate-400">Sin soporte adjunto</div>
+                      )}
+                    </div>
+
+                    {/* Acciones */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Input de archivo oculto */}
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="hidden"
+                        ref={el => { fileInputRefs.current[key] = el; }}
+                        onChange={e => {
+                          const f = e.target.files?.[0];
+                          if (f) subirSoporte(cfg, f);
+                        }}
+                      />
+                      <button
+                        disabled={busy}
+                        onClick={() => fileInputRefs.current[key]?.click()}
+                        className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50"
+                      >
+                        {busy ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+                        {cfg.tiene_soporte ? 'Reemplazar' : 'Adjuntar'}
+                      </button>
+                      {cfg.tiene_soporte && (
+                        <button
+                          disabled={busy}
+                          onClick={() => quitarSoporte(cfg)}
+                          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                        >
+                          <Trash2 size={13} />
+                          Quitar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
