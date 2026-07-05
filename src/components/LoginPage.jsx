@@ -1,9 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Lock, Mail, Eye, EyeOff, ArrowLeft, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { applyPublicBranding } from '../hooks/useTenantTheme';
 
 const API_BASE_URL = 'https://web-production-95ed.up.railway.app';
 
 export default function LoginPage({ onLogin }) {
+  // Branding pre-login: /?empresa={slug} pinta paleta + logo de la empresa
+  const [branding, setBranding] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    applyPublicBranding('portal').then(b => { if (!cancelled && b) setBranding(b); });
+    return () => { cancelled = true; };
+  }, []);
   const [mode, setMode] = useState('login'); // 'login' | 'forgot' | 'reset'
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -127,12 +135,24 @@ export default function LoginPage({ onLogin }) {
     <div ref={vantaRef} className="min-h-screen flex items-center justify-center px-4" style={{ position: 'relative' }}>
       {/* Content above Vanta */}
       <div className="relative w-full max-w-md" style={{ zIndex: 1 }}>
-        {/* Logo / Header */}
+        {/* Logo / Header — logo y nombre de la empresa si viene por slug */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-50 rounded-2xl mb-4 border border-indigo-200">
-            <Lock className="w-8 h-8 text-indigo-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900">Portal Incapacidades</h1>
+          {branding?.logo_url ? (
+            <img
+              src={branding.logo_url}
+              alt={branding.empresa}
+              className="inline-flex w-16 h-16 object-contain rounded-2xl mb-4 border"
+              style={{ borderColor: 'var(--accent-primary, #C7D2FE)', background: '#fff' }}
+            />
+          ) : (
+            <div
+              className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 border"
+              style={{ background: 'var(--bg-hover, #EEF2FF)', borderColor: 'var(--accent-primary, #C7D2FE)' }}
+            >
+              <Lock className="w-8 h-8" style={{ color: 'var(--accent-primary, #4F46E5)' }} />
+            </div>
+          )}
+          <h1 className="text-2xl font-bold text-slate-900">{branding?.empresa || 'Portal Incapacidades'}</h1>
           <p className="text-slate-500 text-sm mt-1">Sistema de Validación</p>
         </div>
 

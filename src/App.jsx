@@ -2,13 +2,14 @@ import React, {
   useState, useEffect, useCallback, useRef
 } from 'react';
 import ProgressBar, { useProgress } from './components/ProgressBar';
-import { useTenantTheme } from './hooks/useTenantTheme';
-import { 
-  User, CheckCircle, XCircle, FileText, Send, Edit3, Clock, 
-  ChevronLeft, X, Download, RefreshCw, 
+import { useTenantTheme, applyPaletteVars } from './hooks/useTenantTheme';
+import ThemeSettingsModal from './components/ThemeSettingsModal';
+import {
+  User, CheckCircle, XCircle, FileText, Send, Edit3, Clock,
+  ChevronLeft, X, Download, RefreshCw,
   AlertCircle, ZoomIn, ZoomOut, Sliders,
   Undo2, Image, Loader2, Check, ChevronDown, ChevronRight, Save,
-  LogOut
+  LogOut, Settings
 } from 'lucide-react';
 import ReportsDashboard from './components/Dashboard/ReportsDashboard';
 import PlanoIncapacidades from './components/Dashboard/PlanoIncapacidades';
@@ -2798,6 +2799,7 @@ export default function App() {
     localStorage.removeItem('portal_token');
     localStorage.removeItem('portal_user');
     localStorage.removeItem('tenant_config');
+    applyPaletteVars(null, true); // restaurar la paleta por defecto del portal
     setAuthToken(null);
     setAuthUser(null);
   };
@@ -2814,6 +2816,7 @@ export default function App() {
 function AppContent({ authUser, onLogout }) {
   // ── Tema tenant (branding multi-empresa) ──────────────────
   const tenantTheme = useTenantTheme();
+  const [showThemeModal, setShowThemeModal] = useState(false);
 
   const [empresas, setEmpresas] = useState([]);
   const [casos, setCasos] = useState([]);
@@ -2981,6 +2984,15 @@ function AppContent({ authUser, onLogout }) {
                      authUser?.rol === 'nomina' ? '💰 Nómina' : '👁️ Visualizador'}
                   </span>
                 </div>
+                {authUser?.es_tenant_admin && (
+                  <button
+                    onClick={() => setShowThemeModal(true)}
+                    className="flex items-center gap-1.5 text-sm text-blue-100 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition"
+                    title="Personalizar colores de tus portales"
+                  >
+                    <Settings size={16} />
+                  </button>
+                )}
                 <button
                   onClick={onLogout}
                   className="flex items-center gap-1.5 text-sm text-blue-100 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition"
@@ -2992,6 +3004,9 @@ function AppContent({ authUser, onLogout }) {
               </div>
             </div>
           </div>
+
+          {/* ⚙️ Tuerquita — personalización de paleta por portal */}
+          {showThemeModal && <ThemeSettingsModal onClose={() => setShowThemeModal(false)} />}
 
           {/* ⭐ TABS SELECTOR — filtrado por permisos del usuario */}
           <div className="flex gap-2 border-b-2 border-slate-200">
