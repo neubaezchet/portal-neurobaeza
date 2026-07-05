@@ -324,10 +324,12 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   }, [casoSeleccionado.serial, mostrarNotificacion, recargarPDFInPlace]);
 
   // ✅ MEJORA HD (servidor): mejora el PDF en el backend y muestra antes/después
-  const mejorarCalidadHD = useCallback(async (mode = 'fast') => {
+  // nivel: rapido (1.8x) | estandar (2.5x) | premium (3.5x)
+  // modo:  auto (binariza texto puro, conserva sellos/fotos) | bw | color | hd (IA)
+  const mejorarCalidadHD = useCallback(async (nivel = 'estandar', modo = 'auto') => {
     setEnviandoValidacion(true);
     mostrarNotificacion(
-      mode === 'hd' ? '🤖 Mejorando con IA (puede tardar)...' : '⚡ Mejorando calidad HD...'
+      modo === 'hd' ? '🤖 Mejorando con IA (puede tardar)...' : `⚡ Mejorando calidad (${nivel})...`
     );
 
     try {
@@ -347,13 +349,13 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
       fd.append('archivo', pdfFile, 'original.pdf');
 
       const enhanceResp = await fetch(
-        `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/mejorar-hd?mode=${mode}`,
+        `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/mejorar-hd?nivel=${nivel}&modo=${modo}`,
         {
           method: 'POST',
           headers: { 'X-Admin-Token': ADMIN_TOKEN },
           body: fd,
-          // HD sin GPU puede tardar; damos margen amplio
-          signal: AbortSignal.timeout(mode === 'hd' ? 180000 : 60000),
+          // El modo IA puede tener arranque en frío en la GPU; damos margen amplio
+          signal: AbortSignal.timeout(modo === 'hd' ? 300000 : 90000),
         }
       );
       if (!enhanceResp.ok) throw new Error(`Error ${enhanceResp.status}`);
@@ -2064,29 +2066,43 @@ return (
             </div>
           </div>
 
-          {/* 🚀 MEJORA HD (SERVIDOR) */}
+          {/* ✨ MEJORA HD HÍBRIDA (SERVIDOR) */}
           <div className="border border-slate-200 rounded-lg overflow-hidden">
             <button className="w-full px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold text-sm hover:from-emerald-700 hover:to-teal-700 flex items-center justify-between">
-              <span>🚀 Mejora HD (servidor)</span>
-              <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded">NUEVO</span>
+              <span>✨ Mejorar Calidad HD</span>
+              <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded">AUTO</span>
             </button>
             <div className="bg-slate-50 p-2 space-y-1">
               <button
-                onClick={() => { mejorarCalidadHD('fast'); setShowToolsMenu(false); }}
+                onClick={() => { mejorarCalidadHD('rapido'); setShowToolsMenu(false); }}
                 disabled={enviandoValidacion}
                 className="w-full px-3 py-2 bg-slate-100 hover:bg-emerald-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50 flex items-center gap-2"
               >
-                ⚡ Mejorar a HD (rápido)
+                ⚡ Rápido (1.8x)
               </button>
               <button
-                onClick={() => { mejorarCalidadHD('hd'); setShowToolsMenu(false); }}
+                onClick={() => { mejorarCalidadHD('estandar'); setShowToolsMenu(false); }}
+                disabled={enviandoValidacion}
+                className="w-full px-3 py-2 bg-slate-100 hover:bg-emerald-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50 flex items-center gap-2"
+              >
+                ⚡ Estándar (2.5x)
+              </button>
+              <button
+                onClick={() => { mejorarCalidadHD('premium'); setShowToolsMenu(false); }}
+                disabled={enviandoValidacion}
+                className="w-full px-3 py-2 bg-slate-100 hover:bg-emerald-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50 flex items-center gap-2"
+              >
+                ⚡ Premium (3.5x)
+              </button>
+              <button
+                onClick={() => { mejorarCalidadHD('estandar', 'hd'); setShowToolsMenu(false); }}
                 disabled={enviandoValidacion}
                 className="w-full px-3 py-2 bg-slate-100 hover:bg-violet-600 text-slate-700 hover:text-white text-xs rounded disabled:opacity-50 flex items-center gap-2"
               >
-                🤖 Mejorar a HD (IA máxima)
+                🤖 IA máxima (tipo Artguru)
               </button>
               <p className="text-[10px] text-slate-500 px-1 pt-1">
-                Endereza, quita ruido y mejora nitidez. El modo IA es más lento.
+                Binariza el texto puro y conserva sellos/fotos automáticamente. Endereza y quita ruido.
               </p>
             </div>
           </div>
