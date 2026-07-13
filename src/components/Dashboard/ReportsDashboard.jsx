@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { API_CONFIG } from '../../constants/reportConfig';
 import { AlertaBadge180, EmailConfig180 } from './EmailConfig180';
+import { periodosPorCiclo, periodoDefault } from '../../utils/cicloPeriodos';
 
 // ═══════════════════════════════════════════════════════════
 // DASHBOARD DE REPORTES 2026 — Dividido por Departamento
@@ -278,7 +279,7 @@ export default function ReportsDashboard({ empresas = [] }) {
   const [tab, setTab] = useState('resumen');
   const [subTab, setSubTab] = useState('incapacidades');
   const [empresa, setEmpresa] = useState('all');
-  const [periodo, setPeriodo] = useState('mes_actual');
+  const [periodo, setPeriodo] = useState(periodoDefault());
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -301,8 +302,12 @@ export default function ReportsDashboard({ empresas = [] }) {
         params.set('fecha_desde', fechaDesde);
         params.set('fecha_hasta', fechaHasta);
       }
+      const jwt = localStorage.getItem('portal_token');
       const resp = await fetch(`${API_CONFIG.BASE_URL}/validador/casos/dashboard-completo?${params.toString()}`, {
-        headers: { 'X-Admin-Token': API_CONFIG.ADMIN_TOKEN },
+        headers: {
+          'X-Admin-Token': API_CONFIG.ADMIN_TOKEN,
+          ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
+        },
       });
       if (!resp.ok) throw new Error(`Error ${resp.status}`);
       const json = await resp.json();
@@ -624,7 +629,7 @@ export default function ReportsDashboard({ empresas = [] }) {
             
             <select value={periodo} onChange={e => setPeriodo(e.target.value)}
               className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900">
-              {PERIODOS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+              {periodosPorCiclo(PERIODOS).map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
             </select>
             
             {periodo === 'personalizado' && (

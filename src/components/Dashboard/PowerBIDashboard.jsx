@@ -37,9 +37,15 @@ const CAT_META = {
   sin_prorroga:      { icon: Heart,         iconColor: 'text-green-600',  ringColor: 'ring-green-500/40',   barColor: '#10b981' },
 };
 
-const fetchAPI = (path) =>
-  fetch(`${API_CONFIG.BASE_URL}${path}`, { headers: { 'X-Admin-Token': API_CONFIG.ADMIN_TOKEN } })
-    .then(r => { if (!r.ok) throw new Error(`Error ${r.status}`); return r.json(); });
+const fetchAPI = (path) => {
+  const jwt = localStorage.getItem('portal_token');
+  return fetch(`${API_CONFIG.BASE_URL}${path}`, {
+    headers: {
+      'X-Admin-Token': API_CONFIG.ADMIN_TOKEN,
+      ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
+    },
+  }).then(r => { if (!r.ok) throw new Error(`Error ${r.status}`); return r.json(); });
+};
 
 // ══════════════════ REUSABLE MINI COMPONENTS ══════════════════
 

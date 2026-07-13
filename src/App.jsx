@@ -34,10 +34,16 @@ const ADMIN_TOKEN = '0b9685e9a9ff3c24652acaad881ec7b2b4c17f6082ad164d10a6e67589f
 // ✅ IMAGEN SOAT DE REFERENCIA (Base64)
 const SOAT_REFERENCIA_BASE64 = `data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAH0AfQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlbaWmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9/KKKKK`;
 
-const getHeaders = () => ({
-  'Content-Type': 'application/json',
-  'X-Admin-Token': ADMIN_TOKEN,
-});
+const getHeaders = () => {
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-Admin-Token': ADMIN_TOKEN,
+  };
+  // JWT del usuario: el backend fuerza el aislamiento por empresa (multi-tenant)
+  const jwt = localStorage.getItem('portal_token');
+  if (jwt) headers['Authorization'] = `Bearer ${jwt}`;
+  return headers;
+};
 
 const apiFetch = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -2930,7 +2936,7 @@ function AppContent({ authUser, onLogout }) {
     <QueryClientProvider client={queryClient}>
       {/* Banner de demo — solo visible para tenant admins en modo demo */}
       {authUser?.es_tenant_admin && authUser?.company_id && (
-        <DemoBanner companyId={authUser.company_id} />
+        <DemoBanner companyId={authUser.company_id} onLogout={onLogout} />
       )}
       <div className="min-h-screen bg-slate-50 text-slate-900">
         <div className="max-w-7xl mx-auto p-4 space-y-6">

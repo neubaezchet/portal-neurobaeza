@@ -12,10 +12,14 @@ class ReporteService {
   }
 
   getHeaders() {
-    return {
+    const headers = {
       'Content-Type': 'application/json',
       'X-Admin-Token': this.token,
     };
+    // JWT del usuario: el backend fuerza el aislamiento por empresa (multi-tenant)
+    const jwt = localStorage.getItem('portal_token');
+    if (jwt) headers['Authorization'] = `Bearer ${jwt}`;
+    return headers;
   }
 
   async getTablaViva(params) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { RefreshCw, Download, Search, Pause, Play, ArrowUpDown, X, AlertCircle, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 import { API_CONFIG } from '../../constants/reportConfig';
+import { periodosPorCiclo, periodoDefault } from '../../utils/cicloPeriodos';
 
 // ═══════════════════════════════════════════════════════════
 // PLANO INCAPACIDADES — OCR + Radicación
@@ -291,7 +292,7 @@ function SortableTable({ data, columns, title, exportFilename, maxHeight = '520p
 // ═══════════════════════════════════════════════════════════
 export default function PlanoIncapacidades({ empresas = [] }) {
   const [empresa,     setEmpresa]     = useState('all');
-  const [periodo,     setPeriodo]     = useState('mes_actual');
+  const [periodo,     setPeriodo]     = useState(periodoDefault());
   const [data,        setData]        = useState(null);
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState(null);
@@ -322,9 +323,10 @@ export default function PlanoIncapacidades({ empresas = [] }) {
         params.set('fecha_desde', fechaDesde);
         params.set('fecha_hasta', fechaHasta);
       }
+      const jwt = localStorage.getItem('portal_token');
       const resp = await fetch(
         `${API_CONFIG.BASE_URL}/validador/casos/plano-ocr?${params.toString()}`,
-        { headers: { 'X-Admin-Token': API_CONFIG.ADMIN_TOKEN } }
+        { headers: { 'X-Admin-Token': API_CONFIG.ADMIN_TOKEN, ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}) } }
       );
       if (!resp.ok) throw new Error(`Error ${resp.status}`);
       const json = await resp.json();
@@ -619,7 +621,7 @@ export default function PlanoIncapacidades({ empresas = [] }) {
 
             <select value={periodo} onChange={e => setPeriodo(e.target.value)}
               className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-1 focus:ring-indigo-500">
-              {PERIODOS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+              {periodosPorCiclo(PERIODOS).map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
             </select>
 
             {periodo === 'personalizado' && (

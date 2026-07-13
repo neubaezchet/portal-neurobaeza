@@ -66,7 +66,7 @@ function Estrellas({ valor, onChange }) {
 }
 
 // ─── Modal de feedback (aparece al vencer el demo) ─────────
-function ModalFeedback({ companyId, onClose }) {
+function ModalFeedback({ companyId, onLogout }) {
   const [calificacion, setCalificacion] = useState(0)
   const [mejoras, setMejoras] = useState('')
   const [quiere, setQuiere] = useState('')
@@ -127,6 +127,16 @@ function ModalFeedback({ companyId, onClose }) {
             }}>
               📧 <strong style={{ color: '#38BDF8' }}>gestiondeincapacidades@incapacidade.com</strong>
             </div>
+            <button
+              onClick={onLogout}
+              style={{
+                width: '100%', marginTop: 20, padding: '13px', borderRadius: 12, cursor: 'pointer',
+                background: 'linear-gradient(135deg,#0EA5E9,#0284C7)',
+                border: 'none', color: '#fff', fontWeight: 700, fontSize: 15,
+              }}
+            >
+              Ir a iniciar sesión
+            </button>
           </div>
         ) : (
           <>
@@ -228,6 +238,15 @@ function ModalFeedback({ companyId, onClose }) {
                 : <><Send size={16} /> Enviar feedback</>
               }
             </button>
+            <button
+              onClick={onLogout}
+              style={{
+                width: '100%', marginTop: 10, padding: '10px', borderRadius: 12, cursor: 'pointer',
+                background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 13,
+              }}
+            >
+              Omitir e iniciar sesión
+            </button>
           </>
         )}
       </div>
@@ -238,7 +257,7 @@ function ModalFeedback({ companyId, onClose }) {
 
 // ─── Componente principal ──────────────────────────────────
 
-export default function DemoBanner({ companyId }) {
+export default function DemoBanner({ companyId, onLogout }) {
   const [demoState, setDemoState] = useState(null) // null = cargando, false = no es demo, { activo, segundos } = demo
   const [segundosRestantes, setSegundosRestantes] = useState(0)
   const [expirado, setExpirado] = useState(false)
@@ -331,7 +350,7 @@ export default function DemoBanner({ companyId }) {
       )}
 
       {/* Modal de feedback al expirar */}
-      {expirado && <ModalFeedback companyId={companyId} />}
+      {expirado && <ModalFeedback companyId={companyId} onLogout={onLogout} />}
 
       <style>{`
         @keyframes demoPulse {
