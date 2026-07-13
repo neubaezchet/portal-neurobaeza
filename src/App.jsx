@@ -2297,26 +2297,26 @@ return (
               </div>
 
               {/* Documentos Faltantes */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+              <div className="bg-slate-50 rounded-lg p-4">
+                <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
                   <FileText className="w-5 h-5 text-red-600" />
                   📋 Documentos Faltantes para {casoSeleccionado.tipo || 'este tipo'}
                 </h4>
                 <div className="space-y-2">
                   {getChecksPorTipo(casoSeleccionado.tipo, 'documentos').map(check => (
-                    <label key={check.key} className={`flex items-start gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-red-50 transition-colors border ${checksSeleccionados.includes(check.key) ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-200'}`}>
-                      <input 
+                    <label key={check.key} className={`flex items-start gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-red-50 transition-colors border ${checksSeleccionados.includes(check.key) ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-200'}`}>
+                      <input
                         type="checkbox"
                         checked={checksSeleccionados.includes(check.key)}
                         onChange={() => toggleCheck(check.key)}
                         className="mt-1 w-4 h-4 text-red-600 rounded focus:ring-red-500"
                       />
                       <div className="flex-1">
-                        <div className="font-medium text-gray-800 text-sm flex items-center gap-2">
+                        <div className="font-medium text-slate-800 text-sm flex items-center gap-2">
                           {check.label}
                           {check.icon}
                         </div>
-                        <div className="text-xs text-gray-600 mt-0.5">{check.desc}</div>
+                        <div className="text-xs text-slate-500 mt-0.5">{check.desc}</div>
                       </div>
                     </label>
                   ))}
@@ -2325,22 +2325,22 @@ return (
 
               {/* Problemas de Calidad */}
               <div className="bg-orange-50 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 text-orange-600" />
                   ⚠️ Problemas de Calidad
                 </h4>
                 <div className="space-y-2">
                   {getChecksPorTipo(casoSeleccionado.tipo, 'calidad').map(check => (
-                    <label key={check.key} className={`flex items-start gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-orange-50 transition-colors border ${checksSeleccionados.includes(check.key) ? 'border-orange-500 ring-2 ring-orange-200' : 'border-gray-200'}`}>
-                      <input 
+                    <label key={check.key} className={`flex items-start gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-orange-50 transition-colors border ${checksSeleccionados.includes(check.key) ? 'border-orange-500 ring-2 ring-orange-200' : 'border-slate-200'}`}>
+                      <input
                         type="checkbox"
                         checked={checksSeleccionados.includes(check.key)}
                         onChange={() => toggleCheck(check.key)}
                         className="mt-1 w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
                       />
                       <div className="flex-1">
-                        <div className="font-medium text-gray-800 text-sm">{check.label}</div>
-                        <div className="text-xs text-gray-600 mt-0.5">{check.desc}</div>
+                        <div className="font-medium text-slate-800 text-sm">{check.label}</div>
+                        <div className="text-xs text-slate-500 mt-0.5">{check.desc}</div>
                       </div>
                     </label>
                   ))}
@@ -2348,14 +2348,14 @@ return (
               </div>
 
               {/* Adjuntar Referentes */}
-              <div className="bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+              <div className="bg-indigo-50 border-2 border-dashed border-indigo-300 rounded-lg p-4">
+                <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
                   🔎 Adjuntar Imágenes Referentes (Opcional)
                 </h4>
-                <p className="text-xs text-gray-600 mb-3">
+                <p className="text-xs text-slate-500 mb-3">
                   Si falta SOAT o FURIPS, puedes adjuntar imágenes de ejemplo mostrando cómo debe verse el documento correcto.
                 </p>
-                <input 
+                <input
                   type="file"
                   multiple
                   accept="image/*,.pdf,application/pdf"
@@ -2365,9 +2365,9 @@ return (
                 {adjuntos.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {adjuntos.map((file, idx) => (
-                      <div key={idx} className="text-xs bg-white px-3 py-1 rounded-full border border-blue-300 flex items-center gap-2">
+                      <div key={idx} className="text-xs bg-white px-3 py-1 rounded-full border border-indigo-300 flex items-center gap-2">
                         <span>📷 {file.name}</span>
-                        <button 
+                        <button
                           onClick={() => setAdjuntos(prev => prev.filter((_, i) => i !== idx))}
                           className="text-red-600 hover:text-red-800"
                         >
@@ -2379,18 +2379,18 @@ return (
                 )}
               </div>
 {/* SISTEMA HÍBRIDO: Texto libre con IA */}
-              <div className="bg-purple-50 border-2 border-dashed border-purple-300 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+              <div className="bg-violet-50 border-2 border-dashed border-violet-300 rounded-lg p-4">
+                <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
                   🤖 O escribe libremente (la IA lo convertirá en email profesional)
                 </h4>
                 <textarea
                   value={mensajePersonalizado}
                   onChange={(e) => setMensajePersonalizado(e.target.value)}
                   placeholder="Ejemplo: 'Falta la epicrisis completa y el registro civil está recortado'"
-                  className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 resize-none text-gray-900 bg-white placeholder-gray-400"
+                  className="w-full px-4 py-3 border border-violet-300 rounded-lg focus:ring-2 focus:ring-violet-500 resize-none text-slate-900 bg-white placeholder-slate-400"
                   rows={3}
                 />
-                <p className="text-xs text-gray-600 mt-2">
+                <p className="text-xs text-slate-500 mt-2">
                   💡 Si escribes aquí, no es necesario seleccionar checks arriba
                 </p>
               </div>
@@ -2475,7 +2475,7 @@ return (
                     setChecksSeleccionados([]);
                     setAdjuntos([]);
                   }}
-                  className="px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold transition-colors"
+                  className="px-6 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-lg font-semibold transition-colors"
                 >
                   ❌ Cancelar
                 </button>
@@ -2506,20 +2506,20 @@ return (
                 </p>
               </div>
 
-              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                <p className="text-sm text-blue-800">
+              <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded">
+                <p className="text-sm text-indigo-800">
                   <strong>📋 Solicitar Epicrisis:</strong> Se envía email al colaborador/a pidiéndole el resumen de atención (epicrisis) como si la EPS lo solicitara.
                 </p>
               </div>
 
-              <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded">
-                <p className="text-sm text-purple-800">
+              <div className="bg-violet-50 border-l-4 border-violet-500 p-4 rounded">
+                <p className="text-sm text-violet-800">
                   <strong>🔍 Enviar a Validar:</strong> Se envía email neutro al colaborador/a (confirmación normal) y un correo aparte al área de validación con los soportes adjuntos e información del caso para verificar con la EPS.
                 </p>
               </div>
 
-              <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
-                <p className="text-sm text-yellow-800">
+              <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded">
+                <p className="text-sm text-amber-800">
                   <strong>📌 Flujo:</strong> Después de enviar a validar, cuando la EPS responda aparecerán los botones <strong>"Validada Verdadera"</strong> o <strong>"Falsa Validada"</strong> para cerrar el caso.
                 </p>
               </div>
@@ -2573,7 +2573,7 @@ return (
                   setAccionSeleccionada(null);
                   setMensajePersonalizado('');
                 }}
-                className="w-full px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold transition-colors"
+                className="w-full px-6 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-lg font-semibold transition-colors"
               >
                 ❌ Cancelar
               </button>
@@ -2597,33 +2597,33 @@ return (
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded">
-                <p className="text-sm text-purple-800">
+              <div className="bg-violet-50 border-l-4 border-violet-500 p-4 rounded">
+                <p className="text-sm text-violet-800">
                   <strong>🤖 Escribe un mensaje informal.</strong> La IA lo convertirá en un email profesional, claro y amable para la empleada.
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   ✍️ Tu Mensaje (Informal)
                 </label>
                 <textarea
                   value={mensajePersonalizado}
                   onChange={(e) => setMensajePersonalizado(e.target.value)}
                   placeholder="Ejemplo: 'Hola María, nos falta el registro civil del bebé, si puedes enviarlo hoy sería genial'"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900 bg-white placeholder-gray-400"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none text-slate-900 bg-white placeholder-slate-400"
                   rows={5}
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   💡 Escribe natural, la IA lo profesionalizará
                 </p>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="bg-slate-50 rounded-lg p-4">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   🔎 Adjuntar Archivos (Opcional)
                 </label>
-                <input 
+                <input
                   type="file"
                   multiple
                   onChange={(e) => setAdjuntos(Array.from(e.target.files))}
@@ -2632,9 +2632,9 @@ return (
                 {adjuntos.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {adjuntos.map((file, idx) => (
-                      <div key={idx} className="text-xs bg-white px-3 py-1 rounded-full border border-purple-300 flex items-center gap-2">
+                      <div key={idx} className="text-xs bg-white px-3 py-1 rounded-full border border-violet-300 flex items-center gap-2">
                         <span>📄 {file.name}</span>
-                        <button 
+                        <button
                           onClick={() => setAdjuntos(prev => prev.filter((_, i) => i !== idx))}
                           className="text-red-600 hover:text-red-800"
                         >
@@ -2670,7 +2670,7 @@ return (
                     setMensajePersonalizado('');
                     setAdjuntos([]);
                   }}
-                  className="px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold transition-colors"
+                  className="px-6 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-lg font-semibold transition-colors"
                 >
                   ❌ Cancelar
                 </button>

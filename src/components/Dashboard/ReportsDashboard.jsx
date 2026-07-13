@@ -221,7 +221,7 @@ function SortableTable({ data, columns, title, exportFilename, maxHeight = '500p
 function SubTabs({ tabs, active, onChange, color = 'blue' }) {
   const colors = {
     blue: 'bg-blue-600 shadow-blue-500/20',
-    purple: 'bg-purple-600 shadow-purple-500/20',
+    purple: 'bg-violet-600 shadow-violet-500/20',
     emerald: 'bg-emerald-600 shadow-emerald-500/20',
     amber: 'bg-amber-600 shadow-amber-500/20',
   };

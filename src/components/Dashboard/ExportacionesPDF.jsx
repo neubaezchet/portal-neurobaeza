@@ -439,7 +439,7 @@ export default function ExportacionesPDF({ empresas = [] }) {
                 onChange={e => { setCedulas(e.target.value); setPreview(null); setDriveResult(null); }}
                 placeholder="Separa con comas: 1085043374, 39017565&#10;Si pones cédulas, se creará carpeta temporal en Drive."
                 rows={2}
-                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-gray-600 focus:ring-1 focus:ring-indigo-500 resize-none font-mono"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:ring-1 focus:ring-indigo-500 resize-none font-mono"
               />
               {tieneCedulas && (
                 <div className="flex items-center gap-2 mt-1">
@@ -613,7 +613,7 @@ export default function ExportacionesPDF({ empresas = [] }) {
                             <th className="px-3 py-2 text-left text-slate-500">PDF</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-700/50">
+                        <tbody className="divide-y divide-slate-200">
                           {preview.muestra.map((c, i) => (
                             <tr key={i} className="hover:bg-slate-100">
                               <td className="px-3 py-2 font-mono text-blue-700">{c.cedula}</td>

@@ -51,19 +51,19 @@ const fetchAPI = (path) => {
 
 function KPI({ icon: Icon, label, value, sub, color = 'blue', alert: isAlert }) {
   const colorMap = {
-    blue: { text: 'text-blue-600', bg: 'bg-blue-500/20' },
-    purple: { text: 'text-violet-600', bg: 'bg-purple-500/20' },
-    cyan: { text: 'text-cyan-600', bg: 'bg-cyan-500/20' },
-    indigo: { text: 'text-indigo-600', bg: 'bg-indigo-500/20' },
-    yellow: { text: 'text-amber-600', bg: 'bg-yellow-500/20' },
-    red: { text: 'text-red-600', bg: 'bg-red-500/20' },
-    orange: { text: 'text-orange-600', bg: 'bg-orange-500/20' },
-    green: { text: 'text-green-600', bg: 'bg-green-500/20' },
+    blue: { text: 'text-blue-600', bg: 'bg-blue-100' },
+    purple: { text: 'text-violet-600', bg: 'bg-violet-100' },
+    cyan: { text: 'text-cyan-600', bg: 'bg-cyan-100' },
+    indigo: { text: 'text-indigo-600', bg: 'bg-indigo-100' },
+    yellow: { text: 'text-amber-600', bg: 'bg-amber-100' },
+    red: { text: 'text-red-600', bg: 'bg-red-100' },
+    orange: { text: 'text-orange-600', bg: 'bg-orange-100' },
+    green: { text: 'text-green-600', bg: 'bg-green-100' },
   };
   const c = colorMap[color] || colorMap.blue;
   return (
-    <div className={`relative bg-gray-900/80 border rounded-xl p-3 transition-all hover:scale-[1.02] overflow-hidden ${
-      isAlert ? 'border-red-500/60 ring-1 ring-red-500/30' : 'border-gray-700/60'
+    <div className={`relative bg-white border rounded-xl p-3 shadow-sm transition-all hover:scale-[1.02] overflow-hidden ${
+      isAlert ? 'border-red-500/60 ring-1 ring-red-500/30' : 'border-slate-200'
     }`}>
       {isAlert && <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />}
       <div className="flex items-start justify-between gap-2">
@@ -72,7 +72,7 @@ function KPI({ icon: Icon, label, value, sub, color = 'blue', alert: isAlert }) 
           <p className={`text-xl font-black mt-1 ${isAlert ? 'text-red-600' : c.text}`}>{value}</p>
           {sub && <p className="text-[10px] text-slate-500 mt-0.5 truncate">{sub}</p>}
         </div>
-        <div className={`p-1.5 rounded-lg flex-shrink-0 ${isAlert ? 'bg-red-500/20' : c.bg}`}>
+        <div className={`p-1.5 rounded-lg flex-shrink-0 ${isAlert ? 'bg-red-100' : c.bg}`}>
           <Icon className={`w-3.5 h-3.5 ${isAlert ? 'text-red-600' : c.text}`} />
         </div>
       </div>
@@ -128,7 +128,7 @@ function DonutChart({ data, title }) {
       <div className="flex items-center gap-4">
         <div className="relative w-28 h-28 flex-shrink-0">
           <div className="w-28 h-28 rounded-full" style={{ background: `conic-gradient(${gradientParts})` }} />
-          <div className="absolute inset-3 bg-gray-900 rounded-full flex items-center justify-center">
+          <div className="absolute inset-3 bg-white rounded-full flex items-center justify-center shadow-sm">
             <div className="text-center">
               <div className="text-lg font-black text-slate-900">{total}</div>
               <div className="text-[8px] text-slate-500">TOTAL</div>
@@ -201,15 +201,15 @@ function TimelineGantt({ timeline, gaps, cadenas }) {
       </div>
       <div className="p-4 relative overflow-x-auto overflow-y-hidden timeline-scroll" style={{ minHeight: 80 }}>
         <div style={{ minWidth: Math.max(600, totalDays * 2) }}>
-        <div className="relative h-5 mb-2 border-b border-gray-800">
+        <div className="relative h-5 mb-2 border-b border-slate-200">
           {months.map((m, i) => (
             <div key={i} className="absolute text-[9px] text-slate-500 font-mono" style={{ left: `${m.pos}%` }}>
-              <div className="border-l border-gray-700/40 h-64 absolute top-0" style={{ zIndex: 0 }} />
+              <div className="border-l border-slate-200 h-64 absolute top-0" style={{ zIndex: 0 }} />
               {m.label}
             </div>
           ))}
         </div>
-        <div className="relative h-10 bg-gray-800/50 rounded-lg overflow-visible mt-4">
+        <div className="relative h-10 bg-slate-100 rounded-lg overflow-visible mt-4">
           {timeline.map((t, i) => {
             if (!t.fecha_inicio || !t.fecha_fin) return null;
             const left = getPos(t.fecha_inicio);
@@ -244,7 +244,7 @@ function TimelineGantt({ timeline, gaps, cadenas }) {
         </div>
         </div>{/* end min-width wrapper */}
         {tooltip && (
-          <div className="absolute top-20 bg-gray-950 border border-gray-600 rounded-lg p-3 shadow-2xl z-50 text-xs max-w-xs" style={{ left: `${Math.min(tooltip.x, 70)}%` }}>
+          <div className="absolute top-20 bg-white border border-slate-200 rounded-lg p-3 shadow-xl z-50 text-xs max-w-xs" style={{ left: `${Math.min(tooltip.x, 70)}%` }}>
             {tooltip.type === 'incap' ? (<>
               <p className="font-bold text-slate-900">{tooltip.item.serial}</p>
               <p className="text-slate-500">{tooltip.item.fecha_inicio} → {tooltip.item.fecha_fin} ({tooltip.item.dias}d)</p>
@@ -289,7 +289,7 @@ function IncapacidadesTable({ timeline, gaps, onExport }) {
           <FileText className="w-4 h-4 text-blue-600" /> Detalle ({(timeline||[]).length} incapacidades + {(gaps||[]).length} gaps)
         </h3>
         {onExport && (
-          <button onClick={onExport} className="flex items-center gap-1 px-3 py-1.5 bg-green-600/20 text-green-600 rounded-lg text-[10px] font-bold hover:bg-green-600/30">
+          <button onClick={onExport} className="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-[10px] font-bold hover:bg-green-200">
             <Download className="w-3 h-3" /> CSV
           </button>
         )}
@@ -311,11 +311,11 @@ function IncapacidadesTable({ timeline, gaps, onExport }) {
           <tbody className="divide-y divide-slate-200">
             {visible.map((item, i) => (
               item._type === 'gap' ? (
-                <tr key={`g${i}`} className="bg-red-950/30 hover:bg-red-900/40">
+                <tr key={`g${i}`} className="bg-red-50 hover:bg-red-100">
                   <td className="px-3 py-2" colSpan={8}>
                     <div className="flex items-center gap-2">
                       <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${
-                        item.corta_prorroga ? 'bg-red-500/30 text-red-700 ring-1 ring-red-500/50' : 'bg-yellow-500/20 text-amber-600'
+                        item.corta_prorroga ? 'bg-red-100 text-red-700 ring-1 ring-red-300' : 'bg-amber-100 text-amber-700'
                       }`}>{item.corta_prorroga ? '&#128308; CORTA PRÓRROGA' : '&#128993; HUECO'}</span>
                       <span className="text-red-700 font-bold">{item.dias} días sin cobertura</span>
                       <span className="text-slate-500">{item.fecha_inicio} → {item.fecha_fin}</span>
@@ -324,7 +324,7 @@ function IncapacidadesTable({ timeline, gaps, onExport }) {
                   </td>
                 </tr>
               ) : (
-                <tr key={`i${i}`} className="hover:bg-gray-800/50">
+                <tr key={`i${i}`} className="hover:bg-slate-50">
                   <td className="px-3 py-2"><span className="inline-flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: (COLORS[item.tipo] || COLORS.sin_tipo).bg }} />
                     <span className="text-slate-700 text-[10px]">{(COLORS[item.tipo] || COLORS.sin_tipo).label}</span>
@@ -347,7 +347,7 @@ function IncapacidadesTable({ timeline, gaps, onExport }) {
                   </td>
                   <td className="px-3 py-2">
                     {item.es_prorroga ? (
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-purple-500/20 text-violet-600 ring-1 ring-purple-500/30">SI</span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-violet-100 text-violet-700 ring-1 ring-violet-300">SI</span>
                     ) : (
                       <span className="text-slate-400 text-[10px]">NO</span>
                     )}
@@ -360,7 +360,7 @@ function IncapacidadesTable({ timeline, gaps, onExport }) {
       </div>
       {items.length > 20 && (
         <div className="px-4 py-2 border-t border-slate-200 text-center">
-          <button onClick={() => setShowAll(!showAll)} className="text-blue-600 text-xs font-bold hover:text-blue-300">
+          <button onClick={() => setShowAll(!showAll)} className="text-blue-600 text-xs font-bold hover:text-blue-700">
             {showAll ? 'Mostrar menos' : `Ver todos (${items.length})`}
           </button>
         </div>
@@ -388,7 +388,7 @@ function CadenasProrroga({ cadenas }) {
           const cri = cad.dias_acumulados >= 170;
           const ale = cad.dias_acumulados >= 150;
           return (
-            <div key={i} className={`border rounded-xl p-4 ${sup ? 'border-red-500/60 bg-red-950/20' : cri ? 'border-orange-500/60 bg-orange-950/10' : ale ? 'border-yellow-500/50 bg-yellow-950/10' : 'border-gray-700/60 bg-gray-800/30'}`}>
+            <div key={i} className={`border rounded-xl p-4 ${sup ? 'border-red-300 bg-red-50' : cri ? 'border-orange-300 bg-orange-50' : ale ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-slate-50'}`}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-900">Cadena #{cad.id_cadena} — {cad.total_incapacidades_cadena} incap.</span>
                 <span className={`text-xs font-black ${sup ? 'text-red-600' : cri ? 'text-orange-600' : ale ? 'text-amber-600' : 'text-green-600'}`}>{cad.dias_acumulados}d / 180d</span>
@@ -418,16 +418,16 @@ function AlertasPanel({ alertas, huecos }) {
   ];
   if (!items.length) return null;
   return (
-    <div className="bg-gray-900/80 border border-red-500/30 rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-red-500/20 bg-red-950/20">
+    <div className="bg-white border border-red-200 shadow-sm rounded-xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-red-200 bg-red-50">
         <h3 className="text-sm font-bold text-red-600 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Alertas ({items.length})</h3>
       </div>
       <div className="p-3 space-y-2 max-h-64 overflow-y-auto">
         {items.map((a, i) => (
           <div key={i} className={`flex items-start gap-2 p-2.5 rounded-lg border text-xs ${
-            a.severidad === 'critica' ? 'bg-red-950/30 border-red-500/30 text-red-700' :
-            a.severidad === 'alta' ? 'bg-orange-950/30 border-orange-500/30 text-orange-300' :
-            'bg-yellow-950/20 border-yellow-500/20 text-yellow-300'
+            a.severidad === 'critica' ? 'bg-red-50 border-red-200 text-red-700' :
+            a.severidad === 'alta' ? 'bg-orange-50 border-orange-200 text-orange-700' :
+            'bg-amber-50 border-amber-200 text-amber-700'
           }`}>
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <div>
@@ -453,9 +453,9 @@ function CategorySection({ catKey, cat, onSelectPerson }) {
   if (count === 0) return null;
 
   return (
-    <div className={`border rounded-xl overflow-hidden transition-all ${open ? `${meta.ringColor} ring-1` : 'border-gray-700/60'}`}>
+    <div className={`border rounded-xl overflow-hidden transition-all bg-white shadow-sm ${open ? `${meta.ringColor} ring-1` : 'border-slate-200'}`}>
       <button onClick={() => setOpen(!open)}
-        className="w-full px-4 py-3 flex items-center gap-3 bg-gray-900/80 hover:bg-gray-800/80 transition-colors text-left">
+        className="w-full px-4 py-3 flex items-center gap-3 bg-white hover:bg-slate-50 transition-colors text-left">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${cat.color}20` }}>
           <Icon className={`w-4 h-4 ${meta.iconColor}`} />
         </div>
@@ -486,7 +486,7 @@ function CategorySection({ catKey, cat, onSelectPerson }) {
             </thead>
             <tbody className="divide-y divide-slate-200">
               {cat.personas.map((p, i) => (
-                <tr key={i} className="hover:bg-gray-800/50 cursor-pointer group" onClick={() => onSelectPerson(p.cedula)}>
+                <tr key={i} className="hover:bg-slate-50 cursor-pointer group" onClick={() => onSelectPerson(p.cedula)}>
                   <td className="px-3 py-2 font-bold text-slate-900">{p.nombre}</td>
                   <td className="px-3 py-2 font-mono text-slate-500">{p.cedula}</td>
                   <td className="px-3 py-2 text-slate-500">{p.empresa}</td>
@@ -682,28 +682,28 @@ export default function PowerBIDashboard({ empresas = [] }) {
   return (
     <div className="space-y-4">
       {/* ═══════ HEADER ═══════ */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#1a1a2e] via-[#16213e] to-[#0f3460] border border-gray-700/60 rounded-2xl p-6">
+      <div className="relative overflow-hidden rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 60%, #A78BFA 100%)' }}>
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTAgMGg0MHY0MEgweiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
         <div className="relative">
           {/* Title + mode toggle */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/20">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shadow-lg">
                 <BarChart3 className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h2 className="text-2xl font-black text-white">Power BI Dashboard</h2>
-                <p className="text-blue-200/50 text-[10px]">Análisis interactivo de incapacidades, prórrogas y cobertura</p>
+                <p className="text-indigo-100/70 text-[10px]">Análisis interactivo de incapacidades, prórrogas y cobertura</p>
               </div>
             </div>
-            <div className="flex bg-gray-800/80 rounded-xl p-1 border border-gray-700/60">
+            <div className="flex bg-white/10 rounded-xl p-1 border border-white/20">
               <button onClick={() => { setVista('global'); setPersonData(null); }}
                 className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-                  vista === 'global' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-500 hover:text-white'
+                  vista === 'global' ? 'bg-white text-indigo-700 shadow-lg' : 'text-white/70 hover:text-white'
                 }`}><Users className="w-3.5 h-3.5" /> Vista Global</button>
               <button onClick={() => setVista('individual')}
                 className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-                  vista === 'individual' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-500 hover:text-white'
+                  vista === 'individual' ? 'bg-white text-indigo-700 shadow-lg' : 'text-white/70 hover:text-white'
                 }`}><User className="w-3.5 h-3.5" /> Individual</button>
             </div>
           </div>
@@ -718,26 +718,26 @@ export default function PowerBIDashboard({ empresas = [] }) {
                 placeholder={vista === 'global'
                   ? 'Cédulas separadas por coma (ej: 108504, 390175) o vacío para ver todos...'
                   : 'Buscar por cédula o nombre del empleado...'}
-                className="w-full pl-12 pr-10 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                className="w-full pl-12 pr-10 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
               {query && (
                 <button onClick={() => { setQuery(''); setSearchResults(null); setPersonData(null); }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"><X className="w-4 h-4" /></button>
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"><X className="w-4 h-4" /></button>
               )}
             </div>
             <select value={empresa} onChange={e => setEmpresa(e.target.value)}
-              className="px-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm min-w-[180px] focus:ring-2 focus:ring-blue-500">
+              className="px-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm min-w-[180px] focus:ring-2 focus:ring-indigo-500">
               <option value="all">Todas las empresas</option>
               {empresas.map((emp2, i) => <option key={i} value={emp2}>{emp2}</option>)}
             </select>
             <button onClick={handleMainSearch}
-              className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-slate-900 font-bold text-sm transition-colors shadow-lg shadow-blue-500/20 flex items-center gap-2">
+              className="px-6 py-3.5 bg-white hover:bg-indigo-50 rounded-xl text-indigo-700 font-bold text-sm transition-colors shadow-lg flex items-center gap-2">
               <Search className="w-4 h-4" />
               {vista === 'global' ? 'Analizar' : 'Buscar'}
             </button>
           </div>
 
           {vista === 'global' && (
-            <p className="text-[10px] text-blue-200/40 mt-2 flex items-center gap-1">
+            <p className="text-[10px] text-indigo-100/70 mt-2 flex items-center gap-1">
               <Filter className="w-3 h-3" />
               Escribe cédulas separadas por coma para filtrar personas específicas, o deja vacío y presiona &quot;Analizar&quot; para ver TODAS las personas.
             </p>
@@ -747,7 +747,7 @@ export default function PowerBIDashboard({ empresas = [] }) {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-900/30 border border-red-500/50 rounded-xl p-4 flex items-center gap-3">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
           <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
           <p className="text-red-700 text-sm">{error}</p>
           <button onClick={() => setError(null)} className="ml-auto text-red-500 hover:text-red-700"><X className="w-4 h-4" /></button>
@@ -855,7 +855,7 @@ export default function PowerBIDashboard({ empresas = [] }) {
               {/* Export */}
               <div className="flex justify-end">
                 <button onClick={exportGlobalCSV}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-green-600/20 text-green-600 rounded-lg text-xs font-bold hover:bg-green-600/30">
+                  className="flex items-center gap-2 px-5 py-2.5 bg-green-100 text-green-700 rounded-lg text-xs font-bold hover:bg-green-200">
                   <Download className="w-4 h-4" /> Exportar Análisis Global (CSV)
                 </button>
               </div>
@@ -865,16 +865,16 @@ export default function PowerBIDashboard({ empresas = [] }) {
           {/* Empty global */}
           {!globalData && !globalLoading && (
             <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-12 text-center">
-              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-2xl flex items-center justify-center mb-4">
-                <Users className="w-10 h-10 text-blue-600/60" />
+              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-indigo-100 to-violet-100 rounded-2xl flex items-center justify-center mb-4">
+                <Users className="w-10 h-10 text-indigo-600" />
               </div>
               <h3 className="text-lg font-bold text-slate-500">Vista Global — Todas las Personas</h3>
               <p className="text-slate-400 text-sm mt-2 max-w-lg mx-auto">
-                Presiona <strong className="text-blue-600">&quot;Analizar&quot;</strong> para cargar el análisis de prórroga y 180 días de todas las personas.
+                Presiona <strong className="text-indigo-600">&quot;Analizar&quot;</strong> para cargar el análisis de prórroga y 180 días de todas las personas.
                 También puedes escribir cédulas separadas por coma para analizar un grupo específico.
               </p>
               <button onClick={() => loadGlobal('')}
-                className="mt-4 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-slate-900 font-bold text-sm transition-colors shadow-lg shadow-blue-500/20 inline-flex items-center gap-2">
+                className="mt-4 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-white font-bold text-sm transition-colors shadow-lg shadow-indigo-500/20 inline-flex items-center gap-2">
                 <Users className="w-4 h-4" /> Cargar Todas las Personas
               </button>
             </div>
@@ -900,14 +900,14 @@ export default function PowerBIDashboard({ empresas = [] }) {
               </div>
             ) : (
               <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
-                <div className="px-4 py-2 border-b border-slate-200 bg-gray-800/50">
+                <div className="px-4 py-2 border-b border-slate-200 bg-slate-50">
                   <span className="text-[10px] text-slate-500 font-semibold">{searchResults.length} empleados — selecciona uno</span>
                 </div>
                 <div className="divide-y divide-slate-200 max-h-72 overflow-y-auto">
                   {searchResults.map((r, i) => (
                     <button key={i} onClick={() => loadPerson(r.cedula)}
-                      className="w-full px-4 py-3 flex items-center gap-4 hover:bg-blue-600/10 transition-colors text-left group">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-slate-900 font-bold text-sm flex-shrink-0">
+                      className="w-full px-4 py-3 flex items-center gap-4 hover:bg-indigo-50 transition-colors text-left group">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                         {(r.nombre || '?')[0]}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -937,13 +937,13 @@ export default function PowerBIDashboard({ empresas = [] }) {
           {personData && !personLoading && (
             <div className="space-y-4">
               {/* Profile */}
-              <div className="bg-gradient-to-r from-gray-900 via-gray-800/80 to-gray-900 border border-gray-700/60 rounded-xl p-5">
+              <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-5">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-black shadow-xl shadow-blue-500/20">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-2xl font-black shadow-lg">
                     {emp ? (emp.nombre || '?')[0] : '?'}
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-xl font-black text-white">{emp ? emp.nombre : ''}</h2>
+                    <h2 className="text-xl font-black text-slate-900">{emp ? emp.nombre : ''}</h2>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 mt-1">
                       <span className="font-mono">CC {emp ? emp.cedula : ''}</span>
                       {emp && emp.empresa && <span>&#127970; {emp.empresa}</span>}
@@ -953,11 +953,11 @@ export default function PowerBIDashboard({ empresas = [] }) {
                     </div>
                   </div>
                   <button onClick={exportCSV}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600/20 text-green-600 rounded-lg text-xs font-bold hover:bg-green-600/30">
+                    className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg text-xs font-bold hover:bg-green-200">
                     <Download className="w-3.5 h-3.5" /> CSV
                   </button>
                   <button onClick={() => { setPersonData(null); setQuery(''); if (searchRef.current) searchRef.current.focus(); }}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-700/50 text-slate-500 rounded-lg text-xs font-bold hover:bg-gray-600/50">
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-200">
                     <X className="w-3.5 h-3.5" /> Otra persona
                   </button>
                 </div>
@@ -1016,8 +1016,8 @@ export default function PowerBIDashboard({ empresas = [] }) {
           {/* Empty individual */}
           {!personData && !searchResults && !searchLoading && !personLoading && (
             <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-12 text-center">
-              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-2xl flex items-center justify-center mb-4">
-                <User className="w-10 h-10 text-blue-600/60" />
+              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-indigo-100 to-violet-100 rounded-2xl flex items-center justify-center mb-4">
+                <User className="w-10 h-10 text-indigo-600" />
               </div>
               <h3 className="text-lg font-bold text-slate-500">Análisis Individual</h3>
               <p className="text-slate-400 text-sm mt-2 max-w-md mx-auto">
@@ -1026,8 +1026,8 @@ export default function PowerBIDashboard({ empresas = [] }) {
               </p>
               <div className="flex items-center justify-center gap-6 mt-6 text-[10px] text-slate-400">
                 <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> Timeline</span>
-                <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3 text-red-500/50" /> Gaps en rojo</span>
-                <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-purple-500/50" /> Prórrogas</span>
+                <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3 text-red-500" /> Gaps en rojo</span>
+                <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-violet-500" /> Prórrogas</span>
                 <span className="flex items-center gap-1"><Download className="w-3 h-3" /> CSV</span>
               </div>
             </div>
