@@ -107,6 +107,7 @@ function DocumentViewer({ casoSeleccionado, onClose, onRecargarCasos, casosLista
   const [zoom, setZoom] = useState(100);
   const [pages, setPages] = useState([]);
   const [loadingPdf, setLoadingPdf] = useState(true);
+  const [previewInstant, setPreviewInstant] = useState(null); // ⚡ imagen instantánea 1ª página mientras baja el PDF
   const [reloadToken, setReloadToken] = useState(0); // fuerza recarga del PDF tras guardar/editar
   const [accionSeleccionada, setAccionSeleccionada] = useState(null);
   const [checksSeleccionados, setChecksSeleccionados] = useState([]);
@@ -1243,7 +1244,26 @@ useEffect(() => {
     
     const cargarPDFSmart = async () => {
       setLoadingPdf(true);
-      
+      setPreviewInstant(null);
+
+      // ⚡ PREVIEW INSTANTÁNEO: imagen liviana de la 1ª página (~80 KB) que se
+      // muestra de inmediato mientras el PDF completo baja por debajo.
+      (async () => {
+        try {
+          const resp = await fetch(
+            `${API_BASE_URL}/validador/casos/${encodeURIComponent(casoSeleccionado.serial)}/preview`,
+            { headers: getHeaders(), signal: abortController.signal }
+          );
+          if (resp.ok) {
+            const blob = await resp.blob();
+            setPreviewInstant((prev) => {
+              if (prev) URL.revokeObjectURL(prev);
+              return URL.createObjectURL(blob);
+            });
+          }
+        } catch (_) { /* el preview es opcional — si falla, queda el spinner */ }
+      })();
+
       try {
         await loadPDFSmart(casoSeleccionado.serial, {
           signal: abortController.signal,
@@ -1903,11 +1923,24 @@ return (
           style={{ scrollBehavior: 'smooth' }}
         >
           {loadingPdf ? (
-            <div className="text-center py-20">
-              <RefreshCw className="w-12 h-12 animate-spin mx-auto text-indigo-600 mb-4" />
-              <p className="text-slate-700 text-lg">Cargando documento PDF...</p>
-              <p className="text-xs text-slate-500 mt-2">Las páginas aparecerán en cascada con scroll</p>
-            </div>
+            previewInstant ? (
+              /* ⚡ Preview instantáneo de la 1ª página mientras baja el PDF completo */
+              <div className="max-w-4xl mx-auto pb-40">
+                <div className="flex items-center justify-center gap-2 mb-3 text-indigo-600 text-sm font-medium">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Cargando documento completo… (vista previa instantánea)
+                </div>
+                <div className="bg-white shadow-2xl">
+                  <img src={previewInstant} alt="Vista previa del soporte" className="w-full h-auto" />
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-20">
+                <RefreshCw className="w-12 h-12 animate-spin mx-auto text-indigo-600 mb-4" />
+                <p className="text-slate-700 text-lg">Cargando documento PDF...</p>
+                <p className="text-xs text-slate-500 mt-2">Las páginas aparecerán en cascada con scroll</p>
+              </div>
+            )
           ) : (
             <div className="max-w-4xl mx-auto space-y-8 pb-40">
               {pages.map((page, idx) => (
