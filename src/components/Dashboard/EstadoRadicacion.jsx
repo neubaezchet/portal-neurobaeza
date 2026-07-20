@@ -92,13 +92,14 @@ function fmtLarga(iso) {
 }
 
 function getObservacion(item) {
+  // Observación del portal (Browserbase la reporta tanto en éxito como en rechazo)
+  if (item.estado === 'exitosa')    return item.observacion || '';
   if (item.fallo_motivo) return item.fallo_motivo;
   if (item.ultimo_error) return item.ultimo_error;
-  if (item.estado === 'exitosa')    return '';
   if (item.estado === 'procesando') return 'Radicación en curso';
   if (item.estado === 'pendiente')  return 'En espera de ser procesada';
   if (item.estado === 'fallo_temporal') return `Programado reintento ${item.intentos + 1}`;
-  return '';
+  return item.observacion || '';
 }
 
 // ─── Componente ───────────────────────────────────────────────────────────────
@@ -183,7 +184,7 @@ export default function EstadoRadicacion() {
         'Días':             dias,
         'Tipo incapacidad': getTipo(item),
         'N° Radicado':      item.radicado || '',
-        'Observación':      item.fallo_motivo || item.ultimo_error || '',
+        'Observación':      getObservacion(item),
         'Fecha radicación': fmtCorta(item.procesado_en),
         'Estado':           conf.label || item.estado,
       };
