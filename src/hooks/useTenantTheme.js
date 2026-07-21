@@ -78,15 +78,26 @@ export async function applyPublicBranding(portal = 'portal') {
 /**
  * Guarda una paleta desde la tuerquita ⚙️.
  * portal: 'todos' | 'admin' | 'portal' | 'repogemin'
+ * quitar_override: true → ese portal (o todos) vuelve al predeterminado de fábrica
  */
-export async function updateMyTheme({ paleta_id, paleta_colores, portal = 'todos' }) {
+export async function updateMyTheme({ paleta_id, paleta_colores, portal = 'todos', quitar_override = false }) {
   const token = localStorage.getItem('portal_token') || '';
   const res = await fetch(`${API_BASE_URL}/tenants/me/theme`, {
     method: 'PUT',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ paleta_id, paleta_colores, portal }),
+    body: JSON.stringify({ paleta_id, paleta_colores, portal, quitar_override }),
   });
   if (!res.ok) throw new Error('No se pudo guardar la paleta');
+  return res.json();
+}
+
+/** Trae el theme completo actual (paleta general + overrides por portal) para precargar la tuerquita. */
+export async function getMyTheme() {
+  const token = localStorage.getItem('portal_token') || '';
+  const res = await fetch(`${API_BASE_URL}/tenants/me/theme`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('No se pudo cargar la paleta actual');
   return res.json();
 }
 
